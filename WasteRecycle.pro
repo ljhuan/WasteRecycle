@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += sql
+RC_ICONS = gold_dragon.ico
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
