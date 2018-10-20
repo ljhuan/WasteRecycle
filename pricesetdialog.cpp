@@ -89,4 +89,5 @@ void PriceSetDialog::on_btn_priceSet_clicked()
     prices.m_price4 = ui->le_storePrice_D->text();
     oper->sqlPriceSet(prices);
     this->close();
+    this->done(0);
 }

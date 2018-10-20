@@ -28,12 +28,14 @@ SOURCES += \
         main.cpp \
         wasterecycle.cpp \
     pricesetdialog.cpp \
-    sqloper.cpp
+    sqloper.cpp \
+    utilitytools.cpp
 
 HEADERS += \
         wasterecycle.h \
     pricesetdialog.h \
-    sqloper.h
+    sqloper.h \
+    utilitytools.h
 
 FORMS += \
         wasterecycle.ui \

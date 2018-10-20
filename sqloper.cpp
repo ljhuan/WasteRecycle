@@ -8,6 +8,7 @@
 #include <QSqlDriver>
 #include <QSqlResult>
 #include <QSqlError>
+#include <utilitytools.h>
 
 SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
 {
@@ -134,8 +135,9 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
     qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while(query.next()) {
-        QString result = query.value("id").toString() + "     " + query.value("time").toString() + "     " + query.value("rWeight").toString() +
-                "    " + query.value("vWeight").toString() + "     " + query.value("nWeight").toString() + "    " + query.value("unitPrice").toString() + "     " +
+        QString result = query.value("id").toString() + UtilityTools::holdPlaces(5) + query.value("time").toString() + UtilityTools::holdPlaces(5) +
+                query.value("rWeight").toString() + UtilityTools::holdPlaces(15) + query.value("vWeight").toString() + UtilityTools::holdPlaces(15) +
+                query.value("nWeight").toString() + UtilityTools::holdPlaces(15) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(15) +
                 query.value("price").toString();
         qDebug() << result;
         results.push_back(result);

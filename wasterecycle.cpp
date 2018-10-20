@@ -10,6 +10,7 @@
 #include <QDateTime>
 #include <QTextCodec>
 #include <QMessageBox>
+#include <utilitytools.h>
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -22,6 +23,14 @@ QString towDecimalPlaces(QString data) {
     }
     return head + '.' + tail;
 }
+
+/*QString holdPlaces(int num) {
+    QString places = "";
+    for (int i = 0; i < num; ++i) {
+        places += " ";
+    }
+    return places;
+}*/
 
 WasteRecycle::WasteRecycle(QWidget *parent) :
     QMainWindow(parent),
@@ -51,7 +60,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     for (auto e : records) {
         ui->lw_history->addItem(e);
         QString index = e.split(" ").at(0);
-        qDebug() << "index:" <<  index;
         toBeUseIndex = index.toInt() + 1;
     }
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
@@ -67,7 +75,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->vslider_percent->setValue(50);
     // int pos = ui->vslider_percent->value();
     // ui->lb_percent->setText(QString("%1").arg(pos));
-    ui->lb_percent->setText(QString("%1").arg(2*fLevel2));
+    ui->lb_percent->setText(QString("%1").arg(fLevel2));
+    connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
 }
 
 WasteRecycle::~WasteRecycle()
@@ -101,7 +110,7 @@ void WasteRecycle::updatePrice()
 void WasteRecycle::finalPrice(float level)
 {
     ui->lb_Price->clear();
-    ui->lb_Price->setText(towDecimalPlaces(QString::fromStdString(std::to_string( priceCalculate(level)))));
+    ui->lb_Price->setText(towDecimalPlaces(QString("%1").arg(priceCalculate(level))));
     QString qstrCurrIndex = ui->lb_CurrNum->text();
     int iCurrIndex = qstrCurrIndex.toInt();
 
@@ -129,9 +138,8 @@ void WasteRecycle::writeData(float level)
     info.m_vWeight = ui->le_VehicleWeigh->text();
     info.m_nWeight = ui->lb_NetWeight->text();
     info.m_price = ui->lb_Price->text();
-    info.m_unitPrice = towDecimalPlaces(QString::fromStdString(std::to_string(level*2)));
-    qDebug() << "level:" << level;
-    qDebug() << "unit price:" << info.m_unitPrice;
+    info.m_unitPrice =  towDecimalPlaces(QString("%1").arg(level));
+
     QDateTime qdtTime =QDateTime::currentDateTime();
     info.m_time = qdtTime.toString("yyyy-MM-dd hh:mm:ss");
 
@@ -144,8 +152,10 @@ void WasteRecycle::updateListWidget(float level)
 
     QDateTime qtime = QDateTime::currentDateTime();
     QString time = qtime.toString("yyyy-MM-dd hh:mm:ss");
-    QString record = ui->lb_CurrNum->text() + "     " + time + "     " + ui->le_RoughWeigh->text() + "    " + ui->le_VehicleWeigh->text() + "     " +
-            ui->lb_NetWeight->text() + "    " + towDecimalPlaces(QString::fromStdString(std::to_string(level*2))) + "     " + ui->lb_Price->text();
+    QString record = ui->lb_CurrNum->text() + UtilityTools::holdPlaces(5) + time + UtilityTools::holdPlaces(5) +
+            ui->le_RoughWeigh->text() + UtilityTools::holdPlaces(15) + ui->le_VehicleWeigh->text() + UtilityTools::holdPlaces(15) +
+            ui->lb_NetWeight->text() + UtilityTools::holdPlaces(15) + towDecimalPlaces(QString("%1").arg(level)) + UtilityTools::holdPlaces(15) +
+            ui->lb_Price->text();
     ui->lw_history->addItem(record);
 }
 
@@ -166,10 +176,12 @@ void WasteRecycle::on_btn_Level1_clicked()
         return;
     }
     updatePrice();
-    finalPrice(fLevel1);
-    writeData(fLevel1);
-    updateListWidget(fLevel1);
-    ui->lb_unitPrice->setText(QString("%1").arg(fLevel1*2));
+    QString ePrice = ui->le_ExtraPrice->text();
+    float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
+    finalPrice(level);
+    writeData(level);
+    updateListWidget(level);
+    ui->lb_unitPrice->setText(QString("%1").arg(level));
     ui->le_RoughWeigh->setDisabled(true);
     ui->le_VehicleWeigh->setDisabled(true);
 }
@@ -198,7 +210,7 @@ void WasteRecycle::on_btn_Level3_clicked()
     finalPrice(fLevel3);
     writeData(fLevel3);
     updateListWidget(fLevel3);
-    ui->lb_unitPrice->setText(QString("%1").arg(fLevel3*2));
+    ui->lb_unitPrice->setText(QString("%1").arg(fLevel3));
     ui->le_RoughWeigh->setDisabled(true);
     ui->le_VehicleWeigh->setDisabled(true);
 }
@@ -213,7 +225,7 @@ void WasteRecycle::on_btn_Level4_clicked()
     finalPrice(fLevel4);
     writeData(fLevel4);
     updateListWidget(fLevel4);
-    ui->lb_unitPrice->setText(QString("%1").arg(fLevel4*2));
+    ui->lb_unitPrice->setText(QString("%1").arg(fLevel4));
     ui->le_RoughWeigh->setDisabled(true);
     ui->le_VehicleWeigh->setDisabled(true);
 }
@@ -315,7 +327,8 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
     float fRw = strRw.toFloat();
     float fVw = strVw.toFloat();
 
-    ui->lb_NetWeight->setText(towDecimalPlaces(QString::fromStdString(std::to_string(fRw-fVw))));
+    // ui->lb_NetWeight->setText(towDecimalPlaces(QString::fromStdString(std::to_string((fRw-fVw)*2))));
+    ui->lb_NetWeight->setText(towDecimalPlaces(QString("%1").arg((fRw - fVw)*2)));
 }
 
 void WasteRecycle::on_btn_modify_clicked()
@@ -335,9 +348,10 @@ void WasteRecycle::on_btn_modify_clicked()
 
 void WasteRecycle::on_vslider_percent_valueChanged(int value)
 {
-    int pos = ui->vslider_percent->value();
     updatePrice();
-    float level = (fLevel1*pos + fLevel3*(100 - pos))*2 / 100;
+    int pos = ui->vslider_percent->value();
+    // float level = (fLevel1*pos + fLevel3*(100 - pos)) / 100;
+    float level = pos > 50 ? (fLevel2 + (fLevel1 - fLevel2)*(pos - 50)/50) : (fLevel2 - (fLevel2 - fLevel3)*(50 - pos)/50);
     QString uPrice = QString("%1").arg(level);
     ui->lb_percent->setText(towDecimalPlaces(uPrice));
     // ui->lb_unitPrice->setText(towDecimalPlaces(uPrice));

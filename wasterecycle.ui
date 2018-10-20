@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>934</width>
-    <height>667</height>
+    <width>1043</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -93,7 +93,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>71</x>
+      <x>91</x>
       <y>133</y>
       <width>81</width>
       <height>28</height>
@@ -130,7 +130,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>11</x>
+      <x>31</x>
       <y>133</y>
       <width>57</width>
       <height>23</height>
@@ -163,7 +163,7 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>13</x>
+      <x>33</x>
       <y>188</y>
       <width>57</width>
       <height>23</height>
@@ -196,7 +196,7 @@
    <widget class="QLineEdit" name="le_VehicleWeigh">
     <property name="geometry">
      <rect>
-      <x>70</x>
+      <x>90</x>
       <y>188</y>
       <width>81</width>
       <height>28</height>
@@ -236,9 +236,9 @@
    <widget class="QPushButton" name="btn_Level1">
     <property name="geometry">
      <rect>
-      <x>7</x>
-      <y>258</y>
-      <width>75</width>
+      <x>30</x>
+      <y>280</y>
+      <width>81</width>
       <height>71</height>
      </rect>
     </property>
@@ -264,9 +264,9 @@
    <widget class="QPushButton" name="btn_Level2">
     <property name="geometry">
      <rect>
-      <x>88</x>
-      <y>258</y>
-      <width>75</width>
+      <x>120</x>
+      <y>280</y>
+      <width>81</width>
       <height>71</height>
      </rect>
     </property>
@@ -292,8 +292,8 @@
    <widget class="QPushButton" name="btn_Level3">
     <property name="geometry">
      <rect>
-      <x>173</x>
-      <y>258</y>
+      <x>213</x>
+      <y>280</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -320,8 +320,8 @@
    <widget class="QPushButton" name="btn_Level4">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>258</y>
+      <x>300</x>
+      <y>280</y>
       <width>91</width>
       <height>71</height>
      </rect>
@@ -348,7 +348,7 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>158</x>
+      <x>178</x>
       <y>133</y>
       <width>38</width>
       <height>23</height>
@@ -379,7 +379,7 @@
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>160</x>
+      <x>180</x>
       <y>188</y>
       <width>38</width>
       <height>23</height>
@@ -410,7 +410,7 @@
    <widget class="QLabel" name="label_5">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>30</x>
       <y>10</y>
       <width>171</width>
       <height>46</height>
@@ -441,7 +441,7 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>11</x>
+      <x>31</x>
       <y>83</y>
       <width>95</width>
       <height>22</height>
@@ -460,7 +460,7 @@
    <widget class="QComboBox" name="cbb_NumSwitch">
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>300</x>
       <y>90</y>
       <width>69</width>
       <height>20</height>
@@ -482,9 +482,9 @@
    <widget class="QPushButton" name="btn_Next">
     <property name="geometry">
      <rect>
-      <x>60</x>
+      <x>30</x>
       <y>530</y>
-      <width>221</width>
+      <width>361</width>
       <height>51</height>
      </rect>
     </property>
@@ -521,7 +521,7 @@
    <widget class="QLabel" name="label_7">
     <property name="geometry">
      <rect>
-      <x>190</x>
+      <x>210</x>
       <y>90</y>
       <width>91</width>
       <height>20</height>
@@ -540,7 +540,7 @@
    <widget class="QLabel" name="lb_CurrNum">
     <property name="geometry">
      <rect>
-      <x>103</x>
+      <x>123</x>
       <y>82</y>
       <width>61</width>
       <height>21</height>
@@ -561,7 +561,7 @@
    <widget class="QLabel" name="lb_Price">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>160</x>
       <y>460</y>
       <width>81</width>
       <height>31</height>
@@ -583,7 +583,7 @@
    <widget class="QLabel" name="label_9">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>100</x>
       <y>460</y>
       <width>51</width>
       <height>31</height>
@@ -604,7 +604,7 @@
    <widget class="QLabel" name="label_8">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>250</x>
       <y>460</y>
       <width>21</width>
       <height>31</height>
@@ -625,7 +625,7 @@
    <widget class="QPushButton" name="btn_PriceSet">
     <property name="geometry">
      <rect>
-      <x>280</x>
+      <x>300</x>
       <y>20</y>
       <width>71</width>
       <height>30</height>
@@ -662,7 +662,7 @@
    <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>100</x>
       <y>410</y>
       <width>51</width>
       <height>31</height>
@@ -683,9 +683,9 @@
    <widget class="QLabel" name="label_12">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>250</x>
       <y>410</y>
-      <width>41</width>
+      <width>21</width>
       <height>31</height>
      </rect>
     </property>
@@ -698,13 +698,13 @@
      </font>
     </property>
     <property name="text">
-     <string>公斤</string>
+     <string>斤</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_NetWeight">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>160</x>
       <y>410</y>
       <width>81</width>
       <height>31</height>
@@ -728,7 +728,7 @@
      <rect>
       <x>505</x>
       <y>60</y>
-      <width>401</width>
+      <width>501</width>
       <height>541</height>
      </rect>
     </property>
@@ -745,7 +745,7 @@
      <rect>
       <x>510</x>
       <y>40</y>
-      <width>391</width>
+      <width>491</width>
       <height>16</height>
      </rect>
     </property>
@@ -758,17 +758,105 @@
      </font>
     </property>
     <property name="text">
-     <string>号码   时间                       毛重 车重  净重     单价       总价</string>
+     <string>号码   时间                     毛重(公斤) 车重(公斤)  净重(斤)     单价(元/斤)       总价</string>
     </property>
    </widget>
    <widget class="QSlider" name="vslider_percent">
     <property name="geometry">
      <rect>
-      <x>400</x>
+      <x>420</x>
       <y>70</y>
-      <width>41</width>
+      <width>51</width>
       <height>401</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QSlider::groove:horizontal {
+border: 1px solid #4A708B;
+background: #C0C0C0;
+height: 5px;
+border-radius: 1px;
+padding-left:-1px;
+padding-right:-1px;
+}
+
+QSlider::sub-page:horizontal {
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+    stop:0 #B1B1B1, stop:1 #c4c4c4);
+
+background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1,
+    stop: 0 #5DCCFF, stop: 1 #1874CD);
+
+border: 1px solid #4A708B;
+
+height: 10px;
+
+border-radius: 2px;
+
+}
+
+ 
+
+QSlider::add-page:horizontal {
+background: #575757;
+border: 0px solid #777;
+height: 10px;
+border-radius: 2px;
+}
+
+ 
+
+QSlider::handle:horizontal 
+{
+    background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, 
+    stop:0.6 #45ADED, stop:0.778409 rgba(255, 255, 255, 255));
+    width: 11px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+    border-radius: 5px;
+}
+
+ 
+
+QSlider::handle:horizontal:hover {
+    background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0.6 #2A8BDA, 
+    stop:0.778409 rgba(255, 255, 255, 255));
+    width: 11px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+    border-radius: 5px;
+}
+
+ 
+
+QSlider::sub-page:horizontal:disabled {
+background: #00009C;
+border-color: #999;
+}
+
+ 
+
+QSlider::add-page:horizontal:disabled {
+background: #eee;
+border-color: #999;
+}
+
+ 
+
+QSlider::handle:horizontal:disabled {
+background: #eee;
+border: 1px solid #aaa;
+border-radius: 4px;
+}</string>
+    </property>
+    <property name="value">
+     <number>0</number>
     </property>
     <property name="orientation">
      <enum>Qt::Vertical</enum>
@@ -777,10 +865,10 @@
    <widget class="QPushButton" name="btn_modify">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>140</y>
+      <x>260</x>
+      <y>130</y>
       <width>111</width>
-      <height>71</height>
+      <height>81</height>
      </rect>
     </property>
     <property name="font">
@@ -798,7 +886,7 @@
    <widget class="QLabel" name="lb_percent">
     <property name="geometry">
      <rect>
-      <x>390</x>
+      <x>410</x>
       <y>482</y>
       <width>61</width>
       <height>20</height>
@@ -822,9 +910,9 @@
    <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>240</x>
       <y>360</y>
-      <width>71</width>
+      <width>51</width>
       <height>31</height>
      </rect>
     </property>
@@ -837,13 +925,13 @@
      </font>
     </property>
     <property name="text">
-     <string>元/公斤</string>
+     <string>元/斤</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_15">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>100</x>
       <y>360</y>
       <width>51</width>
       <height>31</height>
@@ -864,7 +952,7 @@
    <widget class="QLabel" name="lb_unitPrice">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>160</x>
       <y>360</y>
       <width>81</width>
       <height>31</height>
@@ -883,13 +971,29 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLineEdit" name="le_ExtraPrice">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>249</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>934</width>
+     <width>1043</width>
      <height>23</height>
     </rect>
    </property>
