@@ -46,9 +46,6 @@ public:
     // 数据插入（数据插入前判断是否新的一天，若是新的一天则需要新建数据表， 用record_日期为表格名）
     void sqlInsert(RecordInfo info);
 
-    // 判断该辆车是否已被写入
-    bool sqlQueryIsExist(int index);
-
     // 数据重写
     void sqlDeleteById(QString index);
 
@@ -60,6 +57,18 @@ public:
 
     // 价格设置
     void sqlPriceSet(PriceInfo & priceInfo);
+
+    // 正在卸货的车辆数据写入卸货表
+    void sqlInsertUnloading(QString idx, QString rWeight);
+
+    // 将已结算的车辆从正在卸货车辆的表中删除
+    void sqlDeleteUnloadingByIdx(QString idx);
+
+    // 判断该辆车是否已被写入
+    bool sqlQueryUnloadingIdxIsExist(QString idx, QString tableName);
+
+    // 查询正在卸货的车辆
+    std::list<QString> sqlQueryUnloadingByDate(QString date);
 
 private:
     QSqlDatabase* pDb;

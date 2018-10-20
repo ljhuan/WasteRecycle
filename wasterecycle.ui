@@ -562,7 +562,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>460</y>
+      <y>470</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -584,7 +584,7 @@
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>460</y>
+      <y>470</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -605,7 +605,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>460</y>
+      <y>470</y>
       <width>21</width>
       <height>31</height>
      </rect>
@@ -663,7 +663,7 @@
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>410</y>
+      <y>420</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -684,7 +684,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>410</y>
+      <y>420</y>
       <width>21</width>
       <height>31</height>
      </rect>
@@ -705,7 +705,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>410</y>
+      <y>420</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -724,6 +724,9 @@
     </property>
    </widget>
    <widget class="QListWidget" name="lw_history">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>505</x>
@@ -874,13 +877,13 @@ border-radius: 4px;
     <property name="font">
      <font>
       <family>Arial</family>
-      <pointsize>14</pointsize>
+      <pointsize>20</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>
     </property>
     <property name="text">
-     <string>重量修改</string>
+     <string>修改</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_percent">
@@ -911,7 +914,7 @@ border-radius: 4px;
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>360</y>
+      <y>370</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -932,7 +935,7 @@ border-radius: 4px;
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>360</y>
+      <y>370</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -953,7 +956,7 @@ border-radius: 4px;
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>360</y>
+      <y>370</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -971,7 +974,10 @@ border-radius: 4px;
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="le_ExtraPrice">
+   <widget class="QLineEdit" name="le_Level1ExtraPrice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>30</x>
@@ -982,6 +988,22 @@ border-radius: 4px;
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_Level4ExtraPrice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>250</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

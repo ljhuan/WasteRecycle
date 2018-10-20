@@ -31,10 +31,9 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
             pDb->exec("create table configure(id INTEGER PRIMARY KEY autoincrement, date varchar(50), fPrice_1 varchar(50), fPrice_2 varchar(50), fPrice_3 varchar(50),"
                       "price_1 varchar(50), price_2 varchar(50), price_3 varchar(50), price_4 varchar(50));");
             QSqlQuery query;
-            query.prepare("insert into configure(date, fPrice_1, fPrice_2, fPrice_3, price_1, price_2, price_3, price_4) values(:date,:fPrice_1, :fPrice_2, :fPrice_3,:price_1,:price_2,:price_3,:price_4);");
-
             QDateTime date = QDateTime::currentDateTime();
             QString today = date.toString("yyyy-MM-dd hh:mm:ss");
+            query.prepare("insert into configure(date, fPrice_1, fPrice_2, fPrice_3, price_1, price_2, price_3, price_4) values(:date,:fPrice_1, :fPrice_2, :fPrice_3,:price_1,:price_2,:price_3,:price_4);");
             query.bindValue(":date", today);
             query.bindValue(":fPrice_1", "2350");
             query.bindValue(":fPrice_2", "0");
@@ -44,6 +43,12 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
             query.bindValue(":price_3", "1.0");
             query.bindValue(":price_4", "0.9");
             query.exec();
+            query.clear();
+
+            // 创建正在卸货的表
+            pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), idx INTEGER, rWeight varchar(50));");
+            // QString sqlInsertInfo = "insert into unloading(date, index, rWeight) values(" + today + ", " +
+
         } else {
             qDebug() << "db is exist";
         }
@@ -89,17 +94,82 @@ void SqlOper::sqlInsert(RecordInfo info)
     pDb->close();
 }
 
-bool SqlOper::sqlQueryIsExist(int index)
+void SqlOper::sqlInsertUnloading(QString idx, QString rWeight)
 {
     if(!pDb->open()) {
+        qDebug() << "sqlInsertUnloading db open failed";
+        return;
+    }
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy-MM-dd");
+
+    QSqlQuery query(*pDb);
+    if (sqlQueryUnloadingIdxIsExist(idx, "unloading")) {
+        QString sqlDeleteByIdx = "delete from unloading where idx=" + idx + ";";
+        query.exec(sqlDeleteByIdx);
+        query.clear();
+        qDebug() << sqlDeleteByIdx;
+    }
+    QString sqlInsert = "insert into unloading(date, idx, rWeight) values('" + today + "', " + idx + ", '" + rWeight + "');";
+    query.exec(sqlInsert);
+    qDebug() << sqlInsert;
+    pDb->close();
+}
+
+void SqlOper::sqlDeleteUnloadingByIdx(QString idx)
+{
+    if(!pDb->open()) {
+        qDebug() << "sqlDeleteUnloadingByIdx db open failed";
+        return;
+    }
+
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy-MM-dd");
+    QString sqlDel = "delete from unloading where date='" + today + "' and idx=" + idx + ";";
+    qDebug() << sqlDel;
+    QSqlQuery query(*pDb);
+    query.exec(sqlDel);
+    pDb->close();
+}
+
+bool SqlOper::sqlQueryUnloadingIdxIsExist(QString idx, QString tableName)
+{
+    /*if(!pDb->open()) {
         qDebug() << "sqlQueryIsExist db open failed!";
         return false;
-    }
+    }*/
     qDebug() << "sqlQueryIsExist db open success";
     QSqlQuery query(*pDb);
-    // QString sqlQuery = "select"
-    pDb->close();
-    return true;
+    QString sqlQuery = "select * from " + tableName + " where idx = " + idx + ";";
+    query.exec(sqlQuery);
+    while (query.next()) {
+        // pDb->close();
+        return true;
+    }
+    // pDb->close();
+    return false;
+}
+
+std::list<QString> SqlOper::sqlQueryUnloadingByDate(QString date)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "sqlQueryUnloadingByDate db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+
+    date.replace("_", "-");
+    QSqlQuery query(*pDb);
+    QString sqlQuery = "select * from unloading where date = '" + date + "';";
+    qDebug() << sqlQuery;
+    query.exec(sqlQuery);
+    while(query.next()) {
+        QString result = query.value("idx").toString() + " " + query.value("rWeight").toString();
+        qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
 }
 
 void SqlOper::sqlDeleteById(QString index)

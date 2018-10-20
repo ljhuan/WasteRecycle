@@ -17,7 +17,9 @@ QString towDecimalPlaces(QString data) {
     QString tail;
     if (data.split('.').size() > 1) {
         tail = data.split('.').at(1);
-        tail.resize(2);
+        if(tail.length() > 2) {
+            tail.resize(2);
+        }
     } else {
         tail = "00";
     }
@@ -51,7 +53,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 
     QDateTime date = QDateTime::currentDateTime();
     QString today = date.toString("yyyy_MM_dd");
-    std::list<QString> records;
+    std::list<QString> records, unloadings;
     records = oper->sqlQueryByDate(today);
     qDebug() << "records size:" <<  records.size();
     // QTextCodec::setCodecForLocale(QTextCodec::codecForName("GB2312"));
@@ -60,8 +62,26 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     for (auto e : records) {
         ui->lw_history->addItem(e);
         QString index = e.split(" ").at(0);
-        toBeUseIndex = index.toInt() + 1;
+        if (index.toInt() >= toBeUseIndex) {
+            toBeUseIndex = index.toInt() + 1;
+        }
     }
+
+    unloadings = oper->sqlQueryUnloadingByDate(today);
+    for (auto e : unloadings) {
+        QString idx = e.split(" ").at(0);
+        QString rW = e.split(" ").at(1);
+        ClientData data;
+        data.m_num = idx.toInt();
+        data.m_qstrRw = rW;
+        unloadingClientMap[data.m_num] = data;
+        ui->cbb_NumSwitch->addItem(idx);
+        // ui->le_RoughWeigh->setText(rW);
+        if (idx.toInt() >= toBeUseIndex) {
+            toBeUseIndex = idx.toInt() + 1;
+        }
+    }
+
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
     // ui->cbb_NumSwitch->setCurrentText(QString::fromStdString(std::to_string(currentIndex)));
 //    for(auto e : unloadingClientList)
@@ -69,7 +89,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 //        ui->cbb_CurrentNum->addItem(QString::fromStdString(std::to_string(e.m_num)));
 //    }
 
-    // 增加一个定时器，用于每日索引值归0
     ui->vslider_percent->setMaximum(100);
     ui->vslider_percent->setMinimum(0);
     ui->vslider_percent->setValue(50);
@@ -168,6 +187,14 @@ bool WasteRecycle::check()
     return true;
 }
 
+void WasteRecycle::setTextEnabled(bool bValue)
+{
+    ui->le_RoughWeigh->setEnabled(bValue);
+    ui->le_VehicleWeigh->setEnabled(bValue);
+    ui->le_Level1ExtraPrice->setEnabled(bValue);
+    ui->le_Level4ExtraPrice->setEnabled(bValue);
+}
+
 
 
 void WasteRecycle::on_btn_Level1_clicked()
@@ -176,14 +203,16 @@ void WasteRecycle::on_btn_Level1_clicked()
         return;
     }
     updatePrice();
-    QString ePrice = ui->le_ExtraPrice->text();
+    QString ePrice = ui->le_Level1ExtraPrice->text();
     float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
     finalPrice(level);
     writeData(level);
     updateListWidget(level);
+    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
-    ui->le_RoughWeigh->setDisabled(true);
-    ui->le_VehicleWeigh->setDisabled(true);
+    // ui->le_RoughWeigh->setDisabled(true);
+    // ui->le_VehicleWeigh->setDisabled(true);
+    setTextEnabled(false);
 }
 
 void WasteRecycle::on_btn_Level2_clicked()
@@ -196,9 +225,11 @@ void WasteRecycle::on_btn_Level2_clicked()
     finalPrice(level);
     writeData(level);
     updateListWidget(level);
+    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(ui->lb_percent->text());
-    ui->le_RoughWeigh->setDisabled(true);
-    ui->le_VehicleWeigh->setDisabled(true);
+    // ui->le_RoughWeigh->setDisabled(true);
+    // ui->le_VehicleWeigh->setDisabled(true);
+    setTextEnabled(false);
 }
 
 void WasteRecycle::on_btn_Level3_clicked()
@@ -210,9 +241,11 @@ void WasteRecycle::on_btn_Level3_clicked()
     finalPrice(fLevel3);
     writeData(fLevel3);
     updateListWidget(fLevel3);
+    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(fLevel3));
-    ui->le_RoughWeigh->setDisabled(true);
-    ui->le_VehicleWeigh->setDisabled(true);
+    // ui->le_RoughWeigh->setDisabled(true);
+    // ui->le_VehicleWeigh->setDisabled(true);
+    setTextEnabled(false);
 }
 
 
@@ -222,12 +255,16 @@ void WasteRecycle::on_btn_Level4_clicked()
         return;
     }
     updatePrice();
-    finalPrice(fLevel4);
-    writeData(fLevel4);
-    updateListWidget(fLevel4);
-    ui->lb_unitPrice->setText(QString("%1").arg(fLevel4));
-    ui->le_RoughWeigh->setDisabled(true);
-    ui->le_VehicleWeigh->setDisabled(true);
+    QString ePrice = ui->le_Level4ExtraPrice->text();
+    float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
+    finalPrice(level);
+    writeData(level);
+    updateListWidget(level);
+    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+    ui->lb_unitPrice->setText(QString("%1").arg(level));
+    // ui->le_RoughWeigh->setDisabled(true);
+    // ui->le_VehicleWeigh->setDisabled(true);
+    setTextEnabled(false);
 }
 
 void WasteRecycle::on_btn_Next_clicked()
@@ -260,6 +297,8 @@ void WasteRecycle::on_btn_Next_clicked()
     ++toBeUseIndex;
     ui->le_RoughWeigh->clear();
     ui->le_VehicleWeigh->clear();
+    ui->le_Level1ExtraPrice->clear();
+    ui->le_Level4ExtraPrice->clear();
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
 
     currentClient.m_num = toBeUseIndex;
@@ -267,8 +306,9 @@ void WasteRecycle::on_btn_Next_clicked()
     currentClient.m_qstrVw = ui->le_VehicleWeigh->text();
 
     ui->lb_Price->clear();
-    ui->le_RoughWeigh->setDisabled(false);
-    ui->le_VehicleWeigh->setDisabled(false);
+    /* ui->le_RoughWeigh->setDisabled(false);
+    ui->le_VehicleWeigh->setDisabled(false); */
+    setTextEnabled(true);
     ui->lw_history->sortItems();
     ui->vslider_percent->setValue(50);
 }
@@ -333,8 +373,9 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
 
 void WasteRecycle::on_btn_modify_clicked()
 {
-    ui->le_RoughWeigh->setEnabled(true);
-    ui->le_VehicleWeigh->setEnabled(true);
+    // ui->le_RoughWeigh->setEnabled(true);
+    // ui->le_VehicleWeigh->setEnabled(true);
+    setTextEnabled(true);
     oper->sqlDeleteById(ui->lb_CurrNum->text());
     if (ui->lb_Price->text() != "") {
         int num = ui->lw_history->count();
@@ -350,9 +391,17 @@ void WasteRecycle::on_vslider_percent_valueChanged(int value)
 {
     updatePrice();
     int pos = ui->vslider_percent->value();
-    // float level = (fLevel1*pos + fLevel3*(100 - pos)) / 100;
     float level = pos > 50 ? (fLevel2 + (fLevel1 - fLevel2)*(pos - 50)/50) : (fLevel2 - (fLevel2 - fLevel3)*(50 - pos)/50);
     QString uPrice = QString("%1").arg(level);
     ui->lb_percent->setText(towDecimalPlaces(uPrice));
-    // ui->lb_unitPrice->setText(towDecimalPlaces(uPrice));
+}
+
+void WasteRecycle::on_le_RoughWeigh_editingFinished()
+{
+    QString idx = ui->lb_CurrNum->text();
+    QString rW = ui->le_RoughWeigh->text();
+    if (rW != "") {
+        qDebug() << "rWeight = " << ui->le_RoughWeigh->text();
+        oper->sqlInsertUnloading(idx, rW);
+    }
 }

@@ -50,6 +50,8 @@ private slots:
 
     void on_vslider_percent_valueChanged(int value);
 
+    void on_le_RoughWeigh_editingFinished();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -72,6 +74,7 @@ private:
      void writeData(float level);
      void updateListWidget(float level);
      bool check();
+     void setTextEnabled(bool);
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
