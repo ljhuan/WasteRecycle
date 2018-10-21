@@ -44,7 +44,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     fLevel2(0.0),
     fLevel3(0.0),
     fLevel4(0.0)
-    // bModifyFlag(false)
 {
     priceSetWin = new PriceSetDialog(parent, oper);
     ui->setupUi(this);
@@ -56,9 +55,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     std::list<QString> records, unloadings;
     records = oper->sqlQueryByDate(today);
     qDebug() << "records size:" <<  records.size();
-    // QTextCodec::setCodecForLocale(QTextCodec::codecForName("GB2312"));
-    // QString items("号码                  时间                     毛重    车重   净重   单价   总价");
-    // ui->lw_history->addItem(items);
+
     for (auto e : records) {
         ui->lw_history->addItem(e);
         QString index = e.split(" ").at(0);
@@ -83,17 +80,17 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     }
 
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
-    // ui->cbb_NumSwitch->setCurrentText(QString::fromStdString(std::to_string(currentIndex)));
-//    for(auto e : unloadingClientList)
-//    {
-//        ui->cbb_CurrentNum->addItem(QString::fromStdString(std::to_string(e.m_num)));
-//    }
-
+    ui->lb_Amount->setHidden(true);
+    ui->lb_Amount0->setHidden(true);
+    ui->lb_AveragePrice->setHidden(true);
+    ui->lb_AveragePrice0->setHidden(true);
+    ui->lb_TotalPrices->setHidden(true);
+    ui->lb_TotalPrices0->setHidden(true);
+    ui->lb_TotalWeight->setHidden(true);
+    ui->lb_TotalWeight0->setHidden(true);
     ui->vslider_percent->setMaximum(100);
     ui->vslider_percent->setMinimum(0);
     ui->vslider_percent->setValue(50);
-    // int pos = ui->vslider_percent->value();
-    // ui->lb_percent->setText(QString("%1").arg(pos));
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
 }
@@ -195,7 +192,29 @@ void WasteRecycle::setTextEnabled(bool bValue)
     ui->le_Level4ExtraPrice->setEnabled(bValue);
 }
 
+// 更新数据统计中的数据栏
+void WasteRecycle::updateStatistics()
+{
+    int amount = ui->lw_history->count();
+    ui->lb_Amount->setText(QString("%1").arg(amount));
+    float totalWeight = 0;
+    float totalPrice = 0;
+    float averagePrice = 0;
 
+    for (int i = 0; i < amount; ++i) {
+        QString record = ui->lw_history->item(i)->text();
+        // qDebug() << record.split(UtilityTools::holdPlaces(15)).at(2);
+        // qDebug() << record.split(UtilityTools::holdPlaces(15)).at(4);
+        totalWeight += QString(record.split(UtilityTools::holdPlaces(15)).at(2)).toFloat();
+        totalPrice += QString(record.split(UtilityTools::holdPlaces(15)).at(4)).toFloat();
+    }
+
+    averagePrice = (totalPrice / totalWeight) * 2000;
+
+    ui->lb_TotalWeight->setText(QString("%1").arg(totalWeight));
+    ui->lb_TotalPrices->setText(QString("%1").arg(totalPrice));
+    ui->lb_AveragePrice->setText(QString("%1").arg(averagePrice));
+}
 
 void WasteRecycle::on_btn_Level1_clicked()
 {
@@ -404,4 +423,29 @@ void WasteRecycle::on_le_RoughWeigh_editingFinished()
         qDebug() << "rWeight = " << ui->le_RoughWeigh->text();
         oper->sqlInsertUnloading(idx, rW);
     }
+}
+
+void WasteRecycle::on_btn_Statistics_clicked()
+{
+    updateStatistics();
+    if (ui->lb_Amount->isHidden()) {
+        ui->lb_Amount->setVisible(true);
+        ui->lb_Amount0->setVisible(true);
+        ui->lb_AveragePrice->setVisible(true);
+        ui->lb_AveragePrice0->setVisible(true);
+        ui->lb_TotalPrices->setVisible(true);
+        ui->lb_TotalPrices0->setVisible(true);
+        ui->lb_TotalWeight->setVisible(true);
+        ui->lb_TotalWeight0->setVisible(true);
+    } else {
+        ui->lb_Amount->setHidden(true);
+        ui->lb_Amount0->setHidden(true);
+        ui->lb_AveragePrice->setHidden(true);
+        ui->lb_AveragePrice0->setHidden(true);
+        ui->lb_TotalPrices->setHidden(true);
+        ui->lb_TotalPrices0->setHidden(true);
+        ui->lb_TotalWeight->setHidden(true);
+        ui->lb_TotalWeight0->setHidden(true);
+    }
+
 }

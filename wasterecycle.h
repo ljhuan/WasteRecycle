@@ -52,6 +52,8 @@ private slots:
 
     void on_le_RoughWeigh_editingFinished();
 
+    void on_btn_Statistics_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -69,12 +71,27 @@ private:
 
      // price calculate
      float priceCalculate(float level);
+
+     // 更新回收价格
      void updatePrice();
+
+     // 计算价格
      void finalPrice(float level);
+
+     // 将信息写入数据库
      void writeData(float level);
+
+     // 更新过车记录表
      void updateListWidget(float level);
+
+     // 检查数据的合法性
      bool check();
+
+     // 控制LineEdit是否可编辑，防止误输入
      void setTextEnabled(bool);
+
+     // 更新数据统计栏
+     void updateStatistics();
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
