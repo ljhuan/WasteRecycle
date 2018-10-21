@@ -30,16 +30,32 @@ SOURCES += \
         wasterecycle.cpp \
     pricesetdialog.cpp \
     sqloper.cpp \
-    utilitytools.cpp
+    utilitytools.cpp \
+    cpriceset.cpp \
+    main.cpp \
+    pricesetdialog.cpp \
+    sqloper.cpp \
+    utilitytools.cpp \
+    wasterecycle.cpp
 
 HEADERS += \
         wasterecycle.h \
     pricesetdialog.h \
     sqloper.h \
-    utilitytools.h
+    utilitytools.h \
+    cpriceset.h \
+    pricesetdialog.h \
+    sqloper.h \
+    utilitytools.h \
+    wasterecycle.h
 
 FORMS += \
         wasterecycle.ui \
     pricesetdialog.ui
 
 CONFIG += c++11
+
+DISTFILES +=
+
+RESOURCES += \
+    imgs.qrc

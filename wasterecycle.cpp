@@ -11,6 +11,10 @@
 #include <QTextCodec>
 #include <QMessageBox>
 #include <utilitytools.h>
+#include <QPixmap>
+#include <QPalette>
+#include <QBrush>
+#include <QCoreApplication>
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -79,7 +83,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         }
     }
 
-    ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
+    // 隐藏各项数据统计
     ui->lb_Amount->setHidden(true);
     ui->lb_Amount0->setHidden(true);
     ui->lb_AveragePrice->setHidden(true);
@@ -88,10 +92,24 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->lb_TotalPrices0->setHidden(true);
     ui->lb_TotalWeight->setHidden(true);
     ui->lb_TotalWeight0->setHidden(true);
+
+    ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
+
     ui->vslider_percent->setMaximum(100);
     ui->vslider_percent->setMinimum(0);
     ui->vslider_percent->setValue(50);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
+
+    /*QString path =  QCoreApplication::applicationDirPath();
+    path += "/images/bkgrd.png";
+    qDebug() << path;*/
+
+    // 配置背景图
+    QPixmap pixmap = QPixmap( ":/images/1.jpg").scaled(this->size());
+    QPalette  palette (this->palette());
+    palette .setBrush(QPalette::Background, QBrush(pixmap));
+    this->setPalette( palette );
+
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
 }
 
