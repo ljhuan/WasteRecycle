@@ -1,4 +1,4 @@
-#include <string>
+﻿#include <string>
 #include <list>
 #include "wasterecycle.h"
 #include "ui_wasterecycle.h"
@@ -15,6 +15,7 @@
 #include <QPalette>
 #include <QBrush>
 #include <QCoreApplication>
+#include <QScrollBar>
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -30,13 +31,24 @@ QString towDecimalPlaces(QString data) {
     return head + '.' + tail;
 }
 
-/*QString holdPlaces(int num) {
-    QString places = "";
-    for (int i = 0; i < num; ++i) {
-        places += " ";
-    }
-    return places;
-}*/
+void WasteRecycle::initTableView() {
+    model->setHorizontalHeaderItem(0, new QStandardItem(QString::fromLocal8Bit("号码")));
+    model->setHorizontalHeaderItem(1, new QStandardItem(QString::fromLocal8Bit("时间")));
+    model->setHorizontalHeaderItem(2, new QStandardItem(QString::fromLocal8Bit("毛重")));
+    model->setHorizontalHeaderItem(3, new QStandardItem(QString::fromLocal8Bit("车重")));
+    model->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
+    model->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
+    model->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+
+    ui->tableView->setModel(model);
+    ui->tableView->setColumnWidth(0, 40);
+    ui->tableView->setColumnWidth(1, 150);
+    ui->tableView->setColumnWidth(2, 70);
+    ui->tableView->setColumnWidth(3, 70);
+    ui->tableView->setColumnWidth(4, 70);
+    ui->tableView->setColumnWidth(5, 50);
+    ui->tableView->setColumnWidth(6, 70);
+}
 
 WasteRecycle::WasteRecycle(QWidget *parent) :
     QMainWindow(parent),
@@ -44,6 +56,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     toBeUseIndex(100),
     oper(new SqlOper),
     priceSetWin(nullptr),
+    model(new QStandardItemModel),
     fLevel1(0.0),
     fLevel2(0.0),
     fLevel3(0.0),
@@ -54,19 +67,32 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->le_RoughWeigh->clear();
     ui->le_VehicleWeigh->clear();
 
+    // 初始化tableView
+    initTableView();
+
     QDateTime date = QDateTime::currentDateTime();
     QString today = date.toString("yyyy_MM_dd");
     std::list<QString> records, unloadings;
     records = oper->sqlQueryByDate(today);
     qDebug() << "records size:" <<  records.size();
 
-    for (auto e : records) {
+    for (int i = 0; i < records.size(); ++i) {
+        static auto itor = records.begin();
+        QStringList lines = itor->split("  ", QString::SkipEmptyParts);
+        ++itor;
+        for(int j = 0; j < lines.length(); ++j) {
+            model->setItem(i, j, new QStandardItem(lines.at(j)));
+        }
+        toBeUseIndex = lines.at(0).toInt() + 1;
+    }
+
+    /*for (auto e : records) {
         ui->lw_history->addItem(e);
         QString index = e.split(" ").at(0);
         if (index.toInt() >= toBeUseIndex) {
             toBeUseIndex = index.toInt() + 1;
         }
-    }
+    }*/
 
     unloadings = oper->sqlQueryUnloadingByDate(today);
     for (auto e : unloadings) {
@@ -100,9 +126,16 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->vslider_percent->setValue(50);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
 
-    /*QString path =  QCoreApplication::applicationDirPath();
-    path += "/images/bkgrd.png";
-    qDebug() << path;*/
+    /*QScrollBar*  eventTableSlider = new QScrollBar(Qt::Vertical, this);
+    eventTableSlider->setRange(0, 99);
+    eventTableSlider->setPageStep(20);
+    eventTableSlider->setSingleStep(1);
+    ui->lw_history->setVerticalScrollBar(eventTableSlider);*/
+    // ui->lw_history->setAutoScroll(true);
+    // ui->lw_history->setVerticalScrollMode(QListWidget::ScrollPerPixel);
+    // ui->vsb_history->setValue(10);
+    // ui->lw_history->setVerticalScrollBar(ui->vsb_history);
+    // ui->lw_history->scrollToBottom();
 
     // 配置背景图
     QPixmap pixmap = QPixmap( ":/images/1.jpg").scaled(this->size());
@@ -119,6 +152,10 @@ WasteRecycle::~WasteRecycle()
     ui = nullptr;
     delete priceSetWin;
     priceSetWin = nullptr;
+    delete oper;
+    oper = nullptr;
+    delete model;
+    model = nullptr;
 }
 
 float WasteRecycle::priceCalculate(float level)
@@ -184,13 +221,28 @@ void WasteRecycle::updateListWidget(float level)
 {
     // int num = ui->lw_history->count();
 
+//    QDateTime qtime = QDateTime::currentDateTime();
+//    QString time = qtime.toString("yyyy-MM-dd hh:mm:ss");
+//    QString record = ui->lb_CurrNum->text() + UtilityTools::holdPlaces(5) + time + UtilityTools::holdPlaces(5) +
+//            ui->le_RoughWeigh->text() + UtilityTools::holdPlaces(15) + ui->le_VehicleWeigh->text() + UtilityTools::holdPlaces(15) +
+//            ui->lb_NetWeight->text() + UtilityTools::holdPlaces(15) + towDecimalPlaces(QString("%1").arg(level)) + UtilityTools::holdPlaces(15) +
+//            ui->lb_Price->text();
+//    ui->lw_history->addItem(record);
+}
+
+void WasteRecycle::updateTableView(float level)
+{
     QDateTime qtime = QDateTime::currentDateTime();
     QString time = qtime.toString("yyyy-MM-dd hh:mm:ss");
-    QString record = ui->lb_CurrNum->text() + UtilityTools::holdPlaces(5) + time + UtilityTools::holdPlaces(5) +
-            ui->le_RoughWeigh->text() + UtilityTools::holdPlaces(15) + ui->le_VehicleWeigh->text() + UtilityTools::holdPlaces(15) +
-            ui->lb_NetWeight->text() + UtilityTools::holdPlaces(15) + towDecimalPlaces(QString("%1").arg(level)) + UtilityTools::holdPlaces(15) +
-            ui->lb_Price->text();
-    ui->lw_history->addItem(record);
+    int row = model->rowCount();
+    model->setItem(row, 0, new QStandardItem(ui->lb_CurrNum->text()));
+    model->setItem(row, 1, new QStandardItem(time));
+    model->setItem(row, 2, new QStandardItem(ui->le_RoughWeigh->text()));
+    model->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text()));
+    model->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
+    model->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
+    model->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
+    ui->tableView->selectRow(row);
 }
 
 bool WasteRecycle::check()
@@ -213,42 +265,61 @@ void WasteRecycle::setTextEnabled(bool bValue)
 // 更新数据统计中的数据栏
 void WasteRecycle::updateStatistics()
 {
-    int amount = ui->lw_history->count();
-    ui->lb_Amount->setText(QString("%1").arg(amount));
+//    int amount = ui->lw_history->count();
+//    ui->lb_Amount->setText(QString("%1").arg(amount));
+//    float totalWeight = 0;
+//    float totalPrice = 0;
+//    float averagePrice = 0;
+
+//    for (int i = 0; i < amount; ++i) {
+//        QString record = ui->lw_history->item(i)->text();
+//        totalWeight += QString(record.split(" ", QString::SkipEmptyParts).at(5)).toFloat();
+//        totalPrice += QString(record.split(" ", QString::SkipEmptyParts).at(7)).toFloat();
+//    }
+
+//    averagePrice = (totalWeight==0 ? 0 :  (totalPrice / totalWeight) * 2000);
+
+//    ui->lb_TotalWeight->setText(QString("%1").arg(totalWeight));
+//    ui->lb_TotalPrices->setText(QString("%1").arg(totalPrice));
+//    ui->lb_AveragePrice->setText(QString("%1").arg(averagePrice));
+}
+
+void WasteRecycle::statistics()
+{
     float totalWeight = 0;
     float totalPrice = 0;
     float averagePrice = 0;
-
-    for (int i = 0; i < amount; ++i) {
-        QString record = ui->lw_history->item(i)->text();
-        // qDebug() << record.split(UtilityTools::holdPlaces(15)).at(2);
-        // qDebug() << record.split(UtilityTools::holdPlaces(15)).at(4);
-        totalWeight += QString(record.split(UtilityTools::holdPlaces(15)).at(2)).toFloat();
-        totalPrice += QString(record.split(UtilityTools::holdPlaces(15)).at(4)).toFloat();
+    int amount = model->rowCount();
+    ui->lb_Amount->setText(QString("%1").arg(amount));
+    for (int i =  0; i < amount ; ++i) {
+        totalWeight += model->index(i, 4).data().toFloat();
+        totalPrice += model->index(i, 6).data().toFloat();
     }
 
-    averagePrice = (totalPrice / totalWeight) * 2000;
-
+    averagePrice = (totalWeight==0 ? 0 :  (totalPrice / totalWeight) * 2000);
     ui->lb_TotalWeight->setText(QString("%1").arg(totalWeight));
     ui->lb_TotalPrices->setText(QString("%1").arg(totalPrice));
     ui->lb_AveragePrice->setText(QString("%1").arg(averagePrice));
 }
+
+
 
 void WasteRecycle::on_btn_Level1_clicked()
 {
     if(!check()) {
         return;
     }
+
+    on_btn_modify_clicked();
     updatePrice();
     QString ePrice = ui->le_Level1ExtraPrice->text();
     float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
     finalPrice(level);
     writeData(level);
-    updateListWidget(level);
+    // updateListWidget(level);
+    updateTableView(level);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
-    // ui->le_RoughWeigh->setDisabled(true);
-    // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
 }
 
@@ -257,11 +328,13 @@ void WasteRecycle::on_btn_Level2_clicked()
     if(!check()) {
         return;
     }
+    on_btn_modify_clicked();
     updatePrice();
     float level = (fLevel1*(ui->vslider_percent->value()) + fLevel3*(100 - ui->vslider_percent->value())) / 100;
     finalPrice(level);
     writeData(level);
-    updateListWidget(level);
+    // updateListWidget(level);
+    updateTableView(level);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(ui->lb_percent->text());
     // ui->le_RoughWeigh->setDisabled(true);
@@ -274,10 +347,12 @@ void WasteRecycle::on_btn_Level3_clicked()
     if(!check()) {
         return;
     }
+    on_btn_modify_clicked();
     updatePrice();
     finalPrice(fLevel3);
     writeData(fLevel3);
-    updateListWidget(fLevel3);
+    // updateListWidget(fLevel3);
+    updateTableView(fLevel3);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(fLevel3));
     // ui->le_RoughWeigh->setDisabled(true);
@@ -291,12 +366,14 @@ void WasteRecycle::on_btn_Level4_clicked()
     if(!check()) {
         return;
     }
+    on_btn_modify_clicked();
     updatePrice();
     QString ePrice = ui->le_Level4ExtraPrice->text();
     float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
     finalPrice(level);
     writeData(level);
-    updateListWidget(level);
+    // updateListWidget(level);
+    updateTableView(level);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
     // ui->le_RoughWeigh->setDisabled(true);
@@ -343,10 +420,12 @@ void WasteRecycle::on_btn_Next_clicked()
     currentClient.m_qstrVw = ui->le_VehicleWeigh->text();
 
     ui->lb_Price->clear();
+    ui->lb_unitPrice->clear();
     /* ui->le_RoughWeigh->setDisabled(false);
     ui->le_VehicleWeigh->setDisabled(false); */
     setTextEnabled(true);
-    ui->lw_history->sortItems();
+    // ui->lw_history->sortItems();
+    model->sort(0);
     ui->vslider_percent->setValue(50);
 }
 
@@ -415,8 +494,10 @@ void WasteRecycle::on_btn_modify_clicked()
     setTextEnabled(true);
     oper->sqlDeleteById(ui->lb_CurrNum->text());
     if (ui->lb_Price->text() != "") {
-        int num = ui->lw_history->count();
-        ui->lw_history->takeItem(num - 1);
+        /* int num = ui->lw_history->count();
+        ui->lw_history->takeItem(num - 1);*/
+        int row = model->rowCount() - 1;
+        model->removeRow(row);
         ui->lb_Price->clear();
         ui->lb_unitPrice->clear();
     }
@@ -445,7 +526,8 @@ void WasteRecycle::on_le_RoughWeigh_editingFinished()
 
 void WasteRecycle::on_btn_Statistics_clicked()
 {
-    updateStatistics();
+    // updateStatistics();
+    statistics();
     if (ui->lb_Amount->isHidden()) {
         ui->lb_Amount->setVisible(true);
         ui->lb_Amount0->setVisible(true);

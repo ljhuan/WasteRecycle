@@ -1,10 +1,13 @@
-#ifndef WASTERECYCLE_H
+﻿#ifndef WASTERECYCLE_H
 #define WASTERECYCLE_H
 
 #include <list>
 #include <map>
 #include <QMainWindow>
 #include <QString>
+#include <QTableView>
+#include <QStandardItem>
+#include <QStandardItemModel>
 #include "pricesetdialog.h"
 #include "sqloper.h"
 
@@ -83,6 +86,7 @@ private:
 
      // 更新过车记录表
      void updateListWidget(float level);
+     void updateTableView(float level);
 
      // 检查数据的合法性
      bool check();
@@ -92,9 +96,13 @@ private:
 
      // 更新数据统计栏
      void updateStatistics();
+     void statistics();
+
+     void initTableView();
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
+     QStandardItemModel* model;
 };
 
 #endif // WASTERECYCLE_H
