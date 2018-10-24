@@ -1,4 +1,4 @@
-#include "sqloper.h"
+﻿#include "sqloper.h"
 #include <string>
 #include <QString>
 #include <QDebug>
@@ -134,19 +134,14 @@ void SqlOper::sqlDeleteUnloadingByIdx(QString idx)
 
 bool SqlOper::sqlQueryUnloadingIdxIsExist(QString idx, QString tableName)
 {
-    /*if(!pDb->open()) {
-        qDebug() << "sqlQueryIsExist db open failed!";
-        return false;
-    }*/
     qDebug() << "sqlQueryIsExist db open success";
     QSqlQuery query(*pDb);
     QString sqlQuery = "select * from " + tableName + " where idx = " + idx + ";";
+    qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while (query.next()) {
-        // pDb->close();
         return true;
     }
-    // pDb->close();
     return false;
 }
 
@@ -209,7 +204,7 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
                 query.value("rWeight").toString() + UtilityTools::holdPlaces(15) + query.value("vWeight").toString() + UtilityTools::holdPlaces(15) +
                 query.value("nWeight").toString() + UtilityTools::holdPlaces(15) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(15) +
                 query.value("price").toString();
-        qDebug() << result;
+        // qDebug() << result;
         results.push_back(result);
     }
 

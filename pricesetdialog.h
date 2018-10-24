@@ -1,4 +1,4 @@
-#ifndef PRICESETDIALOG_H
+﻿#ifndef PRICESETDIALOG_H
 #define PRICESETDIALOG_H
 
 #include <QDialog>
@@ -20,6 +20,7 @@ public:
     float getBPrice();
     float getCPrice();
     float getDPrice();
+    void updatePrices();
 
 private slots:
     void on_btn_priceRecommend_clicked();
@@ -29,6 +30,10 @@ private slots:
 private:
     Ui::PriceSetDialog *ui;
     SqlOper* oper;
+    float storePrice_A_ = 0.0;
+    float storePrice_B_ = 0.0;
+    float storePrice_C_ = 0.0;
+    float storePrice_D_ = 0.0;
 };
 
 #endif // PRICESETDIALOG_H

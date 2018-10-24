@@ -778,16 +778,16 @@
    <widget class="QLabel" name="lb_percent">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>482</y>
-      <width>61</width>
+      <x>420</x>
+      <y>450</y>
+      <width>71</width>
       <height>20</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <family>Arial</family>
-      <pointsize>11</pointsize>
+      <pointsize>14</pointsize>
       <weight>75</weight>
       <bold>true</bold>
      </font>

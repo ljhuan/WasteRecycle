@@ -1,4 +1,4 @@
-#include "pricesetdialog.h"
+﻿#include "pricesetdialog.h"
 #include "ui_pricesetdialog.h"
 #include <string>
 #include <QString>
@@ -21,15 +21,7 @@ PriceSetDialog::PriceSetDialog(QWidget *parent, SqlOper* pOper) :
     oper(pOper)
 {
     ui->setupUi(this);
-    PriceInfo prices;
-    oper->sqlPriceQuery(prices);
-    ui->le_factoryPrice_A->setText( prices.m_factoryPrice1);
-    ui->le_factoryPrice_B->setText( prices.m_factoryPrice2);
-    ui->le_factoryPrice_C->setText( prices.m_factoryPrice3);
-    ui->le_storePrice_A->setText( prices.m_price1);
-    ui->le_storePrice_B->setText( prices.m_price2);
-    ui->le_storePrice_C->setText( prices.m_price3);
-    ui->le_storePrice_D->setText( prices.m_price4);
+    updatePrices();
 }
 
 PriceSetDialog::~PriceSetDialog()
@@ -39,26 +31,44 @@ PriceSetDialog::~PriceSetDialog()
 
 float PriceSetDialog::getAPrice()
 {
-    return ui->le_storePrice_A->text().toFloat();
+    return storePrice_A_;
 }
 
 float PriceSetDialog::getBPrice()
 {
-    return ui->le_storePrice_B->text().toFloat();
+    return storePrice_B_;
 }
 
 float PriceSetDialog::getCPrice()
 {
-    return ui->le_storePrice_C->text().toFloat();
+    return storePrice_C_;
 }
 
 float PriceSetDialog::getDPrice()
 {
-    return ui->le_storePrice_D->text().toFloat();
+    return storePrice_D_;
+}
+
+void PriceSetDialog::updatePrices()
+{
+    PriceInfo prices;
+    oper->sqlPriceQuery(prices);
+    ui->le_factoryPrice_A->setText( prices.m_factoryPrice1);
+    ui->le_factoryPrice_B->setText( prices.m_factoryPrice2);
+    ui->le_factoryPrice_C->setText( prices.m_factoryPrice3);
+    ui->le_storePrice_A->setText( prices.m_price1);
+    ui->le_storePrice_B->setText( prices.m_price2);
+    ui->le_storePrice_C->setText( prices.m_price3);
+    ui->le_storePrice_D->setText( prices.m_price4);
+    storePrice_A_ = prices.m_price1.toFloat();
+    storePrice_B_ = prices.m_price2.toFloat();
+    storePrice_C_ = prices.m_price3.toFloat();
+    storePrice_D_ = prices.m_price4.toFloat();
 }
 
 void PriceSetDialog::on_btn_priceRecommend_clicked()
 {
+    qDebug() << "on_btn_priceRecommend_clicked IN";
     int iFactPrice_A = ui->le_factoryPrice_A->text().toInt();
     // int iFactPrice_B = ui->le_factoryPrice_B->text().toInt();
     int iFactPrice_C = ui->le_factoryPrice_C->text().toInt();
@@ -75,10 +85,12 @@ void PriceSetDialog::on_btn_priceRecommend_clicked()
     float fStorePrice_D = fStorePrice_C - 0.05;
     // fStorePrice_D = KEEP2DECIPLACES(fStorePrice_D);
     ui->le_storePrice_D->setText(QString::fromStdString(std::to_string(fStorePrice_D).substr(0, 4)));
+    qDebug() << "on_btn_priceRecommend_clicked OUT";
 }
 
 void PriceSetDialog::on_btn_priceSet_clicked()
 {
+    qDebug() << "on_btn_priceSet_clicked IN";
     PriceInfo prices;
     prices.m_factoryPrice1 = ui->le_factoryPrice_A->text();
     prices.m_factoryPrice2 = ui->le_factoryPrice_B->text();
@@ -87,7 +99,14 @@ void PriceSetDialog::on_btn_priceSet_clicked()
     prices.m_price2 = ui->le_storePrice_B->text();
     prices.m_price3 = ui->le_storePrice_C->text();
     prices.m_price4 = ui->le_storePrice_D->text();
+    storePrice_A_ = prices.m_price1.toFloat();
+    storePrice_B_ = prices.m_price2.toFloat();
+    storePrice_C_ = prices.m_price3.toFloat();
+    storePrice_D_ = prices.m_price4.toFloat();
+
     oper->sqlPriceSet(prices);
+
     this->close();
     this->done(0);
+    qDebug() << "on_btn_priceSet_clicked OUT";
 }
