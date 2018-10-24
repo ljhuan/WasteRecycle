@@ -48,6 +48,9 @@ void WasteRecycle::initTableView() {
     ui->tableView->setColumnWidth(4, 70);
     ui->tableView->setColumnWidth(5, 50);
     ui->tableView->setColumnWidth(6, 70);
+    ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
+    ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
 }
 
 WasteRecycle::WasteRecycle(QWidget *parent) :
@@ -496,7 +499,7 @@ void WasteRecycle::on_btn_modify_clicked()
     if (ui->lb_Price->text() != "") {
         /* int num = ui->lw_history->count();
         ui->lw_history->takeItem(num - 1);*/
-        int row = model->rowCount() - 1;
+        int row = ui->tableView->currentIndex().row();
         model->removeRow(row);
         ui->lb_Price->clear();
         ui->lb_unitPrice->clear();
@@ -548,4 +551,17 @@ void WasteRecycle::on_btn_Statistics_clicked()
         ui->lb_TotalWeight0->setHidden(true);
     }
 
+}
+
+void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
+{
+    ui->tableView->selectRow(index.row());
+    QString currIndex = model->index(index.row(), 0).data().toString();
+    ui->lb_CurrNum->setText(currIndex);
+    ui->le_RoughWeigh->setText(model->index(index.row(), 2).data().toString());
+    ui->le_VehicleWeigh->setText(model->index(index.row(), 3).data().toString());
+    ui->lb_NetWeight->setText(model->index(index.row(), 4).data().toString());
+    ui->lb_unitPrice->setText(model->index(index.row(), 5).data().toString());
+    ui->lb_Price->setText(model->index(index.row(), 6).data().toString());
+    setTextEnabled(false);
 }

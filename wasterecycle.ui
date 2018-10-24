@@ -901,7 +901,7 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>504</x>
+      <x>500</x>
       <y>10</y>
       <width>581</width>
       <height>25</height>
@@ -974,11 +974,14 @@
     </layout>
    </widget>
    <widget class="QTableView" name="tableView">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>500</x>
       <y>51</y>
-      <width>591</width>
+      <width>581</width>
       <height>541</height>
      </rect>
     </property>

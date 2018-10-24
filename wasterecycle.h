@@ -57,6 +57,8 @@ private slots:
 
     void on_btn_Statistics_clicked();
 
+    void on_tableView_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::WasteRecycle *ui;
 
