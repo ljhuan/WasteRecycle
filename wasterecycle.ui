@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1168</width>
-    <height>660</height>
+    <width>1082</width>
+    <height>655</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -90,46 +90,6 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLineEdit" name="le_RoughWeigh">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>91</x>
-      <y>133</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>150</width>
-      <height>40</height>
-     </size>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-    <property name="readOnly">
-     <bool>false</bool>
-    </property>
-   </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
@@ -196,51 +156,11 @@
      <string>车重：</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="le_VehicleWeigh">
-    <property name="geometry">
-     <rect>
-      <x>90</x>
-      <y>188</y>
-      <width>81</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>150</width>
-      <height>40</height>
-     </size>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QPushButton" name="btn_Level1">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>280</y>
+      <y>330</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -268,7 +188,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>280</y>
+      <y>330</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -296,7 +216,7 @@
     <property name="geometry">
      <rect>
       <x>213</x>
-      <y>280</y>
+      <y>330</y>
       <width>81</width>
       <height>71</height>
      </rect>
@@ -324,7 +244,7 @@
     <property name="geometry">
      <rect>
       <x>300</x>
-      <y>280</y>
+      <y>330</y>
       <width>91</width>
       <height>71</height>
      </rect>
@@ -485,9 +405,9 @@
    <widget class="QPushButton" name="btn_Next">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>540</y>
-      <width>361</width>
+      <x>100</x>
+      <y>230</y>
+      <width>241</width>
       <height>51</height>
      </rect>
     </property>
@@ -512,7 +432,7 @@
      </font>
     </property>
     <property name="text">
-     <string>下一辆车</string>
+     <string>下一辆</string>
     </property>
     <property name="iconSize">
      <size>
@@ -565,7 +485,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>480</y>
+      <y>530</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -587,7 +507,7 @@
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>480</y>
+      <y>530</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -608,7 +528,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>480</y>
+      <y>530</y>
       <width>21</width>
       <height>31</height>
      </rect>
@@ -666,7 +586,7 @@
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>430</y>
+      <y>480</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -687,7 +607,7 @@
     <property name="geometry">
      <rect>
       <x>250</x>
-      <y>430</y>
+      <y>480</y>
       <width>21</width>
       <height>31</height>
      </rect>
@@ -708,7 +628,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>430</y>
+      <y>480</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -730,9 +650,9 @@
     <property name="geometry">
      <rect>
       <x>430</x>
-      <y>220</y>
+      <y>230</y>
       <width>51</width>
-      <height>211</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -740,6 +660,9 @@
       <horstretch>0</horstretch>
       <verstretch>0</verstretch>
      </sizepolicy>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
     </property>
     <property name="styleSheet">
      <string notr="true"/>
@@ -757,7 +680,7 @@
       <x>280</x>
       <y>130</y>
       <width>111</width>
-      <height>81</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -779,9 +702,9 @@
     <property name="geometry">
      <rect>
       <x>420</x>
-      <y>450</y>
+      <y>420</y>
       <width>71</width>
-      <height>20</height>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
@@ -803,7 +726,7 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>380</y>
+      <y>430</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -824,7 +747,7 @@
     <property name="geometry">
      <rect>
       <x>100</x>
-      <y>380</y>
+      <y>430</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -845,7 +768,7 @@
     <property name="geometry">
      <rect>
       <x>160</x>
-      <y>380</y>
+      <y>430</y>
       <width>81</width>
       <height>31</height>
      </rect>
@@ -863,47 +786,12 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="le_Level1ExtraPrice">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>249</y>
-      <width>81</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="le_Level4ExtraPrice">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>300</x>
-      <y>250</y>
-      <width>91</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>500</x>
       <y>10</y>
-      <width>581</width>
+      <width>551</width>
       <height>25</height>
      </rect>
     </property>
@@ -981,9 +869,127 @@
      <rect>
       <x>500</x>
       <y>51</y>
-      <width>581</width>
+      <width>551</width>
       <height>541</height>
      </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_RoughWeigh">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>130</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>150</width>
+      <height>40</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <family>Arial</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="readOnly">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_VehicleWeigh">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>180</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>0</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>150</width>
+      <height>40</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <family>Arial</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_Level1ExtraPrice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>300</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le_Level4ExtraPrice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>300</y>
+      <width>91</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
     </property>
    </widget>
   </widget>
@@ -992,7 +998,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1168</width>
+     <width>1082</width>
      <height>23</height>
     </rect>
    </property>

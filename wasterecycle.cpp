@@ -16,6 +16,8 @@
 #include <QBrush>
 #include <QCoreApplication>
 #include <QScrollBar>
+#include <QKeyEvent>
+#include <Qt>
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -53,6 +55,118 @@ void WasteRecycle::initTableView() {
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
 }
 
+void WasteRecycle::keyPressEvent(QKeyEvent *e)
+{
+    switch (e->key()) {
+    case Qt::Key_Up:
+        qDebug() << "key up";
+        this->focusNextPrevChild(false);
+        break;
+    case Qt::Key_Down:
+        qDebug() << "key down";
+         this->focusNextPrevChild(true);
+        break;
+    case Qt::Key_Left:
+        qDebug() << "key left";
+        break;
+     case Qt::Key_Right:
+         qDebug() << "key right";
+         break;
+    case Qt::Key_Enter:
+        qDebug() << "key enter";
+        if(ui->btn_Level1->hasFocus()) {
+            on_btn_Level1_clicked();
+        } else if (ui->btn_Level2->hasFocus()) {
+            on_btn_Level2_clicked();
+        } else if (ui->btn_Level3->hasFocus()) {
+            on_btn_Level3_clicked();
+        } else if (ui->btn_Level4->hasFocus()) {
+            on_btn_Level4_clicked();
+        } else if (ui->btn_Next->hasFocus()) {
+            on_btn_Next_clicked();
+        }
+        break;
+    case Qt::Key_Return:
+        qDebug() << "key return";
+        if(ui->btn_Level1->hasFocus()) {
+            on_btn_Level1_clicked();
+        } else if (ui->btn_Level2->hasFocus()) {
+            on_btn_Level2_clicked();
+        } else if (ui->btn_Level3->hasFocus()) {
+            on_btn_Level3_clicked();
+        } else if (ui->btn_Level4->hasFocus()) {
+            on_btn_Level4_clicked();
+        }
+        break;
+    default:
+         qDebug() << "default";
+         QWidget::keyPressEvent (e);
+        break;
+    }
+}
+
+void WasteRecycle::enterEvent(QEvent *e)
+{
+    QKeyEvent* theKey = static_cast<QKeyEvent*>(e);
+    if (theKey->key() == Qt::Key_Enter || theKey->key() == Qt::Key_Return) {
+        qDebug() << "enter event happen!";
+    } else {
+        QWidget::enterEvent(e);
+    }
+}
+
+bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
+{
+    if (obj == ui->btn_Level1) {
+        if (QEvent::Enter == e->type()) {
+            QString ePrice = ui->le_Level1ExtraPrice->text();
+            float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
+            ui->btn_Level1->setText(QString("%1").arg(level));
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_Level1->setText(QString::fromLocal8Bit("黄板纸"));
+        }
+    } else if (obj == ui->btn_Level2) {
+        if (QEvent::Enter == e->type()) {
+            ui->btn_Level2->setText(ui->lb_percent->text());
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_Level2->setText(QString::fromLocal8Bit("超市纸"));
+        }
+    } else if (obj == ui->btn_Level3) {
+        if (QEvent::Enter == e->type()) {
+            ui->btn_Level3->setText(QString("%1").arg(fLevel3));
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_Level3->setText(QString::fromLocal8Bit("统货纸"));
+        }
+    } else if (obj == ui->btn_Level4) {
+        if (QEvent::Enter == e->type()) {
+            QString ePrice = ui->le_Level4ExtraPrice->text();
+            float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
+            ui->btn_Level4->setText(QString("%1").arg(level));
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_Level4->setText(QString::fromLocal8Bit("居民用纸"));
+        }
+    }
+
+    return false;
+}
+
+void WasteRecycle::showPrice()
+{
+    QString msg = "<font size='25' color='black'>" + ui->lb_Price->text() + QString::fromLocal8Bit(" 元") + "</font>";
+    int ret = QMessageBox::information(this,
+                                                               QString::fromLocal8Bit("价格"),
+                                                               msg,
+                                                               QString::fromLocal8Bit("确定"),
+                                                               QString::fromLocal8Bit("取消"));
+    switch (ret) {
+    case 0:
+        on_btn_Next_clicked();
+        break;
+    default:
+        break;
+    }
+}
+
 WasteRecycle::WasteRecycle(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WasteRecycle),
@@ -69,6 +183,12 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->setupUi(this);
     ui->le_RoughWeigh->clear();
     ui->le_VehicleWeigh->clear();
+
+    // 按键的事件注册
+    ui->btn_Level1->installEventFilter(this);
+    ui->btn_Level2->installEventFilter(this);
+    ui->btn_Level3->installEventFilter(this);
+    ui->btn_Level4->installEventFilter(this);
 
     // 初始化tableView
     initTableView();
@@ -88,14 +208,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         }
         toBeUseIndex = lines.at(0).toInt() + 1;
     }
-
-    /*for (auto e : records) {
-        ui->lw_history->addItem(e);
-        QString index = e.split(" ").at(0);
-        if (index.toInt() >= toBeUseIndex) {
-            toBeUseIndex = index.toInt() + 1;
-        }
-    }*/
 
     unloadings = oper->sqlQueryUnloadingByDate(today);
     for (auto e : unloadings) {
@@ -129,22 +241,14 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->vslider_percent->setValue(50);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
 
-    /*QScrollBar*  eventTableSlider = new QScrollBar(Qt::Vertical, this);
-    eventTableSlider->setRange(0, 99);
-    eventTableSlider->setPageStep(20);
-    eventTableSlider->setSingleStep(1);
-    ui->lw_history->setVerticalScrollBar(eventTableSlider);*/
-    // ui->lw_history->setAutoScroll(true);
-    // ui->lw_history->setVerticalScrollMode(QListWidget::ScrollPerPixel);
-    // ui->vsb_history->setValue(10);
-    // ui->lw_history->setVerticalScrollBar(ui->vsb_history);
-    // ui->lw_history->scrollToBottom();
-
     // 配置背景图
     QPixmap pixmap = QPixmap( ":/images/1.jpg").scaled(this->size());
     QPalette  palette (this->palette());
     palette .setBrush(QPalette::Background, QBrush(pixmap));
     this->setPalette( palette );
+
+    // 设置默认的焦点
+    ui->le_RoughWeigh->setFocus();
 
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
 }
@@ -338,6 +442,7 @@ void WasteRecycle::on_btn_Level1_clicked()
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
     setTextEnabled(false);
+    showPrice();
     qDebug() << "on_btn_Level1_clicked OUT";
 }
 
@@ -359,6 +464,7 @@ void WasteRecycle::on_btn_Level2_clicked()
     // ui->le_RoughWeigh->setDisabled(true);
     // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
+    showPrice();
     qDebug() << "on_btn_Level2_clicked OUT";
 }
 
@@ -379,6 +485,7 @@ void WasteRecycle::on_btn_Level3_clicked()
     // ui->le_RoughWeigh->setDisabled(true);
     // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
+    showPrice();
     qDebug() << "on_btn_Level3_clicked OUT";
 }
 
@@ -402,6 +509,7 @@ void WasteRecycle::on_btn_Level4_clicked()
     // ui->le_RoughWeigh->setDisabled(true);
     // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
+    showPrice();
     qDebug() << "on_btn_Level4_clicked OUT";
 }
 
@@ -443,6 +551,8 @@ void WasteRecycle::on_btn_Next_clicked()
 
     ui->lb_Price->clear();
     ui->lb_unitPrice->clear();
+
+    ui->le_RoughWeigh->setFocus();
     /* ui->le_RoughWeigh->setDisabled(false);
     ui->le_VehicleWeigh->setDisabled(false); */
     setTextEnabled(true);
@@ -542,6 +652,7 @@ void WasteRecycle::on_vslider_percent_valueChanged(int value)
     float level = pos > 50 ? (fLevel2 + (fLevel1 - fLevel2)*(pos - 50)/50) : (fLevel2 - (fLevel2 - fLevel3)*(50 - pos)/50);
     QString uPrice = QString("%1").arg(level);
     ui->lb_percent->setText(towDecimalPlaces(uPrice));
+    ui->le_RoughWeigh->setFocus();
 }
 
 void WasteRecycle::on_le_RoughWeigh_editingFinished()
@@ -593,4 +704,14 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
     ui->lb_Price->setText(model->index(index.row(), 6).data().toString());
     setTextEnabled(false);
     qDebug() << "on_tableView_doubleClicked OUT";
+}
+
+void WasteRecycle::on_le_RoughWeigh_returnPressed()
+{
+    ui->le_VehicleWeigh->setFocus();
+}
+
+void WasteRecycle::on_le_VehicleWeigh_returnPressed()
+{
+    ui->btn_Next->setFocus();
 }

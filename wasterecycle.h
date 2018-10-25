@@ -8,6 +8,7 @@
 #include <QTableView>
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <QEvent>
 #include "pricesetdialog.h"
 #include "sqloper.h"
 
@@ -59,6 +60,10 @@ private slots:
 
     void on_tableView_doubleClicked(const QModelIndex &index);
 
+    void on_le_RoughWeigh_returnPressed();
+
+    void on_le_VehicleWeigh_returnPressed();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -100,7 +105,20 @@ private:
      void updateStatistics();
      void statistics();
 
+     // tableView的初始化
      void initTableView();
+
+     // 方向键处理
+     void keyPressEvent(QKeyEvent *e);
+
+     // enter键处理
+     void enterEvent(QEvent* e);
+
+     // 鼠标移入事件处理
+     bool eventFilter(QObject *obj, QEvent *e);
+
+     // 价格弹出显示
+     void showPrice();
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
