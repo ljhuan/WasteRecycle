@@ -552,10 +552,10 @@ void WasteRecycle::on_btn_Next_clicked()
     ui->lb_Price->clear();
     ui->lb_unitPrice->clear();
 
-    ui->le_RoughWeigh->setFocus();
     /* ui->le_RoughWeigh->setDisabled(false);
     ui->le_VehicleWeigh->setDisabled(false); */
     setTextEnabled(true);
+    ui->le_RoughWeigh->setFocus();
     // ui->lw_history->sortItems();
     model->sort(0);
     ui->vslider_percent->setValue(50);
