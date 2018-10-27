@@ -64,6 +64,8 @@ private slots:
 
     void on_le_VehicleWeigh_returnPressed();
 
+    void on_btn_delete_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -75,8 +77,8 @@ private:
     // bool bModifyFlag;
 
     // 卸货中的客户列表
-    std::map<int, ClientData> unloadingClientMap;
-    ClientData currentClient;
+    // std::map<int, ClientData> unloadingClientMap;
+    // ClientData currentClient;
     int toBeUseIndex;
 
      // price calculate
@@ -119,6 +121,15 @@ private:
 
      // 价格弹出显示
      void showPrice();
+
+     // clear
+     void clearData();
+
+     // next
+     void nextVehicle();
+
+     // delete
+     void deleteData();
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;

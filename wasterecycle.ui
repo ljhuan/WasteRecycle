@@ -380,28 +380,6 @@
      <string>当前号码：</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="cbb_NumSwitch">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>90</y>
-      <width>69</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>70</width>
-      <height>25</height>
-     </size>
-    </property>
-   </widget>
    <widget class="QPushButton" name="btn_Next">
     <property name="geometry">
      <rect>
@@ -439,25 +417,6 @@
       <width>16</width>
       <height>16</height>
      </size>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>90</y>
-      <width>91</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>正在卸货车辆：</string>
     </property>
    </widget>
    <widget class="QLabel" name="lb_CurrNum">
@@ -680,7 +639,7 @@
       <x>280</x>
       <y>130</y>
       <width>111</width>
-      <height>71</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -990,6 +949,33 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_delete">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>180</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Arial</family>
+      <pointsize>20</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>删除</string>
     </property>
    </widget>
   </widget>

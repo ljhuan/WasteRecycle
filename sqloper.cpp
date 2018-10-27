@@ -46,7 +46,7 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
             query.clear();
 
             // 创建正在卸货的表
-            pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), idx INTEGER, rWeight varchar(50));");
+            pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), time varchar(50), idx INTEGER, rWeight varchar(50));");
             // QString sqlInsertInfo = "insert into unloading(date, index, rWeight) values(" + today + ", " +
 
         } else {
@@ -103,6 +103,8 @@ void SqlOper::sqlInsertUnloading(QString idx, QString rWeight)
     QDateTime date = QDateTime::currentDateTime();
     QString today = date.toString("yyyy-MM-dd");
 
+    QString time = date.toString("yyyy-MM-dd hh:mm:ss");
+
     QSqlQuery query(*pDb);
     if (sqlQueryUnloadingIdxIsExist(idx, "unloading")) {
         QString sqlDeleteByIdx = "delete from unloading where idx=" + idx + ";";
@@ -110,7 +112,7 @@ void SqlOper::sqlInsertUnloading(QString idx, QString rWeight)
         query.clear();
         qDebug() << sqlDeleteByIdx;
     }
-    QString sqlInsert = "insert into unloading(date, idx, rWeight) values('" + today + "', " + idx + ", '" + rWeight + "');";
+    QString sqlInsert = "insert into unloading(date, time, idx, rWeight) values('" + today + "', '" + time + "', " + idx + ", '" + rWeight + "');";
     query.exec(sqlInsert);
     qDebug() << sqlInsert;
     pDb->close();
@@ -159,7 +161,7 @@ std::list<QString> SqlOper::sqlQueryUnloadingByDate(QString date)
     qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while(query.next()) {
-        QString result = query.value("idx").toString() + " " + query.value("rWeight").toString();
+        QString result = query.value("time").toString() + "  " + query.value("idx").toString() + "  " + query.value("rWeight").toString();
         qDebug() << result;
         results.push_back(result);
     }
@@ -200,9 +202,9 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
     qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while(query.next()) {
-        QString result = query.value("id").toString() + UtilityTools::holdPlaces(5) + query.value("time").toString() + UtilityTools::holdPlaces(5) +
-                query.value("rWeight").toString() + UtilityTools::holdPlaces(15) + query.value("vWeight").toString() + UtilityTools::holdPlaces(15) +
-                query.value("nWeight").toString() + UtilityTools::holdPlaces(15) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(15) +
+        QString result = query.value("id").toString() + UtilityTools::holdPlaces(2) + query.value("time").toString() + UtilityTools::holdPlaces(2) +
+                query.value("rWeight").toString() + UtilityTools::holdPlaces(2) + query.value("vWeight").toString() + UtilityTools::holdPlaces(2) +
+                query.value("nWeight").toString() + UtilityTools::holdPlaces(2) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(2) +
                 query.value("price").toString();
         // qDebug() << result;
         results.push_back(result);
