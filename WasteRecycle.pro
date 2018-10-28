@@ -31,7 +31,6 @@ SOURCES += \
     pricesetdialog.cpp \
     sqloper.cpp \
     utilitytools.cpp \
-    cpriceset.cpp \
     main.cpp \
     pricesetdialog.cpp \
     sqloper.cpp \
@@ -43,7 +42,6 @@ HEADERS += \
     pricesetdialog.h \
     sqloper.h \
     utilitytools.h \
-    cpriceset.h \
     pricesetdialog.h \
     sqloper.h \
     utilitytools.h \

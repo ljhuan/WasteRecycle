@@ -668,7 +668,7 @@ void WasteRecycle::on_le_RoughWeigh_editingFinished()
 {
     QString idx = ui->lb_CurrNum->text();
     QString rW = ui->le_RoughWeigh->text();
-    if (rW != "") {
+    if (rW != "" && idx.toInt() == toBeUseIndex) {
         qDebug() << "rWeight = " << ui->le_RoughWeigh->text();
         oper->sqlInsertUnloading(idx, rW);
     }
