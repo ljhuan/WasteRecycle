@@ -146,7 +146,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
             ui->btn_Level4->setText(QString("%1").arg(level));
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_Level4->setText(QString::fromLocal8Bit("居民用纸"));
+            ui->btn_Level4->setText(QString::fromLocal8Bit("民用纸"));
         }
     }
 
@@ -622,7 +622,7 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
 
     bool isAllDigit = true;
     for (auto e : strVw.toStdString()) {
-        if(!isdigit(e)) {
+        if(!isdigit(e) && e != '.') {
             isAllDigit = false;
             break;
         }
