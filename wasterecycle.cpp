@@ -1,5 +1,6 @@
 ﻿#include <string>
 #include <list>
+#include <cctype>
 #include "wasterecycle.h"
 #include "ui_wasterecycle.h"
 #include "sqloper.h"
@@ -619,6 +620,16 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
     QString strRw = ui->le_RoughWeigh->text();
     QString strVw = ui->le_VehicleWeigh->text();
 
+    bool isAllDigit = true;
+    for (auto e : strVw.toStdString()) {
+        if(!isdigit(e)) {
+            isAllDigit = false;
+            break;
+        }
+    }
+
+    qDebug() << "isAllDigit:" << isAllDigit;
+
     float fRw = strRw.toFloat();
     float fVw = strVw.toFloat();
 
@@ -629,13 +640,10 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
         return;
     }
 
-    // ui->lb_NetWeight->setText(towDecimalPlaces(QString::fromStdString(std::to_string((fRw-fVw)*2))));
-    if (strVw.trimmed() != QString::fromLocal8Bit("卸货中")) {
-        if ( strVw.trimmed() != "") {
-            ui->lb_NetWeight->setText(towDecimalPlaces(QString("%1").arg((fRw - fVw)*2)));
-        } else {
-            ui->lb_NetWeight->setText("");
-        }
+    if (isAllDigit && strVw.trimmed() != "") {
+        ui->lb_NetWeight->setText(towDecimalPlaces(QString("%1").arg((fRw - fVw)*2)));
+    } else {
+        ui->lb_NetWeight->setText("");
     }
 }
 
@@ -703,15 +711,41 @@ void WasteRecycle::on_btn_Statistics_clicked()
 void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
 {
     qDebug() << "on_tableView_doubleClicked IN";
+
+    if (ui->lb_Price->text().trimmed() == "" && ui->lb_CurrNum->text().toInt() == toBeUseIndex && ui->le_RoughWeigh->text() != "") {
+        writeData(0);
+        updateTableView(0);
+    }
+
     ui->tableView->selectRow(index.row());
     QString currIndex = model->index(index.row(), 0).data().toString();
+    QString rw = model->index(index.row(), 2).data().toString();
+    QString vw = model->index(index.row(), 3).data().toString();
+    QString nw = model->index(index.row(), 4).data().toString();
+    QString uprice = model->index(index.row(), 5).data().toString();
+    QString price = model->index(index.row(), 6).data().toString();
+
+    // ui->lb_CurrNum->setText(currIndex);
+
+    // on_btn_Next_clicked();
+
     ui->lb_CurrNum->setText(currIndex);
-    ui->le_RoughWeigh->setText(model->index(index.row(), 2).data().toString());
-    ui->le_VehicleWeigh->setText(model->index(index.row(), 3).data().toString());
-    ui->lb_NetWeight->setText(model->index(index.row(), 4).data().toString());
-    ui->lb_unitPrice->setText(model->index(index.row(), 5).data().toString());
-    ui->lb_Price->setText(model->index(index.row(), 6).data().toString());
-    if (model->index(index.row(), 3).data().toString().trimmed() == QString::fromLocal8Bit("卸货中")) {
+    ui->le_RoughWeigh->setText(rw);
+    ui->le_VehicleWeigh->setText(vw);
+    ui->lb_NetWeight->setText(nw);
+    ui->lb_unitPrice->setText(uprice);
+    ui->lb_Price->setText(price);
+
+    bool isAllDigit = true;
+    for (auto e : vw.toStdString()) {
+        if(!isdigit(e)) {
+            isAllDigit = false;
+            break;
+        }
+    }
+
+    if (!isAllDigit) {
+        setTextEnabled(true);
         ui->le_VehicleWeigh->setFocus();
         ui->le_VehicleWeigh->selectAll();
     } else {

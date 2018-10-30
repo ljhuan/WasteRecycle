@@ -45,13 +45,14 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
             query.exec();
             query.clear();
 
-            // 创建正在卸货的表
-            pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), time varchar(50), idx INTEGER, rWeight varchar(50));");
             // QString sqlInsertInfo = "insert into unloading(date, index, rWeight) values(" + today + ", " +
 
         } else {
             qDebug() << "db is exist";
         }
+
+        // 创建正在卸货的表
+        pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), time varchar(50), idx INTEGER, rWeight varchar(50));");
         pDb->close();
     }
 }
