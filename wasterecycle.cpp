@@ -738,7 +738,7 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
 
     bool isAllDigit = true;
     for (auto e : vw.toStdString()) {
-        if(!isdigit(e)) {
+        if(!isdigit(e) && e != '.') {
             isAllDigit = false;
             break;
         }
