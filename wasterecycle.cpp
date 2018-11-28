@@ -19,6 +19,8 @@
 #include <QScrollBar>
 #include <QKeyEvent>
 #include <Qt>
+#include <QCalendarWidget>
+#include <QTimeEdit>
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -252,11 +254,10 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     std::list<QString> records, unloadings;
     records = oper->sqlQueryByDate(today);
     qDebug() << "records size:" <<  records.size();
+    int i = 0;
 
-    for (int i = 0; i < records.size(); ++i) {
-        static auto itor = records.begin();
+    for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
         QStringList lines = itor->split("  ");
-        ++itor;
         for(int j = 0; j < lines.length(); ++j) {
             model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
         }
@@ -299,7 +300,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
 
     // 配置背景图
-    QPixmap pixmap = QPixmap( ":/images/1.jpg").scaled(this->size());
+    QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
     QPalette  palette (this->palette());
     palette .setBrush(QPalette::Background, QBrush(pixmap));
     this->setPalette( palette );
@@ -308,6 +309,14 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->le_RoughWeigh->setFocus();
 
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
+
+    // 日历设置
+    QCalendarWidget* calendar = new QCalendarWidget(this);
+    calendar->hide();
+
+    ui->dateEdit->setCalendarPopup(true);
+    ui->dateEdit->setDisplayFormat("yyyy-MM-dd");
+    ui->dateEdit->setDate(calendar->selectedDate());
 }
 
 WasteRecycle::~WasteRecycle()
@@ -777,4 +786,24 @@ void WasteRecycle::on_btn_delete_clicked()
     ui->le_RoughWeigh->setFocus();
 
     qDebug() << "on_btn_delete_clicked OUT";
+}
+
+void WasteRecycle::on_btn_search_clicked()
+{
+    model->clear();
+    initTableView();
+    std::list<QString> records;
+    QString dat = ui->dateEdit->text().replace("-", "_");
+    records = oper->sqlQueryByDate(dat);
+    qDebug() << "records size:" <<  records.size();
+    int i = 0;
+
+    for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
+        qDebug() << "1 *itor=" << (*itor);
+        QStringList lines = itor->split("  ");
+        for(int j = 0; j < lines.length(); ++j) {
+            qDebug() << "i=" << i << "  j=" << j << "  data=" << lines.at(j).trimmed();
+            model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
+        }
+    }
 }

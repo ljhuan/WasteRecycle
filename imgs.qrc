@@ -5,5 +5,14 @@
         <file>images/3.jpg</file>
         <file>images/4.jpg</file>
         <file>images/5.jpg</file>
+        <file>images/CachedImage_1920_1080_POS2_0.jpg</file>
+        <file>images/CachedImage_1920_1080_POS2_1.jpg</file>
+        <file>images/CachedImage_1920_1080_POS2_2.jpg</file>
+        <file>images/CachedImage_1920_1080_POS2_3.jpg</file>
+        <file>images/CachedImage_1920_1080_POS2_4.jpg</file>
+        <file>images/padda.jpg</file>
+        <file>images/stone.jpg</file>
+        <file>images/bamboo.jpg</file>
+        <file>images/0.jpg</file>
     </qresource>
 </RCC>
