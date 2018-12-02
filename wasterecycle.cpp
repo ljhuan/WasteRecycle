@@ -442,7 +442,6 @@ void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
     if(weighBridgeData.length()>12){
         QString qqba = QString(weighBridgeData);
         qqba = qqba.mid(qqba.indexOf("-")+1, 7);
-        qDebug() << qqba;
         if(fWeight != qqba.toFloat()) {
             m_pTimer->stop();
             fWeight = qqba.toFloat();
