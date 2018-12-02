@@ -1,5 +1,6 @@
 ﻿#include <string>
 #include <list>
+#include <map>
 #include <cctype>
 #include "wasterecycle.h"
 #include "ui_wasterecycle.h"
@@ -21,6 +22,17 @@
 #include <Qt>
 #include <QCalendarWidget>
 #include <QTimeEdit>
+#include <QStringList>
+#include <typeinfo>
+#include <utility>
+#include <QLineSeries>
+#include <QtCharts>
+#include <QChartView>
+#include <QDateTimeAxis>
+
+#define VNAME(value)  (#value)
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#define MIN(x,y) ((x) > (y) ? (y) : (x))
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -36,6 +48,122 @@ QString towDecimalPlaces(QString data) {
     return head + '.' + tail;
 }
 
+WasteRecycle::WasteRecycle(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::WasteRecycle),
+    toBeUseIndex(100),
+    oper(new SqlOper),
+    priceSetWin(nullptr),
+    model(new QStandardItemModel),
+    fLevel1(0.0),
+    fLevel2(0.0),
+    fLevel3(0.0),
+    fLevel4(0.0),
+    bPriceInit(false)
+{
+    priceSetWin = new PriceSetDialog(parent, oper);
+    ui->setupUi(this);
+    ui->le_RoughWeigh->clear();
+    ui->le_VehicleWeigh->clear();
+
+    // 按键的事件注册
+    ui->btn_Level1->installEventFilter(this);
+    ui->btn_Level2->installEventFilter(this);
+    ui->btn_Level3->installEventFilter(this);
+    ui->btn_Level4->installEventFilter(this);
+
+    // 初始化tableView
+    initTableView();
+
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
+    std::list<QString> records, unloadings;
+    records = oper->sqlQueryByDate(today);
+    qDebug() << "records size:" <<  records.size();
+    int i = 0;
+
+    for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
+        QStringList lines = itor->split("  ");
+        for(int j = 0; j < lines.length(); ++j) {
+            model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
+        }
+        toBeUseIndex = lines.at(0).toInt() + 1;
+    }
+
+    unloadings = oper->sqlQueryUnloadingByDate(today);
+    for (auto e : unloadings) {
+        QString tim = e.split("  ").at(0);
+        QString idx = e.split("  ").at(1);
+        QString rW = e.split("  ").at(2);
+        int row = model->rowCount();
+        model->setItem(row, 0, new QStandardItem(idx));
+        model->setItem(row, 1, new QStandardItem(tim));
+        model->setItem(row, 2, new QStandardItem(rW));
+        model->setItem(row, 3, new QStandardItem(QString::fromLocal8Bit("卸货中")));
+
+        // ui->le_RoughWeigh->setText(rW);
+        if (idx.toInt() >= toBeUseIndex) {
+            toBeUseIndex = idx.toInt() + 1;
+        }
+    }
+    model->sort(0);
+
+    // 隐藏各项数据统计
+    ui->lb_Amount->setHidden(true);
+    ui->lb_Amount0->setHidden(true);
+    ui->lb_AveragePrice->setHidden(true);
+    ui->lb_AveragePrice0->setHidden(true);
+    ui->lb_TotalPrices->setHidden(true);
+    ui->lb_TotalPrices0->setHidden(true);
+    ui->lb_TotalWeight->setHidden(true);
+    ui->lb_TotalWeight0->setHidden(true);
+
+    ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
+
+    updatePrice();
+    float ps = (fLevel2-fLevel3)/(fLevel1-fLevel3)  * 100;
+    int pos = ps;
+    // qDebug() << "ps:" << ps << "  pos:" << pos;
+
+    ui->vslider_percent->setMaximum(100);
+    ui->vslider_percent->setMinimum(0);
+    bPriceInit = true;
+    ui->vslider_percent->setValue(pos);
+    ui->lb_percent->setText(QString("%1").arg(fLevel2));
+
+
+    // 配置背景图
+    QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
+    QPalette  palette (this->palette());
+    palette .setBrush(QPalette::Background, QBrush(pixmap));
+    this->setPalette( palette );
+
+    // 设置默认的焦点
+    ui->le_RoughWeigh->setFocus();
+
+    connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(priceChanged()));
+
+    // 日历设置
+    QCalendarWidget* calendar = new QCalendarWidget(this);
+    calendar->hide();
+
+    ui->dateEdit->setCalendarPopup(true);
+    ui->dateEdit->setDisplayFormat("yyyy-MM-dd");
+    ui->dateEdit->setDate(calendar->selectedDate());
+}
+
+WasteRecycle::~WasteRecycle()
+{
+    delete ui;
+    ui = nullptr;
+    delete priceSetWin;
+    priceSetWin = nullptr;
+    delete oper;
+    oper = nullptr;
+    delete model;
+    model = nullptr;
+}
+
 void WasteRecycle::initTableView() {
     model->setHorizontalHeaderItem(0, new QStandardItem(QString::fromLocal8Bit("号码")));
     model->setHorizontalHeaderItem(1, new QStandardItem(QString::fromLocal8Bit("时间")));
@@ -47,7 +175,7 @@ void WasteRecycle::initTableView() {
 
     ui->tableView->setModel(model);
     ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 150);
+    ui->tableView->setColumnWidth(1, 160);
     ui->tableView->setColumnWidth(2, 70);
     ui->tableView->setColumnWidth(3, 70);
     ui->tableView->setColumnWidth(4, 70);
@@ -215,7 +343,8 @@ void WasteRecycle::nextVehicle()
 
 void WasteRecycle::deleteData()
 {
-    oper->sqlDeleteById(ui->lb_CurrNum->text());
+    QString date = ui->dateEdit->text().replace("-", "_");
+    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
     int row = ui->tableView->currentIndex().row();
     qDebug() << "row: " << row << " data:" << model->index(row, 0).data().toString() << "  currNum:" << ui->lb_CurrNum->text();
     if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
@@ -223,112 +352,51 @@ void WasteRecycle::deleteData()
     }
 }
 
-WasteRecycle::WasteRecycle(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::WasteRecycle),
-    toBeUseIndex(100),
-    oper(new SqlOper),
-    priceSetWin(nullptr),
-    model(new QStandardItemModel),
-    fLevel1(0.0),
-    fLevel2(0.0),
-    fLevel3(0.0),
-    fLevel4(0.0)
+void WasteRecycle::updateTableCharts()
 {
-    priceSetWin = new PriceSetDialog(parent, oper);
-    ui->setupUi(this);
-    ui->le_RoughWeigh->clear();
-    ui->le_VehicleWeigh->clear();
-
-    // 按键的事件注册
-    ui->btn_Level1->installEventFilter(this);
-    ui->btn_Level2->installEventFilter(this);
-    ui->btn_Level3->installEventFilter(this);
-    ui->btn_Level4->installEventFilter(this);
-
-    // 初始化tableView
-    initTableView();
-
-    QDateTime date = QDateTime::currentDateTime();
-    QString today = date.toString("yyyy_MM_dd");
-    std::list<QString> records, unloadings;
-    records = oper->sqlQueryByDate(today);
-    qDebug() << "records size:" <<  records.size();
-    int i = 0;
-
-    for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
-        QStringList lines = itor->split("  ");
-        for(int j = 0; j < lines.length(); ++j) {
-            model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
-        }
-        toBeUseIndex = lines.at(0).toInt() + 1;
+    // 1. 获取所有record表
+    QStringList tables = oper->sqlGetAllTableName();
+    if (!tables.contains("charts")) {
+        QString createChartsTable = "create table charts (time varchar(100), amouts varchar(10), totalWeight varchar(10), totalPrice varchar(10), averagePrice varchar(10));";
+        oper->createTable(createChartsTable);
+    } else {
+        qDebug() << "charts is exist!";
     }
 
-    unloadings = oper->sqlQueryUnloadingByDate(today);
-    for (auto e : unloadings) {
-        QString tim = e.split("  ").at(0);
-        QString idx = e.split("  ").at(1);
-        QString rW = e.split("  ").at(2);
-        int row = model->rowCount();
-        model->setItem(row, 0, new QStandardItem(idx));
-        model->setItem(row, 1, new QStandardItem(tim));
-        model->setItem(row, 2, new QStandardItem(rW));
-        model->setItem(row, 3, new QStandardItem(QString::fromLocal8Bit("卸货中")));
+    // 2. 遍历所有表的日期是否在charts表中都已登记，没有则进行登记
+    QStringList records = tables.filter("record_");
 
-        // ui->le_RoughWeigh->setText(rW);
-        if (idx.toInt() >= toBeUseIndex) {
-            toBeUseIndex = idx.toInt() + 1;
+    for (auto e : records) {
+        QString date = e;
+        date = date.remove("record_");
+
+        //     a. 对每一天的数据进行统计
+        if (!oper->searchTableWetherExist("charts", "time", date)) {
+            qDebug() << "Insert date:" << date;
+            std::list<QString> records;
+            records = oper->sqlQueryByDate(date);
+
+            float totalWeight = 0;
+            float totalPrice = 0;
+            float averagePrice = 0;
+            int amount = 0;
+
+            for(auto record : records) {
+                QStringList items = record.split("  ");
+                totalWeight += items.at(4).toFloat();
+                totalPrice += items.at(6).toFloat();
+                ++amount;
+                averagePrice = (totalWeight==0 ? 0 :  (totalPrice / totalWeight) * 2000);
+            }
+
+            qDebug() << "tableName:" << e << " totalWeight:" <<totalWeight << " totalPrice:" << totalPrice << " amount:" << amount << " averagePrice:" << averagePrice;
+            QString insertChartsTable =  "insert into charts values('" + date + "'" + ", '" + QString("%1").arg(amount) + "'"
+                    + ", '" +  QString("%1").arg(totalWeight) + "'" + ", '" + QString("%1").arg(totalPrice) + "'"+ ", '" +  QString("%1").arg(averagePrice) + "');";
+            oper->insertTable(insertChartsTable);
+        } else {
+            qDebug() << "date:" << date << " is Exist in table charts";
         }
     }
-    model->sort(0);
-
-    // 隐藏各项数据统计
-    ui->lb_Amount->setHidden(true);
-    ui->lb_Amount0->setHidden(true);
-    ui->lb_AveragePrice->setHidden(true);
-    ui->lb_AveragePrice0->setHidden(true);
-    ui->lb_TotalPrices->setHidden(true);
-    ui->lb_TotalPrices0->setHidden(true);
-    ui->lb_TotalWeight->setHidden(true);
-    ui->lb_TotalWeight0->setHidden(true);
-
-    ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
-
-    ui->vslider_percent->setMaximum(100);
-    ui->vslider_percent->setMinimum(0);
-    ui->vslider_percent->setValue(50);
-    ui->lb_percent->setText(QString("%1").arg(fLevel2));
-
-    // 配置背景图
-    QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
-    QPalette  palette (this->palette());
-    palette .setBrush(QPalette::Background, QBrush(pixmap));
-    this->setPalette( palette );
-
-    // 设置默认的焦点
-    ui->le_RoughWeigh->setFocus();
-
-    connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(on_vslider_percent_valueChanged(int)));
-
-    // 日历设置
-    QCalendarWidget* calendar = new QCalendarWidget(this);
-    calendar->hide();
-
-    ui->dateEdit->setCalendarPopup(true);
-    ui->dateEdit->setDisplayFormat("yyyy-MM-dd");
-    ui->dateEdit->setDate(calendar->selectedDate());
-}
-
-WasteRecycle::~WasteRecycle()
-{
-    delete ui;
-    ui = nullptr;
-    delete priceSetWin;
-    priceSetWin = nullptr;
-    delete oper;
-    oper = nullptr;
-    delete model;
-    model = nullptr;
 }
 
 float WasteRecycle::priceCalculate(float level)
@@ -393,7 +461,8 @@ void WasteRecycle::writeData(float level)
     QDateTime qdtTime =QDateTime::currentDateTime();
     info.m_time = qdtTime.toString("yyyy-MM-dd hh:mm:ss");
 
-    oper->sqlInsert(info);
+    QString date = ui->dateEdit->text().replace("-", "_");
+    oper->sqlInsert(info, date);
     qDebug() << "writeData OUT";
 }
 
@@ -660,7 +729,9 @@ void WasteRecycle::on_btn_modify_clicked()
 {
     qDebug() << "on_btn_modify_clicked IN";
     setTextEnabled(true);
-    oper->sqlDeleteById(ui->lb_CurrNum->text());
+    QString date = ui->dateEdit->text().replace("-", "_");
+    qDebug() << "date:" << date;
+    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
     int row = ui->tableView->currentIndex().row();
     qDebug() << "row:" << row << " data:" << model->index(row, 0).data().toString() << "   currNum:" << ui->lb_CurrNum;
     if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
@@ -673,12 +744,19 @@ void WasteRecycle::on_btn_modify_clicked()
 
 void WasteRecycle::on_vslider_percent_valueChanged(int value)
 {
-    updatePrice();
+    if (bPriceInit) {
+        bPriceInit = false;
+        return;
+    }
+    qDebug() << "on_vslider_percent_valueChanged IN";
+    // updatePrice();
     int pos = ui->vslider_percent->value();
-    float level = pos > 50 ? (fLevel2 + (fLevel1 - fLevel2)*(pos - 50)/50) : (fLevel2 - (fLevel2 - fLevel3)*(50 - pos)/50);
+    // float level = pos > 50 ? (fLevel2 + (fLevel1 - fLevel2)*(pos - 50)/50) : (fLevel2 - (fLevel2 - fLevel3)*(50 - pos)/50);
+    float level = (pos/100.0) * (fLevel1 - fLevel3) + fLevel3;
     QString uPrice = QString("%1").arg(level);
     ui->lb_percent->setText(towDecimalPlaces(uPrice));
     ui->le_RoughWeigh->setFocus();
+    qDebug() << "on_vslider_percent_valueChanged OUT";
 }
 
 void WasteRecycle::on_le_RoughWeigh_editingFinished()
@@ -802,8 +880,142 @@ void WasteRecycle::on_btn_search_clicked()
         qDebug() << "1 *itor=" << (*itor);
         QStringList lines = itor->split("  ");
         for(int j = 0; j < lines.length(); ++j) {
-            qDebug() << "i=" << i << "  j=" << j << "  data=" << lines.at(j).trimmed();
+            // qDebug() << "i=" << i << "  j=" << j << "  data=" << lines.at(j).trimmed();
             model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
         }
     }
+}
+
+//template<typename ... Args>
+//void parType(std::pair<QString, int> par, Args ... args) {
+//    qDebug() << "pair first:" << par.first;
+//    parType(args...);
+//}
+
+//template<typename T, typename ... Args>
+//void parType(T par, Args ... args) {
+//    qDebug() << "type:" << typeid(par).name();
+//    parType(args...);
+//}
+
+//template<typename T, typename ... Args>
+//void parType(T par) {
+//    qDebug() << "last param:" << VNAME(par) << " type:" << typeid(par).name();
+//}
+template<typename T>
+void dataProcess(T& data, int & coefficient, int base) {
+    coefficient = 1;
+    while(int(data)/base) {
+        data /= base;
+        coefficient *= base;
+    }
+}
+
+template<typename T>
+void drawChart(std::map<QDateTime, T> & data) {
+    QLineSeries *series = new QLineSeries();
+
+    T max = data.begin()->second;
+    T min = data.begin()->second;
+    for (auto element : data) {
+        max = MAX(max, element.second);
+        min = MIN(min, element.second);
+        series->append(element.first.toMSecsSinceEpoch(), element.second);
+    }
+
+    QChartView *chartView = new QChartView();
+    chartView->chart()->addSeries(series);
+
+    // ...
+    QDateTimeAxis *axisX = new QDateTimeAxis();
+    axisX->setFormat("dd/MM/yyyy");
+    auto it = data.rbegin();
+    ++it;
+    int days = data.begin()->first.daysTo(it->first);
+    ++days;
+    int param = (5 - days%5);
+    param = (param==5 ? 0:param);
+
+    axisX->setRange(data.begin()->first, it->first.addDays(param+1));
+    axisX->setTickCount((days+param)/5 + 1);
+    qDebug() << "days=" << days << " param=" << param;
+
+    chartView->chart()->setAxisX(axisX, series);
+
+    QValueAxis* axisY = new QValueAxis();
+
+    int coefficient = 1;
+    dataProcess(max, coefficient, 10);
+    int top = (int)(max+1)*coefficient;
+    coefficient = 1;
+    dataProcess(min, coefficient, 10);
+    int bottom = (int)(min)*coefficient;
+
+    axisY->setRange(bottom, top);
+    chartView->chart()->setAxisY(axisY, series);
+
+    chartView->resize(800, 500);
+    chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
+    // chartView->chart()->createDefaultAxes();
+    chartView->chart()->setTitle(QString::fromLocal8Bit("均价走势图"));
+    chartView->chart()->legend()->hide();
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->show();
+}
+
+void WasteRecycle::on_btn_charts_clicked()
+{
+    // parType(std::pair<QString, int>("name", 1),2,3, QString("hello"));
+
+    // 更新charts数据表
+    updateTableCharts();
+
+    // 查询charts表中的所有记录
+    std::list<QString> elements;
+    QString queryChartsTable = "select * from charts order by time asc;";
+    elements = oper->queryTableRecords(queryChartsTable);
+
+    std::map<QDateTime, float> totalWeightMap;
+    for (auto element : elements) {
+        QStringList line = element.split("  ");
+        QDateTime date =  QDateTime::fromString(line.at(0), "yyyy_MM_dd");
+        // qDebug() << date.toString();
+        totalWeightMap[date] = line.at(2).toFloat();
+    }
+
+    // 图表绘制
+    drawChart(totalWeightMap);
+}
+
+void WasteRecycle::on_btn_averageChart_clicked()
+{
+    // 更新charts数据表
+    updateTableCharts();
+
+    // 查询charts表中的所有记录
+    std::list<QString> elements;
+    QString queryChartsTable = "select * from charts order by time asc;";
+    elements = oper->queryTableRecords(queryChartsTable);
+
+    std::map<QDateTime, float> averagePriceMap;
+    for (auto element : elements) {
+        QStringList line = element.split("  ");
+        QDateTime date =  QDateTime::fromString(line.at(0), "yyyy_MM_dd");
+        // qDebug() << date.toString();
+        averagePriceMap[date] = line.at(4).toFloat();
+    }
+
+    // 图表绘制
+    drawChart(averagePriceMap);
+}
+
+void WasteRecycle::priceChanged()
+{
+    updatePrice();
+    ui->lb_percent->setText(QString("%1").arg(fLevel2));
+
+    float ps = (fLevel2-fLevel3)/(fLevel1-fLevel3)  * 100;
+    int pos = ps;
+    bPriceInit = true;
+    ui->vslider_percent->setValue(pos);
 }

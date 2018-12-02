@@ -68,6 +68,12 @@ private slots:
 
     void on_btn_search_clicked();
 
+    void on_btn_charts_clicked();
+
+    void on_btn_averageChart_clicked();
+
+    void priceChanged();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -133,9 +139,14 @@ private:
      // delete
      void deleteData();
 
+     // update charts table
+     void updateTableCharts();
+
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
      QStandardItemModel* model;
+
+     bool bPriceInit;
 };
 
 #endif // WASTERECYCLE_H

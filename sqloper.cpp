@@ -30,23 +30,9 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
             qDebug() << "db is not exist, so create it";
             pDb->exec("create table configure(id INTEGER PRIMARY KEY autoincrement, date varchar(50), fPrice_1 varchar(50), fPrice_2 varchar(50), fPrice_3 varchar(50),"
                       "price_1 varchar(50), price_2 varchar(50), price_3 varchar(50), price_4 varchar(50));");
-            QSqlQuery query;
-            QDateTime date = QDateTime::currentDateTime();
-            QString today = date.toString("yyyy-MM-dd hh:mm:ss");
-            query.prepare("insert into configure(date, fPrice_1, fPrice_2, fPrice_3, price_1, price_2, price_3, price_4) values(:date,:fPrice_1, :fPrice_2, :fPrice_3,:price_1,:price_2,:price_3,:price_4);");
-            query.bindValue(":date", today);
-            query.bindValue(":fPrice_1", "2350");
-            query.bindValue(":fPrice_2", "0");
-            query.bindValue(":fPrice_3", "2070");
-            query.bindValue(":price_1", "1.1");
-            query.bindValue(":price_2", "1.05");
-            query.bindValue(":price_3", "1.0");
-            query.bindValue(":price_4", "0.9");
-            query.exec();
-            query.clear();
 
-            // QString sqlInsertInfo = "insert into unloading(date, index, rWeight) values(" + today + ", " +
-
+            QString createChartsTable = "create table charts (time varchar(100), amouts varchar(10), totalWeight varchar(10), totalPrice varchar(10), averagePrice varchar(10));";
+            pDb->exec(createChartsTable);
         } else {
             qDebug() << "db is exist";
         }
@@ -57,7 +43,7 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
     }
 }
 
-void SqlOper::sqlInsert(RecordInfo info)
+void SqlOper::sqlInsert(RecordInfo info, QString date)
 {
     // 若日期变化， 则新建一张数据表
     if(!pDb->open()) {
@@ -66,9 +52,9 @@ void SqlOper::sqlInsert(RecordInfo info)
     }
     qDebug() << "sqlInsert db open success";
 
-    QDateTime date = QDateTime::currentDateTime();
-    QString today = date.toString("yyyy_MM_dd");
-    QString tableName = "record_" + today;
+    // QDateTime date = QDateTime::currentDateTime();
+    // QString today = date.toString("yyyy_MM_dd");
+    QString tableName = "record_" + date;
     qDebug() << tableName;
 
     // 拼接sql语句
@@ -78,7 +64,7 @@ void SqlOper::sqlInsert(RecordInfo info)
     QSqlQuery query(*pDb);
     query.exec(qstrSqlJudgeTableExist);
 
-    // 如果存在这张表， 则不需要创建， 若不存在， 则新建一张表
+    // 如果存在这张表， 则不需要创建， 若不存在， 则新建一张表, 并且将上一天表格中的数据
     if(!query.isActive()) {
         pDb->exec(qstrSqlCreateTable);
     } else {
@@ -170,16 +156,86 @@ std::list<QString> SqlOper::sqlQueryUnloadingByDate(QString date)
     return results;
 }
 
-void SqlOper::sqlDeleteById(QString index)
+QStringList SqlOper::sqlGetAllTableName()
+{
+    QStringList tables;
+    if(!pDb->open()) {
+        qDebug() << "sqlGetAllTableName db open failed!";
+        return tables;
+    }
+
+    return pDb->tables();
+}
+
+void SqlOper::createTable(QString sql)
+{
+    if(!pDb->open()) {
+        qDebug() << "createTable db open failed!";
+        return;
+    }
+    pDb->exec(sql);
+}
+
+void SqlOper::insertTable(QString sql)
+{
+    if(!pDb->open()) {
+        qDebug() << "insertTable db open failed!";
+        return;
+    }
+     QSqlQuery query(*pDb);
+     qDebug() << sql;
+     query.exec(sql);
+     query.finish();
+}
+
+bool SqlOper::searchTableWetherExist(QString tableName, QString item, QString value)
+{
+    if(!pDb->open()) {
+        qDebug() << "sqlQueryIsExist db open failed!";
+        return false;
+    }
+     QSqlQuery query(*pDb);
+     QString sqlQuery = "select * from " + tableName + " where " + item + " = '" + value + "';";
+     // QString sqlQuery = "select * from " + tableName + " where idx = " + idx + ";";
+     qDebug() << sqlQuery;
+     query.exec(sqlQuery);
+     while (query.next()) {
+         return true;
+     }
+     return false;
+}
+
+std::list<QString> SqlOper::queryTableRecords(QString sql)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "queryTableRecords db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    QSqlQuery query(*pDb);
+    qDebug() << sql;
+    query.exec(sql);
+    while(query.next()) {
+        QString result = query.value("time").toString() + UtilityTools::holdPlaces(2) + query.value("amouts").toString() + UtilityTools::holdPlaces(2) +
+                query.value("totalWeight").toString() + UtilityTools::holdPlaces(2) + query.value("totalPrice").toString() + UtilityTools::holdPlaces(2) +
+                query.value("averagePrice").toString();
+        // qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
+void SqlOper::sqlDeleteById(QString index, QString date)
 {
     if(!pDb->open()) {
         qDebug() << "sqlQueryIsExist db open failed!";
         return;
     }
 
-    QDateTime date = QDateTime::currentDateTime();
-    QString today = date.toString("yyyy_MM_dd");
-    QString tableName = "record_" + today;
+    // QDateTime date = QDateTime::currentDateTime();
+    // QString today = date.toString("yyyy_MM_dd");
+    QString tableName = "record_" + date;
     QSqlQuery query(*pDb);
     QString sqlDel = "delete from " + tableName + " where id = " + index;
     qDebug() << sqlDel;

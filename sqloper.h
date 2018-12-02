@@ -1,4 +1,4 @@
-#ifndef SQLOPER_H
+﻿#ifndef SQLOPER_H
 #define SQLOPER_H
 
 #include <QtSql/QSql>
@@ -7,6 +7,9 @@
 #include <QString>
 #include <QWidget>
 #include <list>
+//#include <typeinfo>
+
+//#define VNAME(value)  (#value)
 
 // 需要写入的信息有排队号码, 时间， 毛重， 车重， 净重， 价格， 总价
 class RecordInfo
@@ -44,10 +47,10 @@ public:
     explicit SqlOper(QWidget *parent = nullptr);
 
     // 数据插入（数据插入前判断是否新的一天，若是新的一天则需要新建数据表， 用record_日期为表格名）
-    void sqlInsert(RecordInfo info);
+    void sqlInsert(RecordInfo info, QString date);
 
-    // 数据重写
-    void sqlDeleteById(QString index);
+    // 数据重写 date格式:xxxx_xx_xx
+    void sqlDeleteById(QString index, QString date);
 
     // 数据查询（根据时间进行查询）
     std::list<QString> sqlQueryByDate(QString date);
@@ -69,6 +72,17 @@ public:
 
     // 查询正在卸货的车辆
     std::list<QString> sqlQueryUnloadingByDate(QString date);
+
+    // 查询所有表名
+    QStringList sqlGetAllTableName();
+
+    void createTable(QString sql);
+
+    void insertTable(QString sql);
+
+    bool searchTableWetherExist(QString tableName, QString item, QString value);
+
+    std::list<QString> queryTableRecords(QString sql);
 
 private:
     QSqlDatabase* pDb;
