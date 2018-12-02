@@ -29,10 +29,12 @@
 #include <QtCharts>
 #include <QChartView>
 #include <QDateTimeAxis>
+#include <QTimer>
 
 #define VNAME(value)  (#value)
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
+#define TIMEOUT  (10)
 
 QString towDecimalPlaces(QString data) {
     QString head = data.split('.').at(0);
@@ -59,7 +61,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     fLevel2(0.0),
     fLevel3(0.0),
     fLevel4(0.0),
-    bPriceInit(false)
+    bPriceInit(false),
+    fWeight(0.0)
 {
     priceSetWin = new PriceSetDialog(parent, oper);
     ui->setupUi(this);
@@ -138,6 +141,12 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     palette .setBrush(QPalette::Background, QBrush(pixmap));
     this->setPalette( palette );
 
+    // 设置金龙纸业label
+    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
+    ui->lb_display->setPixmap(myPix);
+    ui->lb_display->show();
+    // ui->lb_display->setScaledContents(true);
+
     // 设置默认的焦点
     ui->le_RoughWeigh->setFocus();
 
@@ -150,6 +159,14 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->dateEdit->setCalendarPopup(true);
     ui->dateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->dateEdit->setDate(calendar->selectedDate());
+
+    // 串口设置
+    m_serial = new QSerialPort();
+    initActionsConnections();
+
+    // 定时器设置
+    m_pTimer = new QTimer(this);
+    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
 }
 
 WasteRecycle::~WasteRecycle()
@@ -338,7 +355,11 @@ void WasteRecycle::nextVehicle()
     ui->le_RoughWeigh->setFocus();
 
     model->sort(0);
-    ui->vslider_percent->setValue(50);
+    float ps = (fLevel2-fLevel3)/(fLevel1-fLevel3)  * 100;
+    int pos = ps;
+    bPriceInit = true;
+    ui->vslider_percent->setValue(pos);
+    ui->lb_percent->setText(QString("%1").arg(fLevel2));
 }
 
 void WasteRecycle::deleteData()
@@ -395,6 +416,40 @@ void WasteRecycle::updateTableCharts()
             oper->insertTable(insertChartsTable);
         } else {
             qDebug() << "date:" << date << " is Exist in table charts";
+        }
+    }
+}
+
+void WasteRecycle::initActionsConnections()
+{
+    connect(m_serial, &QSerialPort::readyRead, this, &WasteRecycle::readWeighBridgeData);
+    this->openSerialPort();
+    this->readWeighBridgeData();
+}
+
+void WasteRecycle::readWeighBridgeData()
+{
+    QByteArray data = m_serial->readAll();
+    this->putWeighBridgeData(data);
+}
+
+void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
+{
+    weighBridgeData.append(wbd);
+    if(weighBridgeData.contains("\n")) {
+        weighBridgeData.clear();
+    }
+    if(weighBridgeData.length()>12){
+        QString qqba = QString(weighBridgeData);
+        qqba = qqba.mid(qqba.indexOf("-")+1, 7);
+        qDebug() << qqba;
+        if(fWeight != qqba.toFloat()) {
+            m_pTimer->stop();
+            fWeight = qqba.toFloat();
+            ui->lb_display->setText(QString("%1").arg(qqba));
+
+            // 设置1分钟超时
+            m_pTimer->start(1000*60*1);
         }
     }
 }
@@ -1018,4 +1073,38 @@ void WasteRecycle::priceChanged()
     int pos = ps;
     bPriceInit = true;
     ui->vslider_percent->setValue(pos);
+}
+
+void WasteRecycle::openSerialPort()
+{
+    m_serial->setPortName("COM4");
+    m_serial->setBaudRate(1200);
+    m_serial->open(QIODevice::ReadWrite);
+}
+
+void WasteRecycle::handleTimeout()
+{
+    m_pTimer->stop();
+    // ui->lb_display->setText(QString::fromLocal8Bit("金龙纸业"));
+    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
+    ui->lb_display->setPixmap(myPix);
+    ui->lb_display->show();
+}
+
+void WasteRecycle::on_btn_rWrite_clicked()
+{
+    QString data = ui->lb_display->text();
+    if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+        float tmp = data.toFloat();
+        ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
+    }
+}
+
+void WasteRecycle::on_btn_vWrite_clicked()
+{
+    QString data = ui->lb_display->text();
+    if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+        float tmp = data.toFloat();
+        ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
+    }
 }

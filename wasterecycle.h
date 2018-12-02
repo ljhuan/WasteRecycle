@@ -9,6 +9,8 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QEvent>
+#include <QSerialPort>
+#include <QTimer>
 #include "pricesetdialog.h"
 #include "sqloper.h"
 
@@ -73,6 +75,14 @@ private slots:
     void on_btn_averageChart_clicked();
 
     void priceChanged();
+
+    void openSerialPort();
+
+    void handleTimeout();  //定时器超时处理函数
+
+    void on_btn_rWrite_clicked();
+
+    void on_btn_vWrite_clicked();
 
 private:
     Ui::WasteRecycle *ui;
@@ -147,6 +157,17 @@ private:
      QStandardItemModel* model;
 
      bool bPriceInit;
+
+     // 读取电子秤头数据相关参数和函数
+     QSerialPort *m_serial = nullptr;
+     void initActionsConnections();
+     void readWeighBridgeData();
+     void putWeighBridgeData(QByteArray &wbd);
+     QByteArray weighBridgeData;
+     float fWeight;
+
+     // 定时器相关参数和函数
+     QTimer *m_pTimer = nullptr;
 };
 
 #endif // WASTERECYCLE_H
