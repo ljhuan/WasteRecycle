@@ -603,7 +603,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,1,5,1,5,1,5">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,1,5,2,5,1,5">
         <item>
          <widget class="QPushButton" name="btn_Level1">
           <property name="sizePolicy">
