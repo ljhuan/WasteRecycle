@@ -300,7 +300,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
     return false;
 }
 
-void WasteRecycle::showPrice()
+void WasteRecycle::showPrice(float level)
 {
     if (ui->lb_Price->text().trimmed() == "") {
         qDebug() << "go unloading";
@@ -315,10 +315,14 @@ void WasteRecycle::showPrice()
                                                                QString::fromLocal8Bit("取消"));
     switch (ret) {
     case 0:
+        if (bModify) {
+            modifyData();
+        }
+        storeData(level);
         nextVehicle();
         break;
     case 1:
-        on_btn_modify_clicked();
+        // on_btn_modify_clicked();
         break;
     default:
         break;
@@ -365,10 +369,13 @@ void WasteRecycle::nextVehicle()
 void WasteRecycle::deleteData()
 {
     QString date = ui->dateEdit->text().replace("-", "_");
-    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
     int row = ui->tableView->currentIndex().row();
     qDebug() << "row: " << row << " data:" << model->index(row, 0).data().toString() << "  currNum:" << ui->lb_CurrNum->text();
-    if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
+//    if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
+//        model->removeRow(row);
+//    }
+    if (bModify == false && model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
+        oper->sqlDeleteById(model->index(row, 0).data().toString(), date);
         model->removeRow(row);
     }
 }
@@ -619,7 +626,12 @@ void WasteRecycle::statistics()
     qDebug() << "statistics OUT";
 }
 
-
+void WasteRecycle::storeData(float level) {
+    writeData(level);
+    // updateListWidget(level);
+    updateTableView(level);
+    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+}
 
 void WasteRecycle::on_btn_Level1_clicked()
 {
@@ -633,13 +645,9 @@ void WasteRecycle::on_btn_Level1_clicked()
     QString ePrice = ui->le_Level1ExtraPrice->text();
     float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
     finalPrice(level);
-    writeData(level);
-    // updateListWidget(level);
-    updateTableView(level);
-    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
     setTextEnabled(false);
-    showPrice();
+    showPrice(level);
     qDebug() << "on_btn_Level1_clicked OUT";
 }
 
@@ -654,14 +662,9 @@ void WasteRecycle::on_btn_Level2_clicked()
     // float level = (fLevel1*(ui->vslider_percent->value()) + fLevel3*(100 - ui->vslider_percent->value())) / 100;
     float level = ui->lb_percent->text().toFloat();
     finalPrice(level);
-    writeData(level);
-    updateTableView(level);
-    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(ui->lb_percent->text());
-    // ui->le_RoughWeigh->setDisabled(true);
-    // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
-    showPrice();
+    showPrice(level);
     qDebug() << "on_btn_Level2_clicked OUT";
 }
 
@@ -674,15 +677,13 @@ void WasteRecycle::on_btn_Level3_clicked()
     on_btn_modify_clicked();
     updatePrice();
     finalPrice(fLevel3);
-    writeData(fLevel3);
-    // updateListWidget(fLevel3);
-    updateTableView(fLevel3);
-    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+//    writeData(fLevel3);
+//    // updateListWidget(fLevel3);
+//    updateTableView(fLevel3);
+//    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(fLevel3));
-    // ui->le_RoughWeigh->setDisabled(true);
-    // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
-    showPrice();
+    showPrice(fLevel3);
     qDebug() << "on_btn_Level3_clicked OUT";
 }
 
@@ -698,15 +699,13 @@ void WasteRecycle::on_btn_Level4_clicked()
     QString ePrice = ui->le_Level4ExtraPrice->text();
     float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
     finalPrice(level);
-    writeData(level);
-    // updateListWidget(level);
-    updateTableView(level);
-    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+//    writeData(level);
+//    // updateListWidget(level);
+//    updateTableView(level);
+//    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
-    // ui->le_RoughWeigh->setDisabled(true);
-    // ui->le_VehicleWeigh->setDisabled(true);
     setTextEnabled(false);
-    showPrice();
+    showPrice(level);
     qDebug() << "on_btn_Level4_clicked OUT";
 }
 
@@ -720,9 +719,10 @@ void WasteRecycle::on_btn_Next_clicked()
     }
     if (ui->lb_Price->text().trimmed() == "") {
         deleteData();
-        writeData(0);
-        updateTableView(0);
-        oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+//        writeData(0);
+//        updateTableView(0);
+//        oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+        storeData(0);
     }
 
     nextVehicle();
@@ -783,15 +783,16 @@ void WasteRecycle::on_btn_modify_clicked()
 {
     qDebug() << "on_btn_modify_clicked IN";
     setTextEnabled(true);
-    QString date = ui->dateEdit->text().replace("-", "_");
-    qDebug() << "date:" << date;
-    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
-    int row = ui->tableView->currentIndex().row();
-    qDebug() << "row:" << row << " data:" << model->index(row, 0).data().toString() << "   currNum:" << ui->lb_CurrNum;
-    if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
-        model->removeRow(row);
-    }
-    ui->lb_Price->clear();
+    bModify = true;
+//    QString date = ui->dateEdit->text().replace("-", "_");
+//    qDebug() << "date:" << date;
+//    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
+//    int row = ui->tableView->currentIndex().row();
+//    qDebug() << "row:" << row << " data:" << model->index(row, 0).data().toString() << "   currNum:" << ui->lb_CurrNum;
+//    if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
+//        model->removeRow(row);
+//    }
+//    ui->lb_Price->clear();
 
     qDebug() << "on_btn_modify_clicked OUT";
 }
@@ -849,15 +850,9 @@ void WasteRecycle::on_btn_Statistics_clicked()
     qDebug() << "on_btn_Statistics_clicked OUT";
 }
 
-void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
+
+void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
 {
-    qDebug() << "on_tableView_doubleClicked IN";
-
-    if (ui->lb_Price->text().trimmed() == "" && ui->lb_CurrNum->text().toInt() == toBeUseIndex && ui->le_RoughWeigh->text() != "") {
-        writeData(0);
-        updateTableView(0);
-    }
-
     ui->tableView->selectRow(index.row());
     QString currIndex = model->index(index.row(), 0).data().toString();
     QString rw = model->index(index.row(), 2).data().toString();
@@ -892,6 +887,65 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
     } else {
         setTextEnabled(false);
     }
+}
+
+void WasteRecycle::saveCurrentData()
+{
+    if (ui->lb_Price->text().trimmed() == "" && ui->lb_CurrNum->text().toInt() == toBeUseIndex && ui->le_RoughWeigh->text() != "") {
+        writeData(0);
+        updateTableView(0);
+    }
+}
+
+void WasteRecycle::modifyData()
+{
+    QString date = ui->dateEdit->text().replace("-", "_");
+    qDebug() << "date:" << date;
+    oper->sqlDeleteById(ui->lb_CurrNum->text(), date);
+    int row = ui->tableView->currentIndex().row();
+    qDebug() << "row:" << row << " data:" << model->index(row, 0).data().toString() << "   currNum:" << ui->lb_CurrNum;
+    // 遍历tableview， 当currNum和当前要存入的num相同时， 删除tableview中数据，在存入
+    int count = model->rowCount();
+    for (int i = 0; i < count; ++i) {
+        if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
+            model->removeRow(row);
+            bModify = false;
+        }
+    }
+}
+
+void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
+{
+    qDebug() << "on_tableView_doubleClicked IN";
+
+
+
+    QString msg = "<font size='25' color='black'>" +QString::fromLocal8Bit("修改或者删除数据？") + "</font>";
+    int ret = QMessageBox::information(this,
+                                                               QString::fromLocal8Bit("警告"),
+                                                               msg,
+                                                               QString::fromLocal8Bit("修改"),
+                                                               QString::fromLocal8Bit("删除"),
+                                                               QString::fromLocal8Bit("取消"));
+
+    switch (ret) {
+    case 0:
+        saveCurrentData();
+        dataRecoveryFromTableView(index);
+        on_btn_modify_clicked();
+        break;
+    case 1:
+        bModify = true;
+        deleteData();
+        break;
+    case 2:
+        qDebug() << "cancel";
+        break;
+    default:
+        break;
+    }
+
+
     qDebug() << "on_tableView_doubleClicked OUT";
 }
 
@@ -1076,7 +1130,13 @@ void WasteRecycle::priceChanged()
 
 void WasteRecycle::openSerialPort()
 {
-    m_serial->setPortName("COM4");
+    QString port;
+    if(ui->le_com->text() != "") {
+        port = "COM" + ui->le_com->text();
+    } else {
+        port = "COM4";
+    }
+    m_serial->setPortName(port);
     m_serial->setBaudRate(1200);
     m_serial->open(QIODevice::ReadWrite);
 }
@@ -1106,4 +1166,25 @@ void WasteRecycle::on_btn_vWrite_clicked()
         float tmp = data.toFloat();
         ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
     }
+}
+
+void WasteRecycle::on_btn_rClear_clicked()
+{
+    ui->le_RoughWeigh->clear();
+    ui->le_RoughWeigh->setFocus();
+}
+
+void WasteRecycle::on_btn_vClear_clicked()
+{
+    ui->le_VehicleWeigh->clear();
+     ui->le_VehicleWeigh->setFocus();
+}
+
+void WasteRecycle::on_le_com_textChanged(const QString &arg1)
+{
+    m_serial->close();
+    openSerialPort();
+    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
+    ui->lb_display->setPixmap(myPix);
+    ui->lb_display->show();
 }

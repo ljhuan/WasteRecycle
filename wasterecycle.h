@@ -84,6 +84,12 @@ private slots:
 
     void on_btn_vWrite_clicked();
 
+    void on_btn_rClear_clicked();
+
+    void on_btn_vClear_clicked();
+
+    void on_le_com_textChanged(const QString &arg1);
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -138,7 +144,7 @@ private:
      bool eventFilter(QObject *obj, QEvent *e);
 
      // 价格弹出显示
-     void showPrice();
+     void showPrice(float level);
 
      // clear
      void clearData();
@@ -151,6 +157,16 @@ private:
 
      // update charts table
      void updateTableCharts();
+
+     void dataRecoveryFromTableView(const QModelIndex &index);
+
+     void saveCurrentData();
+
+     void modifyData();
+
+     void storeData(float level);
+
+     bool bModify = false;
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
