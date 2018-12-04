@@ -323,6 +323,7 @@ void WasteRecycle::showPrice(float level)
         break;
     case 1:
         // on_btn_modify_clicked();
+        setTextEnabled(true);
         break;
     default:
         break;
@@ -377,6 +378,9 @@ void WasteRecycle::deleteData()
     if (bModify == false && model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
         oper->sqlDeleteById(model->index(row, 0).data().toString(), date);
         model->removeRow(row);
+    } else if (bModify == true) {
+        oper->sqlDeleteById(model->index(row, 0).data().toString(), date);
+        model->removeRow(row);
     }
 }
 
@@ -397,6 +401,11 @@ void WasteRecycle::updateTableCharts()
     for (auto e : records) {
         QString date = e;
         date = date.remove("record_");
+        QDateTime datetime = QDateTime::currentDateTime();
+        QString today = datetime.toString("yyyy_MM_dd");
+        if(date == today) {
+            continue;
+        }
 
         //     a. 对每一天的数据进行统计
         if (!oper->searchTableWetherExist("charts", "time", date)) {
@@ -443,20 +452,23 @@ void WasteRecycle::readWeighBridgeData()
 void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
 {
     weighBridgeData.append(wbd);
+    // qDebug() << "weighBridgeData:" << QString(weighBridgeData);
     if(weighBridgeData.contains("\n")) {
         weighBridgeData.clear();
     }
-    if(weighBridgeData.length()>12){
+    if(weighBridgeData.length()>12) {
         QString qqba = QString(weighBridgeData);
-        qqba = qqba.mid(qqba.indexOf("-")+1, 7);
+        qDebug() << "qqba:" << qqba;
+        qqba = qqba.mid(qqba.indexOf("n")+1, 8);
         if(fWeight != qqba.toFloat()) {
             m_pTimer->stop();
             fWeight = qqba.toFloat();
-            ui->lb_display->setText(QString("%1").arg(qqba));
+            ui->lb_display->setText(QString("%1").arg(fWeight));
 
             // 设置1分钟超时
             m_pTimer->start(1000*60*1);
         }
+        // weighBridgeData.clear();
     }
 }
 
