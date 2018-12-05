@@ -730,6 +730,7 @@ void WasteRecycle::on_btn_Next_clicked()
         return;
     }
     if (ui->lb_Price->text().trimmed() == "") {
+        bModify = false;
         deleteData();
 //        writeData(0);
 //        updateTableView(0);
