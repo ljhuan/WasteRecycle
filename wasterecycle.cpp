@@ -248,8 +248,19 @@ void WasteRecycle::keyPressEvent(QKeyEvent *e)
             on_btn_Next_clicked();
         }
         break;
+    case Qt::Key_Space:
+        qDebug() << "key space";
+        float data;
+        data = ui->lb_display->text().toFloat();
+        if(ui->le_RoughWeigh->text().trimmed() == "") {
+            ui->le_RoughWeigh->setText(QString("%1").arg(data));
+        } else if(ui->le_VehicleWeigh->text().trimmed() == "") {
+            ui->le_VehicleWeigh->setText(QString("%1").arg(data));
+        }
+        break;
     default:
          qDebug() << "default";
+         this->setFocus();
          QWidget::keyPressEvent (e);
         break;
     }
