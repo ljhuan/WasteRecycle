@@ -52,7 +52,7 @@ private slots:
 
     void on_le_VehicleWeigh_textChanged(const QString &arg1);
 
-    void on_btn_modify_clicked();
+    // void on_btn_modify_clicked();
 
     void on_vslider_percent_valueChanged(int value);
 
@@ -90,6 +90,8 @@ private slots:
 
     void on_le_com_textChanged(const QString &arg1);
 
+    void on_tableView_unloading_doubleClicked(const QModelIndex &index);
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -118,7 +120,8 @@ private:
      void writeData(float level);
 
      // 更新过车记录表
-     void updateListWidget(float level);
+     // void updateListWidget(float level);
+     void updateUnloadingTableView(float level);
      void updateTableView(float level);
 
      // 检查数据的合法性
@@ -160,17 +163,23 @@ private:
 
      void dataRecoveryFromTableView(const QModelIndex &index);
 
+     void dataRecoveryFromUnloadingTableView(const QModelIndex &index);
+
      void saveCurrentData();
 
      void modifyData();
 
      void storeData(float level);
 
+     bool checkVehicleWeighIsValid();
+
      bool bModify = false;
+     bool bModifyUnloading = false;
 
      PriceSetDialog* priceSetWin;
      SqlOper* oper;
      QStandardItemModel* model;
+     QStandardItemModel* model_unloading;
 
      bool bPriceInit;
 

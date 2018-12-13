@@ -57,6 +57,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     oper(new SqlOper),
     priceSetWin(nullptr),
     model(new QStandardItemModel),
+    model_unloading(new QStandardItemModel),
     fLevel1(0.0),
     fLevel2(0.0),
     fLevel3(0.0),
@@ -84,12 +85,24 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     records = oper->sqlQueryByDate(today);
     qDebug() << "records size:" <<  records.size();
     int i = 0;
+    int k = 0;
+    int q = 0;
 
     for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
         QStringList lines = itor->split("  ");
-        for(int j = 0; j < lines.length(); ++j) {
-            model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
+
+        if(lines.at(6).trimmed() == "") {  // 未结算的塞入unloading表格
+            for(int j = 0; j < lines.length(); ++j) {
+                model_unloading->setItem(q, j, new QStandardItem(lines.at(j).trimmed()));
+            }
+            ++q;
+        } else {  // 已结算的塞入历史表格
+            for(int j = 0; j < lines.length(); ++j) {
+                model->setItem(k, j, new QStandardItem(lines.at(j).trimmed()));
+            }
+            ++k;
         }
+
         toBeUseIndex = lines.at(0).toInt() + 1;
     }
 
@@ -98,11 +111,11 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         QString tim = e.split("  ").at(0);
         QString idx = e.split("  ").at(1);
         QString rW = e.split("  ").at(2);
-        int row = model->rowCount();
-        model->setItem(row, 0, new QStandardItem(idx));
-        model->setItem(row, 1, new QStandardItem(tim));
-        model->setItem(row, 2, new QStandardItem(rW));
-        model->setItem(row, 3, new QStandardItem(QString::fromLocal8Bit("卸货中")));
+        int row = model_unloading->rowCount();
+        model_unloading->setItem(row, 0, new QStandardItem(idx));
+        model_unloading->setItem(row, 1, new QStandardItem(tim));
+        model_unloading->setItem(row, 2, new QStandardItem(rW));
+        model_unloading->setItem(row, 3, new QStandardItem(QString::fromLocal8Bit("卸货中")));
 
         // ui->le_RoughWeigh->setText(rW);
         if (idx.toInt() >= toBeUseIndex) {
@@ -110,6 +123,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         }
     }
     model->sort(0);
+    model_unloading->sort(0);
 
     // 隐藏各项数据统计
     ui->lb_Amount->setHidden(true);
@@ -179,6 +193,18 @@ WasteRecycle::~WasteRecycle()
     oper = nullptr;
     delete model;
     model = nullptr;
+    delete model_unloading;
+    model_unloading = nullptr;
+    if(m_serial != nullptr) {
+        m_serial->close();
+        delete m_serial;
+        m_serial = nullptr;
+    }
+    if(m_pTimer != nullptr) {
+        m_pTimer->stop();
+        delete m_pTimer;
+        m_pTimer = nullptr;
+    }
 }
 
 void WasteRecycle::initTableView() {
@@ -192,7 +218,7 @@ void WasteRecycle::initTableView() {
 
     ui->tableView->setModel(model);
     ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 160);
+    ui->tableView->setColumnWidth(1, 200);
     ui->tableView->setColumnWidth(2, 70);
     ui->tableView->setColumnWidth(3, 70);
     ui->tableView->setColumnWidth(4, 70);
@@ -201,6 +227,26 @@ void WasteRecycle::initTableView() {
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
+
+    model_unloading->setHorizontalHeaderItem(0, new QStandardItem(QString::fromLocal8Bit("号码")));
+    model_unloading->setHorizontalHeaderItem(1, new QStandardItem(QString::fromLocal8Bit("时间")));
+    model_unloading->setHorizontalHeaderItem(2, new QStandardItem(QString::fromLocal8Bit("毛重")));
+    model_unloading->setHorizontalHeaderItem(3, new QStandardItem(QString::fromLocal8Bit("车重")));
+    model_unloading->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
+    model_unloading->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
+    model_unloading->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+
+    ui->tableView_unloading->setModel(model_unloading);
+    ui->tableView_unloading->setColumnWidth(0, 40);
+    ui->tableView_unloading->setColumnWidth(1, 160);
+    ui->tableView_unloading->setColumnWidth(2, 70);
+    ui->tableView_unloading->setColumnWidth(3, 70);
+    ui->tableView_unloading->setColumnWidth(4, 70);
+    ui->tableView_unloading->setColumnWidth(5, 50);
+    ui->tableView_unloading->setColumnWidth(6, 70);
+    ui->tableView_unloading->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
+    ui->tableView_unloading->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
+    ui->tableView_unloading->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
 }
 
 void WasteRecycle::keyPressEvent(QKeyEvent *e)
@@ -333,7 +379,6 @@ void WasteRecycle::showPrice(float level)
         nextVehicle();
         break;
     case 1:
-        // on_btn_modify_clicked();
         setTextEnabled(true);
         break;
     default:
@@ -371,6 +416,7 @@ void WasteRecycle::nextVehicle()
     ui->le_RoughWeigh->setFocus();
 
     model->sort(0);
+    model_unloading->sort(0);
     float ps = (fLevel2-fLevel3)/(fLevel1-fLevel3)  * 100;
     int pos = ps;
     bPriceInit = true;
@@ -382,10 +428,17 @@ void WasteRecycle::deleteData()
 {
     QString date = ui->dateEdit->text().replace("-", "_");
     int row = ui->tableView->currentIndex().row();
-    qDebug() << "row: " << row << " data:" << model->index(row, 0).data().toString() << "  currNum:" << ui->lb_CurrNum->text();
-//    if (model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
-//        model->removeRow(row);
-//    }
+    int urow = ui->tableView_unloading->currentIndex().row();
+
+    if (bModifyUnloading == false && model_unloading->index(urow, 0).data().toString() == ui->lb_CurrNum->text()) {
+        oper->sqlDeleteById(model_unloading->index(urow, 0).data().toString(), date);
+        model_unloading->removeRow(urow);
+    } else if (bModifyUnloading == true) {
+        oper->sqlDeleteById(model_unloading->index(urow, 0).data().toString(), date);
+        model_unloading->removeRow(urow);
+        return;
+    }
+
     if (bModify == false && model->index(row, 0).data().toString() == ui->lb_CurrNum->text()) {
         oper->sqlDeleteById(model->index(row, 0).data().toString(), date);
         model->removeRow(row);
@@ -550,7 +603,7 @@ void WasteRecycle::writeData(float level)
     qDebug() << "writeData OUT";
 }
 
-void WasteRecycle::updateListWidget(float level)
+/* void WasteRecycle::updateListWidget(float level)
 {
     // int num = ui->lw_history->count();
 
@@ -561,6 +614,23 @@ void WasteRecycle::updateListWidget(float level)
 //            ui->lb_NetWeight->text() + UtilityTools::holdPlaces(15) + towDecimalPlaces(QString("%1").arg(level)) + UtilityTools::holdPlaces(15) +
 //            ui->lb_Price->text();
 //    ui->lw_history->addItem(record);
+} */
+
+void WasteRecycle::updateUnloadingTableView(float level)
+{
+    qDebug() << "updateUnloadingTableView IN";
+    QDateTime qtime = QDateTime::currentDateTime();
+    QString time = qtime.toString("yyyy-MM-dd hh:mm:ss");
+    int row = model_unloading->rowCount();
+    model_unloading->setItem(row, 0, new QStandardItem(ui->lb_CurrNum->text()));
+    model_unloading->setItem(row, 1, new QStandardItem(time));
+    model_unloading->setItem(row, 2, new QStandardItem(ui->le_RoughWeigh->text()));
+    model_unloading->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text().trimmed() == "" ? QString::fromLocal8Bit("卸货中") : ui->le_VehicleWeigh->text()));
+    model_unloading->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
+    model_unloading->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
+    model_unloading->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
+    ui->tableView_unloading->selectRow(row);
+    qDebug() << "updateUnloadingTableView OUT";
 }
 
 void WasteRecycle::updateTableView(float level)
@@ -650,10 +720,45 @@ void WasteRecycle::statistics()
 }
 
 void WasteRecycle::storeData(float level) {
+
+    if(ui->lb_Price->text().trimmed() == "") {
+        updateUnloadingTableView(level);
+    } else {
+        if (bModifyUnloading) {
+            QString date = ui->dateEdit->text().replace("-", "_");
+            int urow = ui->tableView_unloading->currentIndex().row();
+            oper->sqlDeleteById(model_unloading->index(urow, 0).data().toString(), date);
+            model_unloading->removeRow(urow);
+            bModifyUnloading = false;
+        }
+        updateTableView(level);
+    }
+
     writeData(level);
-    // updateListWidget(level);
-    updateTableView(level);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+}
+
+// 检查车重数据是否合法
+bool WasteRecycle::checkVehicleWeighIsValid() {
+    QString vw = ui->le_VehicleWeigh->text().trimmed();
+    bool isAllDigit = true;
+    for (auto e : vw.toStdString()) {
+        if(!isdigit(e) && e != '.') {
+            isAllDigit = false;
+            break;
+        }
+    }
+
+    // 车重数据为空或者数据不全为数字时
+    if(vw == "" || !isAllDigit) {
+        // 如果是从表格恢复的数据则不做任何修改
+        /*if (bModify || bModifyUnloading) {
+            return;
+        }*/
+        qDebug() << "vehicle weigh is not alldigital or is empty";
+        return false;
+    }
+    return true;
 }
 
 void WasteRecycle::on_btn_Level1_clicked()
@@ -663,8 +768,14 @@ void WasteRecycle::on_btn_Level1_clicked()
         return;
     }
 
-    on_btn_modify_clicked();
     updatePrice();
+
+    // 判断车重是否全为数字
+    if (!checkVehicleWeighIsValid()) {
+        on_btn_Next_clicked();
+        return;
+    }
+
     QString ePrice = ui->le_Level1ExtraPrice->text();
     float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
     finalPrice(level);
@@ -680,8 +791,15 @@ void WasteRecycle::on_btn_Level2_clicked()
     if(!check()) {
         return;
     }
-    on_btn_modify_clicked();
+    // on_btn_modify_clicked();
     updatePrice();
+
+    // 判断车重是否全为数字
+    if (!checkVehicleWeighIsValid()) {
+        on_btn_Next_clicked();
+        return;
+    }
+
     // float level = (fLevel1*(ui->vslider_percent->value()) + fLevel3*(100 - ui->vslider_percent->value())) / 100;
     float level = ui->lb_percent->text().toFloat();
     finalPrice(level);
@@ -697,13 +815,16 @@ void WasteRecycle::on_btn_Level3_clicked()
     if(!check()) {
         return;
     }
-    on_btn_modify_clicked();
+    // on_btn_modify_clicked();
     updatePrice();
+
+    // 判断车重是否全为数字
+    if (!checkVehicleWeighIsValid()) {
+        on_btn_Next_clicked();
+        return;
+    }
+
     finalPrice(fLevel3);
-//    writeData(fLevel3);
-//    // updateListWidget(fLevel3);
-//    updateTableView(fLevel3);
-//    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(fLevel3));
     setTextEnabled(false);
     showPrice(fLevel3);
@@ -717,15 +838,18 @@ void WasteRecycle::on_btn_Level4_clicked()
     if(!check()) {
         return;
     }
-    on_btn_modify_clicked();
+
     updatePrice();
+
+    // 判断车重是否全为数字
+    if (!checkVehicleWeighIsValid()) {
+        on_btn_Next_clicked();
+        return;
+    }
+
     QString ePrice = ui->le_Level4ExtraPrice->text();
     float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
     finalPrice(level);
-//    writeData(level);
-//    // updateListWidget(level);
-//    updateTableView(level);
-//    oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     ui->lb_unitPrice->setText(QString("%1").arg(level));
     setTextEnabled(false);
     showPrice(level);
@@ -740,12 +864,12 @@ void WasteRecycle::on_btn_Next_clicked()
         qWarning() << "le_RoughWeigh is empty";
         return;
     }
+
+    bModify = false;
+    bModifyUnloading = false;
+
     if (ui->lb_Price->text().trimmed() == "") {
-        bModify = false;
         deleteData();
-//        writeData(0);
-//        updateTableView(0);
-//        oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
         storeData(0);
     }
 
@@ -803,7 +927,7 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
     }
 }
 
-void WasteRecycle::on_btn_modify_clicked()
+/* void WasteRecycle::on_btn_modify_clicked()
 {
     qDebug() << "on_btn_modify_clicked IN";
     setTextEnabled(true);
@@ -819,7 +943,7 @@ void WasteRecycle::on_btn_modify_clicked()
 //    ui->lb_Price->clear();
 
     qDebug() << "on_btn_modify_clicked OUT";
-}
+} */
 
 void WasteRecycle::on_vslider_percent_valueChanged(int value)
 {
@@ -874,6 +998,40 @@ void WasteRecycle::on_btn_Statistics_clicked()
     qDebug() << "on_btn_Statistics_clicked OUT";
 }
 
+void WasteRecycle::dataRecoveryFromUnloadingTableView(const QModelIndex &index)
+{
+    ui->tableView_unloading->selectRow(index.row());
+    QString currIndex = model_unloading->index(index.row(), 0).data().toString();
+    QString rw = model_unloading->index(index.row(), 2).data().toString();
+    QString vw = model_unloading->index(index.row(), 3).data().toString();
+    QString nw = model_unloading->index(index.row(), 4).data().toString();
+    QString uprice = model_unloading->index(index.row(), 5).data().toString();
+    QString price = model_unloading->index(index.row(), 6).data().toString();
+
+    ui->lb_CurrNum->setText(currIndex);
+    ui->le_RoughWeigh->setText(rw);
+    ui->le_VehicleWeigh->setText(vw);
+    ui->lb_NetWeight->setText(nw);
+    ui->lb_unitPrice->setText(uprice);
+    ui->lb_Price->setText(price);
+
+    // 判断车重是否全为数字
+    bool isAllDigit = true;
+    for (auto e : vw.toStdString()) {
+        if(!isdigit(e) && e != '.') {
+            isAllDigit = false;
+            break;
+        }
+    }
+
+    if (!isAllDigit) {
+        setTextEnabled(true);
+        ui->le_VehicleWeigh->setFocus();
+        ui->le_VehicleWeigh->selectAll();
+    } else {
+        setTextEnabled(false);
+    }
+}
 
 void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
 {
@@ -884,10 +1042,6 @@ void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
     QString nw = model->index(index.row(), 4).data().toString();
     QString uprice = model->index(index.row(), 5).data().toString();
     QString price = model->index(index.row(), 6).data().toString();
-
-    // ui->lb_CurrNum->setText(currIndex);
-
-    // on_btn_Next_clicked();
 
     ui->lb_CurrNum->setText(currIndex);
     ui->le_RoughWeigh->setText(rw);
@@ -917,7 +1071,8 @@ void WasteRecycle::saveCurrentData()
 {
     if (ui->lb_Price->text().trimmed() == "" && ui->lb_CurrNum->text().toInt() == toBeUseIndex && ui->le_RoughWeigh->text() != "") {
         writeData(0);
-        updateTableView(0);
+        // updateTableView(0);
+        updateUnloadingTableView(0);
     }
 }
 
@@ -942,8 +1097,6 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
 {
     qDebug() << "on_tableView_doubleClicked IN";
 
-
-
     QString msg = "<font size='25' color='black'>" +QString::fromLocal8Bit("修改或者删除数据？") + "</font>";
     int ret = QMessageBox::information(this,
                                                                QString::fromLocal8Bit("警告"),
@@ -951,15 +1104,18 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
                                                                QString::fromLocal8Bit("修改"),
                                                                QString::fromLocal8Bit("删除"),
                                                                QString::fromLocal8Bit("取消"));
-
+    if (bModifyUnloading) {
+        bModifyUnloading = false;
+    }
+    bModify = true;
     switch (ret) {
     case 0:
         saveCurrentData();
         dataRecoveryFromTableView(index);
-        on_btn_modify_clicked();
+        setTextEnabled(true);
+        ui->tabWidget->setCurrentWidget(ui->tab);
         break;
     case 1:
-        bModify = true;
         deleteData();
         break;
     case 2:
@@ -968,7 +1124,6 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
     default:
         break;
     }
-
 
     qDebug() << "on_tableView_doubleClicked OUT";
 }
@@ -1011,6 +1166,9 @@ void WasteRecycle::on_btn_search_clicked()
     for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
         qDebug() << "1 *itor=" << (*itor);
         QStringList lines = itor->split("  ");
+        if (lines.at(6).trimmed() == "") {
+            continue;
+        }
         for(int j = 0; j < lines.length(); ++j) {
             // qDebug() << "i=" << i << "  j=" << j << "  data=" << lines.at(j).trimmed();
             model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
@@ -1211,4 +1369,40 @@ void WasteRecycle::on_le_com_textChanged(const QString &arg1)
     QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
     ui->lb_display->setPixmap(myPix);
     ui->lb_display->show();
+}
+
+void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index)
+{
+    qDebug() << "on_tableView_unloading_doubleClicked IN";
+
+    QString msg = "<font size='25' color='black'>" +QString::fromLocal8Bit("修改或者删除数据？") + "</font>";
+    int ret = QMessageBox::information(this,
+                                                               QString::fromLocal8Bit("警告"),
+                                                               msg,
+                                                               QString::fromLocal8Bit("修改"),
+                                                               QString::fromLocal8Bit("删除"),
+                                                               QString::fromLocal8Bit("取消"));
+
+    if (bModify) {
+        bModify = false;
+    }
+    bModifyUnloading = true;
+    switch (ret) {
+    case 0:
+        saveCurrentData();
+        // dataRecoveryFromTableView(index);
+        dataRecoveryFromUnloadingTableView(index);
+        setTextEnabled(true);
+        break;
+    case 1:
+        deleteData();
+        break;
+    case 2:
+        qDebug() << "cancel";
+        break;
+    default:
+        break;
+    }
+
+    qDebug() << "on_tableView_unloading_doubleClicked OUT";
 }
