@@ -1,10 +1,11 @@
-﻿#include <string>
+﻿#include <Windows.h>
+#include <time.h>
+#include <synchapi.h>
+#include <string>
 #include <list>
 #include <map>
 #include <cctype>
-#include "wasterecycle.h"
-#include "ui_wasterecycle.h"
-#include "sqloper.h"
+#include <fstream>
 #include <QDebug>
 #include <QString>
 #include <QComboBox>
@@ -30,10 +31,16 @@
 #include <QChartView>
 #include <QDateTimeAxis>
 #include <QTimer>
+#include <QDir>
+#include <QDesktopServices>
+
+#include "wasterecycle.h"
+#include "ui_wasterecycle.h"
+#include "sqloper.h"
+#include "opennetstream.h"
+#include "opennetstream_p.h"
 
 #define VNAME(value)  (#value)
-#define MAX(x,y) ((x) > (y) ? (x) : (y))
-#define MIN(x,y) ((x) > (y) ? (y) : (x))
 #define TIMEOUT  (10)
 
 QString towDecimalPlaces(QString data) {
@@ -65,8 +72,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     bPriceInit(false),
     fWeight(0.0)
 {
-    priceSetWin = new PriceSetDialog(parent, oper);
     ui->setupUi(this);
+    priceSetWin = new PriceSetDialog(parent, oper);
     ui->le_RoughWeigh->clear();
     ui->le_VehicleWeigh->clear();
 
@@ -115,7 +122,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         model_unloading->setItem(row, 0, new QStandardItem(idx));
         model_unloading->setItem(row, 1, new QStandardItem(tim));
         model_unloading->setItem(row, 2, new QStandardItem(rW));
-        model_unloading->setItem(row, 3, new QStandardItem(QString::fromLocal8Bit("卸货中")));
+        model_unloading->setItem(row, 3, new QStandardItem("卸货中"));
 
         // ui->le_RoughWeigh->setText(rW);
         if (idx.toInt() >= toBeUseIndex) {
@@ -147,8 +154,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     bPriceInit = true;
     ui->vslider_percent->setValue(pos);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
-
-
     // 配置背景图
     QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
     QPalette  palette (this->palette());
@@ -165,7 +170,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->le_RoughWeigh->setFocus();
 
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(priceChanged()));
-
     // 日历设置
     QCalendarWidget* calendar = new QCalendarWidget(this);
     calendar->hide();
@@ -177,10 +181,51 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     // 串口设置
     m_serial = new QSerialPort();
     initActionsConnections();
-
     // 定时器设置
     m_pTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
+    // 登录摄像头并获取码流
+    deviceTableView_ = new QTableView(this);
+    deviceTableView_->setContextMenuPolicy(Qt::CustomContextMenu);
+    deviceTableView_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    deviceTableView_->setSelectionMode(QAbstractItemView::SingleSelection);
+    deviceTableView_->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tw_devices->addTab(deviceTableView_, "设备列表");
+
+    connect(deviceTableView_, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotDeviceTableViewPressed(const QModelIndex &)));
+
+    deviceTableModel_ = new CameraModel(this);
+    deviceTableView_->setModel(deviceTableModel_);
+    // deviceTableView_->setColumnWidth(1, ui->tw_devices->width() - 10);  // 该方法要放在设置完model之后调用，否则不起作用
+
+    jsonTextBrowser_ = new QTextBrowser(this);
+    ui->tw_devices->addTab(jsonTextBrowser_, tr("json"));
+    libInit();
+    qDebug() << "sessionId:" << sessionId_;
+
+    getDeviceList();
+
+    // baidu ai 人脸识别相关设置
+//    compareManager = new QNetworkAccessManager(this);
+//    connect(compareManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyCompareFinished(QNetworkReply*)));
+
+//    tokenManager = new QNetworkAccessManager(this);
+//    connect(tokenManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyTokenFinished(QNetworkReply*)));
+
+//    accquireToken();
+
+    // 折线图
+    if(chartView == nullptr)  {
+        chartView = new QChartView();
+        chartView->chart()->setBackgroundBrush(QBrush(QColor(248, 251, 255)));
+    }
+    if (label == nullptr) {
+        label = new QLabel("坐标", chartView);
+        label->setStyleSheet("color:blue; background-color:rgb(78, 199, 255);border:2px groove gray;border-radius:5px;padding:2px 4px;");
+        QFont font;
+        font.setBold(true);
+        label->setFont(font);
+    }
 }
 
 WasteRecycle::~WasteRecycle()
@@ -205,38 +250,457 @@ WasteRecycle::~WasteRecycle()
         delete m_pTimer;
         m_pTimer = nullptr;
     }
+    if (chartView != nullptr) {
+        delete chartView;
+        chartView = nullptr;
+    }
+    if(label != nullptr) {
+        delete label;
+        label = nullptr;
+    }
+}
+
+void WasteRecycle::getDeviceList() {
+    void* pBuf = NULL;
+    int length = 0;
+
+    int iRet = OpenNetStream::getInstance()->getDevListEx(0, 1000, &pBuf, &length);
+    if (iRet != OPEN_SDK_NOERROR)
+    {
+        qDebug() << "Get Device List failed!";
+        return ;
+    }
+
+    QString json;
+    json = QString::fromLocal8Bit(static_cast<char*>(pBuf));
+    OpenNetStream::getInstance()->freeData(pBuf);
+    qDebug() << json;
+
+    QByteArray jsonByte = json.toUtf8();
+    deviceTableModel_->setCameraModel(jsonByte);
+    jsonTextBrowser_->clear();
+    Json::Reader reader;
+    Json::Value	value;
+    if(reader.parse(jsonByte.data(), value)) {
+        jsonTextBrowser_->setText( value.toStyledString().c_str() );
+    }
+    ui->tw_devices->setCurrentIndex(DeviceTableIndex);
+}
+
+void WasteRecycle::setVideoPath(const QString devSerial)
+{
+    time_t rawtime;
+    time (&rawtime);
+    struct tm * timeinfo = localtime(&rawtime);
+    const int buflen = 32;
+    char buffer[buflen] = {0};
+    strftime(buffer, buflen, "%Y%m%d%H%M%S", timeinfo);
+    const QString strFlag = devSerial + "_" + buffer;
+    QString path = QCoreApplication::applicationDirPath();
+    videoPath_ = path + "/" + strFlag + ".mp4";
+}
+
+void WasteRecycle::accquireToken()
+{
+    qDebug() << "postCompareData IN";
+    //设置请求地址
+    QString postUrl = "https://aip.baidubce.com/oauth/2.0/token";
+    QString grantType = "client_credentials";
+    QString clientId = "hGa7I3CFtlEz5vYXPwGFzEIV";
+    QString clientSecret = "jWYj948TSsiASGoExDDFSmI3sKdZ3f4i";
+    QUrl url(postUrl + "?grant_type=" + grantType + "&client_id=" + clientId + "&client_secret=" + clientSecret);
+    qDebug() << "url:" << QString(postUrl + "?grant_type=" + grantType + "&client_id=" + clientId + "&client_secret=" + clientSecret);
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json; charset=UTF-8"));
+
+    tokenManager->post(request, "");
+}
+
+void WasteRecycle::postCompareData(QString &qstrImg1, QString &qstrImg2)
+{
+    qDebug() << "postCompareData IN";
+    //设置请求地址
+    QString requestUrl = "https://aip.baidubce.com/rest/2.0/face/v3/match";
+    // QString accessToken = "24.3dca1650af374957e93bf267459ba1fe.2592000.1547547675.282335-14622857";
+    QUrl url(requestUrl + "?access_token=" + token_);
+    QNetworkRequest request(url);
+
+    //设置数据提交格式，这个不能自己随便写，每个平台的格式可能不一样，百度AI要求的格式为application/json
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/json"));
+
+    QJsonObject obj1, obj2;
+    QJsonArray arr;
+    // QJsonDocument doc;
+
+    obj1.insert("image", qstrImg1);
+    obj1.insert("image_type", "BASE64");
+    obj2.insert("image", qstrImg2);
+    obj2.insert("image_type", "BASE64");
+
+    arr.append(obj1);
+    arr.append(obj2);
+    // doc.setArray(arr);
+
+    QByteArray postParam = QJsonDocument(arr).toJson();
+
+    /*QStringList list;
+    list.append("[");
+    list.append(QString("{\"image\":\"%1\",\"image_type\":\"BASE64\",\"liveness_control\":\"NONE\"}").arg(qstrImg1));
+    list.append(",");
+    list.append(QString("{\"image\":\"%1\",\"image_type\":\"BASE64\",\"liveness_control\":\"NONE\"}").arg(qstrImg2));
+    list.append("]");
+    QString data = list.join("");*/
+    compareManager->post(request, postParam);
+    qDebug() << "postCompareData OUT";
+}
+
+void WasteRecycle::jsonCompareDataParser(QByteArray &relpyJson)
+{
+    QJsonParseError err;
+    QJsonDocument doc = QJsonDocument::fromJson(relpyJson, &err);
+    QString toShowInfo;
+    if(err.error == QJsonParseError::NoError) {
+        if(doc.isObject()) {
+            QJsonObject obj = doc.object();
+            if(obj.contains("result")) {
+                QJsonObject resultObj = obj.take("result").toObject();
+                if(resultObj.contains("score")) {
+                    double score = resultObj.take("score").toDouble();
+                    qDebug() << "相似度为：" << score;
+                    ui->lb_display->setText(QString("相似度为：%1").arg(score));
+                }
+            }
+        }
+    }
+}
+
+void WasteRecycle::startCompare()
+{
+    qDebug() << "startCompare IN";
+    // 图片进行base64编码
+    QByteArray ba1, ba2;
+    QString qstrImg1, qstrImg2;
+    QBuffer buffer1(&ba1), buffer2(&ba2);
+    buffer1.open(QIODevice::WriteOnly);
+    buffer2.open(QIODevice::WriteOnly);
+
+    if (rwImg1 != nullptr) {
+         rwImg1->save(&buffer1, "jpg");
+         qstrImg1 = QString(ba1.toBase64());;
+    }
+
+    if (vwImg2 != nullptr) {
+        vwImg2->save(&buffer2, "jpg");
+        qstrImg2 = QString(ba2.toBase64());
+    }
+
+    buffer1.close();
+    buffer2.close();
+
+
+    postCompareData(qstrImg1, qstrImg2);
+
+
+    qDebug() << "startCompare OUT";
+}
+const QString& WasteRecycle::curVideoPath()
+{
+    return videoPath_;
+}
+
+void WasteRecycle::videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser)
+{
+    //qDebug() << __LINE__ << __FUNCTION__ <<"enType:"<< enType << "iLen:" << iLen;
+
+    WasteRecycle * mainWins = (WasteRecycle *)pUser;
+    if(mainWins->curVideoPath().isEmpty())
+    {
+        return ;
+    }
+
+    // 保存录像
+//    if (true)
+//    {
+//        std::ofstream file;
+//        file.open(mainWins->curVideoPath().toStdString().c_str(), std::ios::binary|std::ios::app);
+//        file.write(pData,iLen);
+//        file.flush();
+//        file.close();
+//    }
+}
+
+void WasteRecycle::messageHandler(const char *szSessionId, unsigned int iMsgType, unsigned int iErrorCode, const char *pMessageInfo, void *pUser)
+{
+    qDebug() << __LINE__ << __FUNCTION__ << szSessionId << iMsgType << iErrorCode << pMessageInfo;
+    WasteRecycle* pInstance = static_cast<WasteRecycle*>(pUser);
+    if (!pInstance) {
+        return;
+    }
+
+    switch (iMsgType) {
+    case INS_PLAY_EXCEPTION:
+        // emit pInstance->insPlayException(iErrorCode, pMessageInfo);
+        break;
+    case INS_PLAY_RECONNECT:
+        break;
+    case INS_PLAY_RECONNECT_EXCEPTION:
+        // emit pInstance->insPlayReconnectException(iErrorCode, pMessageInfo);
+        break;
+    case INS_PLAY_START:
+        // emit pInstance->insPlayStart();
+        break;
+    case INS_PLAY_STOP:
+        // emit pInstance->insPlayStop();
+        break;
+    case INS_PLAY_ARCHIVE_END:
+        // emit pInstance->insPlayBackEnd(iErrorCode);
+        break;
+    case INS_RECORD_FILE:
+        // emit pInstance->insRecordFile(pMessageInfo);
+        break;
+    case INS_RECORD_SEARCH_END:
+        break;
+    case INS_RECORD_SEARCH_FAILED:
+        // emit pInstance->insRecordSearchFailed(iErrorCode, pMessageInfo);
+        break;
+    }
+}
+
+void WasteRecycle::slotPointHoverd(const QPointF &point, bool state)
+{
+    qDebug() << "slotPointHoverd IN";
+    if(state) {
+        char format = 'e';
+        int precision = 6;
+        qDebug() << "x:" << QString::number(point.x(), format, precision);
+        qDebug() << "y:" << point.y();
+        label->setText(QString("%1").arg(point.y()));
+
+        QPoint curPos = chartView->mapFromGlobal(QCursor::pos());
+        qDebug() << "curPos x:" << curPos.x();
+        qDebug() << "curPos y:" << curPos.y();
+        label->move(curPos.x() - label->width()/2, curPos.y() - label->height()*1.5);//移动数值
+        label->show();//显示出来
+    } else {
+        label->hide();
+    }
+    qDebug() << "slotPointHoverd OUT";
+}
+
+void WasteRecycle::libInit()
+{
+    QString authAddress = "https://openauth.ys7.com";
+    QString platformAddress = "https://open.ys7.com";
+
+    QString appKey = "1db6d18b1ba24c918a42ef2b1cbed71c";
+    OpenNetStream::getInstance()->initLibrary(authAddress, platformAddress, appKey);
+    acToken_ = OpenNetStream::getInstance()->login();
+    bInit_ = true;
+    sessionId_ = OpenNetStream::getInstance()->allocSessionEx(WasteRecycle::messageHandler, this);
+    OpenNetStream::getInstance()->setStreamTrans();
+
+    // 日志等级设置
+    OpenNetStream::getInstance()->setLogLevel(5);
+
+    // token设置
+    OpenNetStream::getInstance()->setAccessToken(acToken_);
+    const char* pTokenExpireTime = OpenNetStream::getInstance()->getTokenExpireTime();
+
+    if (pTokenExpireTime != NULL)
+    {
+        qDebug() << __LINE__ << __FUNCTION__ << "Token Expire Time:" << pTokenExpireTime;
+    }
+    const char* pAreaDomain = OpenNetStream::getInstance()->getAreaDomain();
+    if (pAreaDomain != NULL)
+    {
+        qDebug() << __LINE__ << __FUNCTION__ << "Platform Domain:" << pAreaDomain;
+    }
+}
+
+bool  WasteRecycle::GetDeviceTableViewInfo(DeviceTableViewInfo& stDeviceInfo)
+{
+    if (ui->tw_devices->currentIndex() == DeviceTableIndex) {
+        QModelIndex index = deviceTableView_->currentIndex();
+        if (!index.isValid()) {
+            QMessageBox::information(this, tr("Device List"), tr("Please select a device in device list"));
+            ui->tw_devices->setCurrentIndex(DeviceTableIndex);
+            return false;
+        }
+        stDeviceInfo.strSubserial = deviceTableModel_->getSerial(index);
+        stDeviceInfo.iChannelNo = deviceTableModel_->getCameraNo(index);
+        stDeviceInfo.bEncrypt = deviceTableModel_->getIsEncrypt(index);
+        stDeviceInfo.iVideoLevel = deviceTableModel_->getVideoLevel(index);
+    } else {
+        QMessageBox::information(this, tr("Device List"), tr("Please select a device in device list"));
+        ui->tw_devices->setCurrentIndex(DeviceTableIndex);
+        return false;
+    }
+    return true;
+}
+
+int WasteRecycle::switchVideoLevel(int videoLevel)
+{
+    DeviceTableViewInfo stDeviceInfo;
+    if (GetDeviceTableViewInfo(stDeviceInfo) == false)
+    {
+        return -1;
+    }
+
+    bool bEncrypt = stDeviceInfo.bEncrypt;
+    QString devSerial = stDeviceInfo.strSubserial;
+    int iChannelNo = stDeviceInfo.iChannelNo;
+
+    int iRet = OpenNetStream::getInstance()->setVideoLevel(devSerial, iChannelNo, videoLevel);
+    if(0 != iRet)
+    {
+        this->showErrInfo(tr("Switch Video Level"));
+        return -1;
+    }
+    return 0;
+}
+
+void WasteRecycle::showErrInfo(QString caption)
+{
+    int iErrCode = OpenNetStream::getInstance()->GetLastErrorCode();
+    char szBuf[64] = {0};
+    sprintf(szBuf, "ErrorCode:%d", iErrCode);
+    QMessageBox::information(this, caption, szBuf);
+}
+
+void WasteRecycle::startPlay()
+{
+    DeviceTableViewInfo stDeviceInfo;
+    if (GetDeviceTableViewInfo(stDeviceInfo) == false)
+    {
+        return;
+    }
+
+    bool bEncrypt = stDeviceInfo.bEncrypt;
+    QString devSerial = stDeviceInfo.strSubserial;
+    int iChannelNo = stDeviceInfo.iChannelNo;
+
+    devSerial_ = devSerial;
+    Channel_ = iChannelNo;
+
+    QString safekey;
+    safekey.clear();
+    if(bEncrypt)
+    {
+        bool ok;
+        safekey = QInputDialog::getText(this, tr("Input"), tr("Please Input the verification code"), QLineEdit::Password, "", &ok);
+        if (ok == false)
+        {
+            return;
+        }
+    }
+
+    //Set the video store path
+    setVideoPath(devSerial);
+    OpenNetStream::getInstance()->setDataCallBack(sessionId_, videoDataHandler, this);
+
+    HWND hWnd = NULL;
+    hWnd = (HWND)ui->w_playWindow->winId();
+    int iRet = OpenNetStream::getInstance()->startRealPlay(sessionId_, hWnd, devSerial, iChannelNo, safekey);
+    if(0 != iRet)
+    {
+        this->showErrInfo(tr("RealPlay"));
+        return;
+    }
+    bRealPlayStarted_ = true;
+}
+
+void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
+{
+    DeviceTableViewInfo stDeviceInfo;
+    if (GetDeviceTableViewInfo(stDeviceInfo) == false)
+    {
+        return ;
+    }
+    QString devSerial = stDeviceInfo.strSubserial;
+    int iChannelNo = stDeviceInfo.iChannelNo;
+    // int iLevel  = stDeviceInfo.iVideoLevel;
+
+    // updateVideoLevelBtn(iLevel);
+
+    QString safekey;
+    safekey.clear();
+    void* pBuf = NULL;
+    int iLen = 0;
+    int iRet = OpenNetStream::getInstance()->GetDevDetailInfo(devSerial, iChannelNo, false, &pBuf, &iLen);
+    if(iRet != 0)
+    {
+        return;
+    }
+    QString json = QString::fromLocal8Bit(static_cast<char*>(pBuf));
+    OpenNetStream::getInstance()->freeData(pBuf);
+    QByteArray jsonByte = json.toUtf8();
+     jsonTextBrowser_->setText(QString(jsonByte));
+    Json::Reader reader;
+    Json::Value	value;
+    if(reader.parse(jsonByte.data(), value)) {
+        Json::Value lVideoQuality = value["videoQualityInfos"];
+        if (lVideoQuality.isArray())
+        {
+            // realPlayMenu_->clear();
+            for (int i=0; i < lVideoQuality.size(); i++)
+            {
+                Json::Value videoQualityObj = lVideoQuality[i];
+                if (!videoQualityObj["videoQualityName"].isString() || !videoQualityObj["videoLevel"].isInt())
+                {
+                    continue;
+                }
+                // std::string strVideoQualityName = videoQualityObj["videoQualityName"].asString();
+                int iVideoLevel = videoQualityObj["videoLevel"].asInt();
+                switchVideoLevel(iVideoLevel);
+            }
+        }
+    }
+
+    startPlay();
 }
 
 void WasteRecycle::initTableView() {
-    model->setHorizontalHeaderItem(0, new QStandardItem(QString::fromLocal8Bit("号码")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QString::fromLocal8Bit("时间")));
-    model->setHorizontalHeaderItem(2, new QStandardItem(QString::fromLocal8Bit("毛重")));
-    model->setHorizontalHeaderItem(3, new QStandardItem(QString::fromLocal8Bit("车重")));
-    model->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
-    model->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
-    model->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+    model->setHorizontalHeaderItem(0, new QStandardItem("号码"));
+    model->setHorizontalHeaderItem(1, new QStandardItem("时间"));
+    model->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
+    model->setHorizontalHeaderItem(3, new QStandardItem("车重"));
+    model->setHorizontalHeaderItem(4, new QStandardItem("净重"));
+    model->setHorizontalHeaderItem(5, new QStandardItem("单价"));
+    model->setHorizontalHeaderItem(6, new QStandardItem("价格"));
 
     ui->tableView->setModel(model);
-    ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 200);
-    ui->tableView->setColumnWidth(2, 70);
-    ui->tableView->setColumnWidth(3, 70);
-    ui->tableView->setColumnWidth(4, 70);
-    ui->tableView->setColumnWidth(5, 50);
-    ui->tableView->setColumnWidth(6, 70);
+    ui->tableView->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
+                                                           "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
+
+
+    ui->tableView->verticalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
+                                                         "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
+    ui->tableView->setColumnWidth(0, 60);
+    ui->tableView->setColumnWidth(1, 300);
+    ui->tableView->setColumnWidth(2, 105);
+    ui->tableView->setColumnWidth(3, 105);
+    ui->tableView->setColumnWidth(4, 105);
+    ui->tableView->setColumnWidth(5, 75);
+    ui->tableView->setColumnWidth(6, 105);
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
 
-    model_unloading->setHorizontalHeaderItem(0, new QStandardItem(QString::fromLocal8Bit("号码")));
-    model_unloading->setHorizontalHeaderItem(1, new QStandardItem(QString::fromLocal8Bit("时间")));
-    model_unloading->setHorizontalHeaderItem(2, new QStandardItem(QString::fromLocal8Bit("毛重")));
-    model_unloading->setHorizontalHeaderItem(3, new QStandardItem(QString::fromLocal8Bit("车重")));
-    model_unloading->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
-    model_unloading->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
-    model_unloading->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+    model_unloading->setHorizontalHeaderItem(0, new QStandardItem("号码"));
+    model_unloading->setHorizontalHeaderItem(1, new QStandardItem("时间"));
+    model_unloading->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
+    model_unloading->setHorizontalHeaderItem(3, new QStandardItem("车重"));
+    model_unloading->setHorizontalHeaderItem(4, new QStandardItem("净重"));
+    model_unloading->setHorizontalHeaderItem(5, new QStandardItem("单价"));
+    model_unloading->setHorizontalHeaderItem(6, new QStandardItem("价格"));
 
     ui->tableView_unloading->setModel(model_unloading);
+    ui->tableView_unloading->horizontalHeader()->setStyleSheet("QHeaderView::section {"
+                                                           "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
+
+
+    ui->tableView_unloading->verticalHeader()->setStyleSheet("QHeaderView::section {"
+                                                         "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
     ui->tableView_unloading->setColumnWidth(0, 40);
     ui->tableView_unloading->setColumnWidth(1, 160);
     ui->tableView_unloading->setColumnWidth(2, 70);
@@ -330,19 +794,19 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             float level = ePrice != "" ? (fLevel1+ePrice.toInt()/100.0) : fLevel1;
             ui->btn_Level1->setText(QString("%1").arg(level));
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_Level1->setText(QString::fromLocal8Bit("黄板纸"));
+            ui->btn_Level1->setText("黄板纸");
         }
     } else if (obj == ui->btn_Level2) {
         if (QEvent::Enter == e->type()) {
             ui->btn_Level2->setText(ui->lb_percent->text());
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_Level2->setText(QString::fromLocal8Bit("超市纸"));
+            ui->btn_Level2->setText("超市纸");
         }
     } else if (obj == ui->btn_Level3) {
         if (QEvent::Enter == e->type()) {
             ui->btn_Level3->setText(QString("%1").arg(fLevel3));
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_Level3->setText(QString::fromLocal8Bit("统货纸"));
+            ui->btn_Level3->setText("统货纸");
         }
     } else if (obj == ui->btn_Level4) {
         if (QEvent::Enter == e->type()) {
@@ -350,7 +814,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             float level = ePrice != "" ? (fLevel4+ePrice.toInt()/100.0) : fLevel4;
             ui->btn_Level4->setText(QString("%1").arg(level));
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_Level4->setText(QString::fromLocal8Bit("民用纸"));
+            ui->btn_Level4->setText("民用纸");
         }
     }
 
@@ -364,12 +828,12 @@ void WasteRecycle::showPrice(float level)
         nextVehicle();
         return;
     }
-    QString msg = "<font size='25' color='black'>" + ui->lb_Price->text() + QString::fromLocal8Bit(" 元") + "</font>";
+    QString msg = "<font size='25' color='black'>" + ui->lb_Price->text() + " 元" + "</font>";
     int ret = QMessageBox::information(this,
-                                                               QString::fromLocal8Bit("价格"),
-                                                               msg,
-                                                               QString::fromLocal8Bit("确定"),
-                                                               QString::fromLocal8Bit("取消"));
+                                                              "价格",
+                                                              msg,
+                                                              "确定",
+                                                              "取消");
     switch (ret) {
     case 0:
         if (bModify) {
@@ -590,7 +1054,7 @@ void WasteRecycle::writeData(float level)
     RecordInfo info;
     info.m_index = ui->lb_CurrNum->text();
     info.m_rWeight = ui->le_RoughWeigh->text();
-    info.m_vWeight = ui->le_VehicleWeigh->text().trimmed() == "" ? QString::fromLocal8Bit("卸货中") : ui->le_VehicleWeigh->text();
+    info.m_vWeight = ui->le_VehicleWeigh->text().trimmed() == "" ? "卸货中" : ui->le_VehicleWeigh->text();
     info.m_nWeight = ui->lb_NetWeight->text();
     info.m_price = ui->lb_Price->text();
     info.m_unitPrice =  towDecimalPlaces(QString("%1").arg(level));
@@ -625,7 +1089,7 @@ void WasteRecycle::updateUnloadingTableView(float level)
     model_unloading->setItem(row, 0, new QStandardItem(ui->lb_CurrNum->text()));
     model_unloading->setItem(row, 1, new QStandardItem(time));
     model_unloading->setItem(row, 2, new QStandardItem(ui->le_RoughWeigh->text()));
-    model_unloading->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text().trimmed() == "" ? QString::fromLocal8Bit("卸货中") : ui->le_VehicleWeigh->text()));
+    model_unloading->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text().trimmed() == "" ? "卸货中" : ui->le_VehicleWeigh->text()));
     model_unloading->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
     model_unloading->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
     model_unloading->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
@@ -642,7 +1106,7 @@ void WasteRecycle::updateTableView(float level)
     model->setItem(row, 0, new QStandardItem(ui->lb_CurrNum->text()));
     model->setItem(row, 1, new QStandardItem(time));
     model->setItem(row, 2, new QStandardItem(ui->le_RoughWeigh->text()));
-    model->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text().trimmed() == "" ? QString::fromLocal8Bit("卸货中") : ui->le_VehicleWeigh->text()));
+    model->setItem(row, 3, new QStandardItem(ui->le_VehicleWeigh->text().trimmed() == "" ? "卸货中" : ui->le_VehicleWeigh->text()));
     model->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
     model->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
     model->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
@@ -654,12 +1118,12 @@ bool WasteRecycle::check()
 {
     if (ui->le_RoughWeigh->text() == ""/* || ui->le_VehicleWeigh->text() == ""*/) {
         qWarning() << "le_RoughWeigh or le_VehicleWeigh is empty.";
-        QMessageBox::warning(this, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("毛重或者车重未填写!"), QString::fromLocal8Bit("关闭"));
+        QMessageBox::warning(this, "提醒", "毛重或者车重未填写!", "关闭");
         return false;
     }
     if (ui->le_RoughWeigh->text().toFloat() <= ui->le_VehicleWeigh->text().toFloat()) {
         qWarning() << "le_RoughWeigh or le_VehicleWeigh data is wrong.";
-        QMessageBox::warning(this, QString::fromLocal8Bit("警告"), QString::fromLocal8Bit("毛重或者车重数据错误!"), QString::fromLocal8Bit("关闭"));
+        QMessageBox::warning(this, "警告", "毛重或者车重数据错误!", "关闭");
         return false;
     }
     return true;
@@ -720,7 +1184,7 @@ void WasteRecycle::statistics()
 }
 
 void WasteRecycle::storeData(float level) {
-
+    qDebug() << "storeData IN";
     if(ui->lb_Price->text().trimmed() == "") {
         updateUnloadingTableView(level);
     } else {
@@ -736,6 +1200,7 @@ void WasteRecycle::storeData(float level) {
 
     writeData(level);
     oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
+    qDebug() << "storeData OUT";
 }
 
 // 检查车重数据是否合法
@@ -915,7 +1380,7 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
 
     if(fRw < fVw) {
         ui->lb_NetWeight->setText("");
-        QMessageBox::warning(this, QString::fromLocal8Bit("警告"), QString::fromLocal8Bit("毛重或者车重数据错误!"), QString::fromLocal8Bit("关闭"));
+        QMessageBox::warning(this, "警告", "毛重或者车重数据错误!", "关闭");
         qWarning() << "le_RoughWeigh or le_VehicleWeigh data is wrong.";
         return;
     }
@@ -1097,13 +1562,13 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
 {
     qDebug() << "on_tableView_doubleClicked IN";
 
-    QString msg = "<font size='25' color='black'>" +QString::fromLocal8Bit("修改或者删除数据？") + "</font>";
+    QString msg = "<font size='25' color='black'>" + QString("修改或者删除数据？") + "</font>";
     int ret = QMessageBox::information(this,
-                                                               QString::fromLocal8Bit("警告"),
-                                                               msg,
-                                                               QString::fromLocal8Bit("修改"),
-                                                               QString::fromLocal8Bit("删除"),
-                                                               QString::fromLocal8Bit("取消"));
+                                                            "警告",
+                                                            msg,
+                                                            "修改",
+                                                            "删除",
+                                                            "取消");
     if (bModifyUnloading) {
         bModifyUnloading = false;
     }
@@ -1142,7 +1607,7 @@ void WasteRecycle::on_btn_delete_clicked()
 {
     qDebug() << "on_btn_delete_clicked IN";
     deleteData();
-    if(ui->le_VehicleWeigh->text().trimmed() == QString::fromLocal8Bit("卸货中")) {
+    if(ui->le_VehicleWeigh->text().trimmed() == "卸货中") {
         oper->sqlDeleteUnloadingByIdx(ui->lb_CurrNum->text());
     }
     clearData();
@@ -1192,68 +1657,8 @@ void WasteRecycle::on_btn_search_clicked()
 //void parType(T par) {
 //    qDebug() << "last param:" << VNAME(par) << " type:" << typeid(par).name();
 //}
-template<typename T>
-void dataProcess(T& data, int & coefficient, int base) {
-    coefficient = 1;
-    while(int(data)/base) {
-        data /= base;
-        coefficient *= base;
-    }
-}
 
-template<typename T>
-void drawChart(std::map<QDateTime, T> & data) {
-    QLineSeries *series = new QLineSeries();
-
-    T max = data.begin()->second;
-    T min = data.begin()->second;
-    for (auto element : data) {
-        max = MAX(max, element.second);
-        min = MIN(min, element.second);
-        series->append(element.first.toMSecsSinceEpoch(), element.second);
-    }
-
-    QChartView *chartView = new QChartView();
-    chartView->chart()->addSeries(series);
-
-    // ...
-    QDateTimeAxis *axisX = new QDateTimeAxis();
-    axisX->setFormat("dd/MM/yyyy");
-    auto it = data.rbegin();
-    ++it;
-    int days = data.begin()->first.daysTo(it->first);
-    ++days;
-    int param = (5 - days%5);
-    param = (param==5 ? 0:param);
-
-    axisX->setRange(data.begin()->first, it->first.addDays(param+1));
-    axisX->setTickCount((days+param)/5 + 1);
-    qDebug() << "days=" << days << " param=" << param;
-
-    chartView->chart()->setAxisX(axisX, series);
-
-    QValueAxis* axisY = new QValueAxis();
-
-    int coefficient = 1;
-    dataProcess(max, coefficient, 10);
-    int top = (int)(max+1)*coefficient;
-    coefficient = 1;
-    dataProcess(min, coefficient, 10);
-    int bottom = (int)(min)*coefficient;
-
-    axisY->setRange(bottom, top);
-    chartView->chart()->setAxisY(axisY, series);
-
-    chartView->resize(800, 500);
-    chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
-    // chartView->chart()->createDefaultAxes();
-    chartView->chart()->setTitle(QString::fromLocal8Bit("均价走势图"));
-    chartView->chart()->legend()->hide();
-    chartView->setRenderHint(QPainter::Antialiasing);
-    chartView->show();
-}
-
-void WasteRecycle::on_btn_charts_clicked()
+void WasteRecycle::on_btn_totalWeightChart_clicked()
 {
     // parType(std::pair<QString, int>("name", 1),2,3, QString("hello"));
 
@@ -1320,7 +1725,9 @@ void WasteRecycle::openSerialPort()
     }
     m_serial->setPortName(port);
     m_serial->setBaudRate(1200);
-    m_serial->open(QIODevice::ReadWrite);
+    if(m_serial->open(QIODevice::ReadWrite) == false) {
+        qDebug() << "serial open error:" << m_serial->errorString();
+    }
 }
 
 void WasteRecycle::handleTimeout()
@@ -1335,7 +1742,7 @@ void WasteRecycle::handleTimeout()
 void WasteRecycle::on_btn_rWrite_clicked()
 {
     QString data = ui->lb_display->text();
-    if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+    if(data != "金龙纸业" && data != "") {
         float tmp = data.toFloat();
         ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
     }
@@ -1344,7 +1751,7 @@ void WasteRecycle::on_btn_rWrite_clicked()
 void WasteRecycle::on_btn_vWrite_clicked()
 {
     QString data = ui->lb_display->text();
-    if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+    if(data != "金龙纸业" && data != "") {
         float tmp = data.toFloat();
         ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
     }
@@ -1375,13 +1782,13 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
 {
     qDebug() << "on_tableView_unloading_doubleClicked IN";
 
-    QString msg = "<font size='25' color='black'>" +QString::fromLocal8Bit("修改或者删除数据？") + "</font>";
+    QString msg = "<font size='25' color='black'>" +QString("修改或者删除数据？") + "</font>";
     int ret = QMessageBox::information(this,
-                                                               QString::fromLocal8Bit("警告"),
-                                                               msg,
-                                                               QString::fromLocal8Bit("修改"),
-                                                               QString::fromLocal8Bit("删除"),
-                                                               QString::fromLocal8Bit("取消"));
+                                                             "警告",
+                                                             msg,
+                                                             "修改",
+                                                             "删除",
+                                                             "取消");
 
     if (bModify) {
         bModify = false;
@@ -1405,4 +1812,140 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
     }
 
     qDebug() << "on_tableView_unloading_doubleClicked OUT";
+}
+
+void WasteRecycle::on_btn_roughWeightCapture_clicked()
+{
+//    QString filename = QFileDialog::getSaveFileName(this, tr("Save Image"), "CapturePicture.jpeg", "*.jpeg");
+//    if (!filename.endsWith(".jpeg")) {
+//        filename.append(".jpeg");
+//    }
+
+    if (ui->le_RoughWeigh->text().trimmed() == "") {
+        on_btn_rWrite_clicked();
+    }
+
+    QDir dir;
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
+    QString dirName = today + "_rwPicture";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+    QString index = ui->lb_CurrNum->text();
+    QString rw = ui->le_RoughWeigh->text();
+    QString filename = QDir::currentPath() +  "/" + today + "_rwPicture" + "/" + index + "_" + rw + ".jpeg";
+    qDebug() << "filename:" << filename;
+
+    int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
+    if (iRet != 0) {
+        this->showErrInfo(tr("图片保存失败！"));
+    }
+}
+
+void WasteRecycle::on_btn_vechileWeightCapture_clicked()
+{
+//    QString filename = QFileDialog::getSaveFileName(this, tr("Save Image"), "CapturePicture.jpeg", "*.jpeg");
+//    if (!filename.endsWith(".jpeg")) {
+//        filename.append(".jpeg");
+//    }
+
+    if (ui->le_VehicleWeigh->text().trimmed() == "") {
+        on_btn_vWrite_clicked();
+    }
+
+    QDir dir;
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
+    QString dirName = today + "_vwPicture";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+
+    // QString filename = QDir::currentPath() + "/CapturePicture.jpeg";
+    QString index = ui->lb_CurrNum->text();
+    QString vw = ui->le_VehicleWeigh->text();
+    if(vw.trimmed() == "") {
+        vw = "0";
+    }
+    QString filename = QDir::currentPath() +  "/" + today + "_vwPicture" + "/" + index + "_" + vw + ".jpeg";
+
+    qDebug() << "filename:" << filename;
+
+    int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
+    if (iRet != 0) {
+        this->showErrInfo(tr("图片保存失败！"));
+    }
+
+    // 获取vwPicture目录下的所有图片
+    // QStringList imageList;
+    /* QString imageDir = QDir::currentPath() +  "/rwPicture";
+    QDirIterator it(imageDir, QDir::Files|QDir::NoSymLinks,QDirIterator::Subdirectories);
+    if(vwImg2 != nullptr) {
+        delete vwImg2;
+        vwImg2 = nullptr;
+    }
+    vwImg2 = new QImage(filename);
+
+    while(it.hasNext()) {
+        QString imageFile=it.next();
+        qDebug() << "imageFile:" << imageFile;
+
+        if(rwImg1 != nullptr) {
+            delete rwImg1;
+            rwImg1 = nullptr;
+        }
+        rwImg1 = new QImage(imageFile);
+
+        startCompare();
+        Sleep(1000);
+        // imageList << imageFile;
+    } */
+}
+
+void WasteRecycle::replyCompareFinished(QNetworkReply *reply)
+{
+    qDebug() << "[WasteRecycle] replyCompareFinished IN";
+    QByteArray replyData = reply->readAll();
+    reply->close();
+    qDebug()<<"[WasteRecycle] reply data is:"<<QString(replyData);
+
+    jsonCompareDataParser(replyData);
+
+    qDebug() << "[WasteRecycle] replyCompareFinished OUT";
+}
+
+void WasteRecycle::replyTokenFinished(QNetworkReply *reply)
+{
+    qDebug() << "[WasteRecycle] replyTokenFinished IN";
+    QByteArray replyData = reply->readAll();
+    reply->close();
+    // qDebug()<<"reply data is:"<<QString(replyData);
+
+    Json::Reader reader;
+    Json::Value value;
+    if(reader.parse(replyData.data(), value)) {
+        token_ = QString::fromStdString(value["access_token"].asString());
+        qDebug() << "token:" << token_;
+    }
+
+    qDebug() << "[WasteRecycle] replyTokenFinished OUT";
+}
+
+void WasteRecycle::on_btn_openRoughWeightDir_clicked()
+{
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
+    QString path = QDir::currentPath() +  "/" + today + "_rwPicture";
+    qDebug() << "[WasteRecycle] RoughWeightDir:" << path;
+    QDesktopServices::openUrl(QUrl("file:"+path, QUrl::TolerantMode));
+}
+
+void WasteRecycle::on_btn_openVehicleWeightDir_clicked()
+{
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
+    QString path = QDir::currentPath() +  "/" + today + "_vwPicture";
+    qDebug() << "[WasteRecycle] VehicleWeightDir:" << path;
+    QDesktopServices::openUrl(QUrl("file:"+path, QUrl::TolerantMode));
 }

@@ -3,6 +3,7 @@
 #include <string>
 #include <QString>
 #include <QDebug>
+#include <QDir>
 #include "sqloper.h"
 
 // 一年废纸总量，单位（年吨）

@@ -11,8 +11,32 @@
 #include <QEvent>
 #include <QSerialPort>
 #include <QTimer>
+#include <QTextBrowser>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
+#include <QImage>
+#include <QtCharts>
+#include <QtCharts/QScatterSeries>
+#include <QtCharts/QChartView>
+#include <QtCharts/QDateTimeAxis>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QLineSeries>
+
 #include "pricesetdialog.h"
 #include "sqloper.h"
+#include "cameramodel.h"
+#include "opennetstream.h"
+
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#define MIN(x,y) ((x) > (y) ? (y) : (x))
+
+typedef struct tagDeviceTableViewInfo
+{
+    QString strSubserial;
+    int iChannelNo;
+    bool bEncrypt;
+    int  iVideoLevel;
+} DeviceTableViewInfo;
 
 namespace Ui {
 class WasteRecycle;
@@ -34,6 +58,114 @@ class WasteRecycle : public QMainWindow
 public:
     explicit WasteRecycle(QWidget *parent = 0);
     ~WasteRecycle();
+
+    static void __stdcall videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser);
+    static void __stdcall messageHandler(const char* szSessionId, unsigned int iMsgType, unsigned int iErrorCode,const char *pMessageInfo, void *pUser);
+
+    QLabel* label = nullptr;
+    QChartView *chartView = nullptr;
+
+    template<typename T>
+    void dataProcess(T& data, int & coefficient, int base) {
+        coefficient = 1;
+        while(int(data)/base) {
+            data /= base;
+            coefficient *= base;
+        }
+    }
+
+    template<typename T>
+    void drawChart(std::map<QDateTime, T> & data) {
+        for (auto serie : chartView->chart()->series()) {
+            auto axisX = chartView->chart()->axisX(serie);
+            auto axisY = chartView->chart()->axisY(serie);
+            chartView->chart()->removeAxis(axisX);
+            chartView->chart()->removeAxis(axisY);
+        }
+        chartView->chart()->removeAllSeries();
+
+
+        QLineSeries *series = new QLineSeries();
+        QPen pen;
+        pen.setStyle(Qt::SolidLine);
+        pen.setWidth(4);
+        pen.setColor(QColor(21, 100, 255));
+        series->setPen(pen);//折现序列的线条设置
+        //散点图(用于边框)
+        QScatterSeries *series1 = new QScatterSeries();
+        series1->setMarkerShape(QScatterSeries::MarkerShapeCircle);//圆形的点
+        series1->setBorderColor(QColor(21, 100, 255));  //边框颜色
+        series1->setBrush(QBrush(QColor(21, 100, 255)));//背景颜色
+        series1->setMarkerSize(12);                     //点大小
+
+        //散点图(用于中心)
+        QScatterSeries *series2 = new QScatterSeries();
+        series2->setMarkerShape(QScatterSeries::MarkerShapeCircle);//圆形的点
+        series2->setBorderColor(Qt::white);//边框颜色
+        series2->setBrush(QBrush(Qt::white));//背景颜色
+        series2->setMarkerSize(6);//点大小
+
+
+        if (data.size() == 0) return;
+        T max = data.begin()->second;
+        T min = data.begin()->second;
+        for (auto element : data) {
+            max = MAX(max, element.second);
+            min = MIN(min, element.second);
+            series->append(element.first.toMSecsSinceEpoch(), element.second);
+            series1->append(element.first.toMSecsSinceEpoch(), element.second);
+            series2->append(element.first.toMSecsSinceEpoch(), element.second);
+        }
+
+        chartView->chart()->addSeries(series);
+        chartView->chart()->addSeries(series1);
+        chartView->chart()->addSeries(series2);
+
+        connect(series2, &QScatterSeries::hovered, this, &slotPointHoverd);//用于鼠标移动到点上显示数值
+
+        // ...
+        QDateTimeAxis *axisX = new QDateTimeAxis();
+        axisX->setFormat("dd/MM/yyyy");
+        auto it = data.rbegin();
+        ++it;
+        int days = data.begin()->first.daysTo(it->first);
+        ++days;
+        int param = (5 - days%5);
+        param = (param==5 ? 0:param);
+
+        axisX->setRange(data.begin()->first, it->first.addDays(param+1));
+        axisX->setTickCount((days+param)/5 + 1);
+        qDebug() << "days=" << days << " param=" << param;
+
+        chartView->chart()->setAxisX(axisX, series);
+        chartView->chart()->setAxisX(axisX, series1);
+        chartView->chart()->setAxisX(axisX, series2);
+
+        QValueAxis* axisY = new QValueAxis();
+
+        int coefficient = 1;
+        dataProcess(max, coefficient, 10);
+        int top = (int)(max+1)*coefficient;
+        coefficient = 1;
+        dataProcess(min, coefficient, 10);
+        int bottom = (int)(min)*coefficient;
+
+        axisY->setRange(bottom, top);
+        chartView->chart()->setAxisY(axisY, series);
+        chartView->chart()->setAxisY(axisY, series1);
+        chartView->chart()->setAxisY(axisY, series2);
+
+        chartView->resize(800, 500);
+        chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
+        // chartView->chart()->createDefaultAxes();
+        chartView->chart()->setTitle("均价走势图");
+        chartView->chart()->legend()->hide();
+        chartView->setRenderHint(QPainter::Antialiasing);
+        chartView->show();
+    }
+
+public slots:
+    void slotPointHoverd(const QPointF &point, bool state);
 
 private slots:
     void on_btn_Level1_clicked();
@@ -70,7 +202,7 @@ private slots:
 
     void on_btn_search_clicked();
 
-    void on_btn_charts_clicked();
+    void on_btn_totalWeightChart_clicked();
 
     void on_btn_averageChart_clicked();
 
@@ -91,6 +223,22 @@ private slots:
     void on_le_com_textChanged(const QString &arg1);
 
     void on_tableView_unloading_doubleClicked(const QModelIndex &index);
+
+    void slotDeviceTableViewPressed(const QModelIndex & index);
+
+    // void on_btn_picCapture_clicked();
+
+    void on_btn_roughWeightCapture_clicked();
+
+    void on_btn_vechileWeightCapture_clicked();
+
+    void replyCompareFinished(QNetworkReply* reply);
+
+    void replyTokenFinished(QNetworkReply* reply);
+
+    void on_btn_openRoughWeightDir_clicked();
+
+    void on_btn_openVehicleWeightDir_clicked();
 
 private:
     Ui::WasteRecycle *ui;
@@ -173,6 +321,7 @@ private:
 
      bool checkVehicleWeighIsValid();
 
+
      bool bModify = false;
      bool bModifyUnloading = false;
 
@@ -183,7 +332,7 @@ private:
 
      bool bPriceInit;
 
-     // 读取电子秤头数据相关参数和函数
+     // 读取电子秤头数据相关变量和函数
      QSerialPort *m_serial = nullptr;
      void initActionsConnections();
      void readWeighBridgeData();
@@ -193,6 +342,53 @@ private:
 
      // 定时器相关参数和函数
      QTimer *m_pTimer = nullptr;
+
+
+     // 获取码流相关变量及函数
+     // ui controler
+     QTableView* deviceTableView_;
+     QTextBrowser* jsonTextBrowser_;
+     // QMenu* realPlayMenu_;
+
+     // ui data
+     CameraModel* deviceTableModel_;
+
+     enum TableIndex {
+         DeviceTableIndex,
+         JsonInfoTableIndex
+     };
+
+     bool bInit_ = false;
+     QString acToken_;
+
+     // user data
+     QString sessionId_;
+     QString devSerial_;
+     int Channel_;
+     bool bRealPlayStarted_ = false;
+     QString videoPath_;
+
+     bool  GetDeviceTableViewInfo(DeviceTableViewInfo& stDeviceInfo);
+     int switchVideoLevel(int videoLevel);
+     void showErrInfo(QString caption);
+     void libInit();
+     void getDeviceList();
+     void startPlay();
+
+     const QString& curVideoPath();
+     void setVideoPath(const QString devSerial);
+
+     // baidu ai 人脸识别相关变量及函数
+     QNetworkAccessManager *compareManager = nullptr;
+     QNetworkAccessManager *tokenManager = nullptr;
+     QString token_;
+     QImage* rwImg1 = nullptr;
+     QImage* vwImg2 = nullptr;
+
+     void accquireToken();
+     void startCompare();
+     void postCompareData(QString & qstrImg1, QString & qstrImg2);
+     void jsonCompareDataParser(QByteArray & relpyJson);
 };
 
 #endif // WASTERECYCLE_H

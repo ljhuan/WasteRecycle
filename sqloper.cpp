@@ -8,6 +8,7 @@
 #include <QSqlDriver>
 #include <QSqlResult>
 #include <QSqlError>
+#include <QDir>
 #include <utilitytools.h>
 
 SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
@@ -21,7 +22,9 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
     pDb->setUserName("ljhuan");
     pDb->setPassword("*Ab123456");
     bool bIsExist = false;
-    bIsExist = QFile::exists("./BusinessRecord.db");
+    QString dbFile = QDir::currentPath() + "/BusinessRecord.db";
+    qDebug() << "dbFile:" << dbFile;
+    bIsExist = QFile::exists(dbFile);
     if(!pDb->open()) {
         qDebug() << "SqlOper db open failed";
     } else {
@@ -33,12 +36,12 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
 
             QString createChartsTable = "create table charts (time varchar(100), amouts varchar(10), totalWeight varchar(10), totalPrice varchar(10), averagePrice varchar(10));";
             pDb->exec(createChartsTable);
+
+            // 创建正在卸货的表
+            pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), time varchar(50), idx INTEGER, rWeight varchar(50));");
         } else {
             qDebug() << "db is exist";
         }
-
-        // 创建正在卸货的表
-        pDb->exec("create table unloading(id INTEGER PRIMARY KEY autoincrement, date varchar(50), time varchar(50), idx INTEGER, rWeight varchar(50));");
         pDb->close();
     }
 }
@@ -263,7 +266,7 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
                 query.value("rWeight").toString() + UtilityTools::holdPlaces(2) + query.value("vWeight").toString() + UtilityTools::holdPlaces(2) +
                 query.value("nWeight").toString() + UtilityTools::holdPlaces(2) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(2) +
                 query.value("price").toString();
-        // qDebug() << result;
+        qDebug() << "record:" << result;
         results.push_back(result);
     }
 
@@ -279,6 +282,7 @@ void SqlOper::sqlPriceQuery(PriceInfo & priceInfo)
     qDebug() << "sqlPriceQuery db open success";
     QSqlQuery query(*pDb);
     QString sqlQuery = "SELECT * FROM configure ORDER BY id DESC LIMIT 1;";
+    qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while(query.next()) {
         priceInfo.m_factoryPrice1 = query.value("fPrice_1").toString();
@@ -288,6 +292,7 @@ void SqlOper::sqlPriceQuery(PriceInfo & priceInfo)
         priceInfo.m_price2 = query.value("price_2").toString();
         priceInfo.m_price3 = query.value("price_3").toString();
         priceInfo.m_price4 = query.value("price_4").toString();
+        qDebug() << "has result";
     }
     pDb->close();
 }

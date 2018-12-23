@@ -8,9 +8,12 @@ QT       += core gui
 QT       += sql
 QT       += charts
 QT       += serialport
+QT       += network
 RC_ICONS = dragon.ico
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+INCLUDEPATH += ./utils ./inc
 
 TARGET = WasteRecycle
 TEMPLATE = app
@@ -33,21 +36,35 @@ SOURCES += \
     pricesetdialog.cpp \
     sqloper.cpp \
     utilitytools.cpp \
-    main.cpp \
-    pricesetdialog.cpp \
-    sqloper.cpp \
-    utilitytools.cpp \
-    wasterecycle.cpp
+    utils/json/json_internalarray.inl \
+    utils/json/json_internalmap.inl \
+    utils/json/json_reader.cpp \
+    utils/json/json_value.cpp \
+    utils/json/json_valueiterator.inl \
+    utils/json/json_writer.cpp \
+    cameramodel.cpp \
+    opennetstream.cpp \
 
 HEADERS += \
         wasterecycle.h \
     pricesetdialog.h \
     sqloper.h \
     utilitytools.h \
-    pricesetdialog.h \
-    sqloper.h \
-    utilitytools.h \
-    wasterecycle.h
+    inc/OpenNetStreamDefine.h \
+    inc/OpenNetStreamError.h \
+    inc/OpenNetStreamInterFace.h \
+    utils/json/autolink.h \
+    utils/json/config.h \
+    utils/json/features.h \
+    utils/json/forwards.h \
+    utils/json/json.h \
+    utils/json/json_batchallocator.h \
+    utils/json/reader.h \
+    utils/json/value.h \
+    utils/json/writer.h \
+    cameramodel.h \
+    opennetstream.h \
+    opennetstream_p.h \
 
 FORMS += \
         wasterecycle.ui \
@@ -59,3 +76,9 @@ DISTFILES +=
 
 RESOURCES += \
     imgs.qrc
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/lib/win32/ -lOpenNetStream
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/win32/ -lOpenNetStreamd
+
+INCLUDEPATH += $$PWD/lib/win32
+DEPENDPATH += $$PWD/lib/win32
