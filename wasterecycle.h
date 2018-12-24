@@ -21,6 +21,7 @@
 #include <QtCharts/QDateTimeAxis>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QLineSeries>
+// #include <QThread>
 
 #include "pricesetdialog.h"
 #include "sqloper.h"
@@ -163,7 +164,6 @@ public:
         chartView->setRenderHint(QPainter::Antialiasing);
         chartView->show();
     }
-
 public slots:
     void slotPointHoverd(const QPointF &point, bool state);
 
@@ -374,6 +374,7 @@ private:
      void libInit();
      void getDeviceList();
      void startPlay();
+     // QThread* thread_ = nullptr;
 
      const QString& curVideoPath();
      void setVideoPath(const QString devSerial);
@@ -389,6 +390,7 @@ private:
      void startCompare();
      void postCompareData(QString & qstrImg1, QString & qstrImg2);
      void jsonCompareDataParser(QByteArray & relpyJson);
+
 };
 
 #endif // WASTERECYCLE_H

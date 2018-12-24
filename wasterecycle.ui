@@ -97,7 +97,7 @@
        <string notr="true">QTabWidget:pane {border-top:0px solid #e8f3f9;background:  transparent; }</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1557,7 +1557,7 @@ QPushButton:hover{
             border:1px;
             border-radius:5px;
             padding:2px 4px;
-			width:67px;
+			width:80px;
 			heigt:34px;
 }
 QPushButton:hover{
@@ -1595,7 +1595,7 @@ QPushButton:hover{
             border:1px;
             border-radius:5px;
             padding:2px 4px;
-			width:67px;
+			width:80px;
 			heigt:34px;
 }
 QPushButton:hover{

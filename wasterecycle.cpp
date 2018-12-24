@@ -200,10 +200,17 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 
     jsonTextBrowser_ = new QTextBrowser(this);
     ui->tw_devices->addTab(jsonTextBrowser_, tr("json"));
-    libInit();
-    qDebug() << "sessionId:" << sessionId_;
 
-    getDeviceList();
+
+    QThread* thread = new QThread(this);
+    connect(thread, &QThread::started, this, [&](){
+        libInit();
+        getDeviceList();
+    });
+    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+    thread->start();
+    qDebug() << "[WasteRecycle] thread start";
+    // getDeviceList();
 
     // baidu ai 人脸识别相关设置
 //    compareManager = new QNetworkAccessManager(this);
@@ -261,6 +268,7 @@ WasteRecycle::~WasteRecycle()
 }
 
 void WasteRecycle::getDeviceList() {
+    qDebug() << "[WasteRecycle] getDeviceList IN";
     void* pBuf = NULL;
     int length = 0;
 
@@ -285,6 +293,7 @@ void WasteRecycle::getDeviceList() {
         jsonTextBrowser_->setText( value.toStyledString().c_str() );
     }
     ui->tw_devices->setCurrentIndex(DeviceTableIndex);
+    qDebug() << "[WasteRecycle] getDeviceList OUT";
 }
 
 void WasteRecycle::setVideoPath(const QString devSerial)
@@ -411,12 +420,11 @@ const QString& WasteRecycle::curVideoPath()
 void WasteRecycle::videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser)
 {
     //qDebug() << __LINE__ << __FUNCTION__ <<"enType:"<< enType << "iLen:" << iLen;
-
-    WasteRecycle * mainWins = (WasteRecycle *)pUser;
-    if(mainWins->curVideoPath().isEmpty())
-    {
-        return ;
-    }
+//    WasteRecycle * mainWins = (WasteRecycle *)pUser;
+//    if(mainWins->curVideoPath().isEmpty())
+//    {
+//        return ;
+//    }
 
     // 保存录像
 //    if (true)
@@ -569,6 +577,7 @@ void WasteRecycle::showErrInfo(QString caption)
 
 void WasteRecycle::startPlay()
 {
+    qDebug() << "[WasteRycycle] startPlay IN";
     DeviceTableViewInfo stDeviceInfo;
     if (GetDeviceTableViewInfo(stDeviceInfo) == false)
     {
@@ -600,13 +609,22 @@ void WasteRecycle::startPlay()
 
     HWND hWnd = NULL;
     hWnd = (HWND)ui->w_playWindow->winId();
-    int iRet = OpenNetStream::getInstance()->startRealPlay(sessionId_, hWnd, devSerial, iChannelNo, safekey);
-    if(0 != iRet)
-    {
-        this->showErrInfo(tr("RealPlay"));
-        return;
-    }
+
+    // QThread* thread = new QThread();
+    // ui->w_playWindow->moveToThread(thread);
+    // connect(thread, &QThread::started, this, [&](){
+        int iRet = OpenNetStream::getInstance()->startRealPlay(sessionId_, hWnd, devSerial, iChannelNo, safekey);
+        if(0 != iRet)
+        {
+            this->showErrInfo(tr("RealPlay"));
+            return;
+        }
+    // });
+    // connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+    // thread->start();
+
     bRealPlayStarted_ = true;
+    qDebug() << "[WasteRycycle] startPlay OUT";
 }
 
 void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
@@ -655,7 +673,10 @@ void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
             }
         }
     }
-
+//    thread_ = new QThread(this);
+//    connect(thread_, &QThread::started, this, &WasteRecycle::startPlay);
+//    connect(thread_, &QThread::finished, thread_, &QObject::deleteLater);
+//    thread_->start();
     startPlay();
 }
 
@@ -1850,9 +1871,9 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
 //        filename.append(".jpeg");
 //    }
 
-    if (ui->le_VehicleWeigh->text().trimmed() == "") {
-        on_btn_vWrite_clicked();
-    }
+//    if (ui->le_VehicleWeigh->text().trimmed() == "") {
+//        on_btn_vWrite_clicked();
+//    }
 
     QDir dir;
     QDateTime date = QDateTime::currentDateTime();
