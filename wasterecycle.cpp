@@ -57,6 +57,17 @@ QString towDecimalPlaces(QString data) {
     return head + '.' + tail;
 }
 
+bool isAllDigital(QString txt) {
+    bool isAllDigit = true;
+    for (auto e : txt.toStdString()) {
+        if(!isdigit(e) && e != '.') {
+            isAllDigit = false;
+            break;
+        }
+    }
+    return isAllDigit;
+}
+
 WasteRecycle::WasteRecycle(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WasteRecycle),
@@ -164,7 +175,6 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
     ui->lb_display->setPixmap(myPix);
     ui->lb_display->show();
-    // ui->lb_display->setScaledContents(true);
 
     // 设置默认的焦点
     ui->le_RoughWeigh->setFocus();
@@ -237,6 +247,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 
 WasteRecycle::~WasteRecycle()
 {
+    OpenNetStream::getInstance()->freeSession(sessionId_);
+    OpenNetStream::getInstance()->releaseLibrary();
     delete ui;
     ui = nullptr;
     delete priceSetWin;
@@ -696,13 +708,13 @@ void WasteRecycle::initTableView() {
 
     ui->tableView->verticalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
-    ui->tableView->setColumnWidth(0, 60);
-    ui->tableView->setColumnWidth(1, 300);
-    ui->tableView->setColumnWidth(2, 105);
-    ui->tableView->setColumnWidth(3, 105);
-    ui->tableView->setColumnWidth(4, 105);
-    ui->tableView->setColumnWidth(5, 75);
-    ui->tableView->setColumnWidth(6, 105);
+    ui->tableView->setColumnWidth(0, 40);
+    ui->tableView->setColumnWidth(1, 140);
+    ui->tableView->setColumnWidth(2, 50);
+    ui->tableView->setColumnWidth(3, 50);
+    ui->tableView->setColumnWidth(4, 50);
+    ui->tableView->setColumnWidth(5, 50);
+    ui->tableView->setColumnWidth(6, 70);
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
@@ -723,10 +735,10 @@ void WasteRecycle::initTableView() {
     ui->tableView_unloading->verticalHeader()->setStyleSheet("QHeaderView::section {"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
     ui->tableView_unloading->setColumnWidth(0, 40);
-    ui->tableView_unloading->setColumnWidth(1, 160);
-    ui->tableView_unloading->setColumnWidth(2, 70);
-    ui->tableView_unloading->setColumnWidth(3, 70);
-    ui->tableView_unloading->setColumnWidth(4, 70);
+    ui->tableView_unloading->setColumnWidth(1, 140);
+    ui->tableView_unloading->setColumnWidth(2, 50);
+    ui->tableView_unloading->setColumnWidth(3, 50);
+    ui->tableView_unloading->setColumnWidth(4, 50);
     ui->tableView_unloading->setColumnWidth(5, 50);
     ui->tableView_unloading->setColumnWidth(6, 70);
     ui->tableView_unloading->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
@@ -859,6 +871,14 @@ void WasteRecycle::showPrice(float level)
     case 0:
         if (bModify) {
             modifyData();
+        } else {
+            QString dat = ui->dateEdit->text();
+            QDateTime date = QDateTime::currentDateTime();
+            QString today = date.toString("yyyy-MM-dd");
+            if (dat != today) {
+                ui->dateEdit->setDate(QDate::fromString(today, "yyyy-MM-dd"));
+                on_btn_search_clicked();
+            }
         }
         storeData(level);
         nextVehicle();
@@ -1641,6 +1661,7 @@ void WasteRecycle::on_btn_delete_clicked()
 
 void WasteRecycle::on_btn_search_clicked()
 {
+    qDebug() << "[WasteRecycle] on_btn_search_clicked IN";
     model->clear();
     initTableView();
     std::list<QString> records;
@@ -1648,18 +1669,23 @@ void WasteRecycle::on_btn_search_clicked()
     records = oper->sqlQueryByDate(dat);
     qDebug() << "records size:" <<  records.size();
     int i = 0;
+    int k = 0;
+
+    QDateTime date = QDateTime::currentDateTime();
+    QString today = date.toString("yyyy_MM_dd");
 
     for (auto itor = records.begin(); i < records.size(); ++i, ++itor) {
-        qDebug() << "1 *itor=" << (*itor);
         QStringList lines = itor->split("  ");
-        if (lines.at(6).trimmed() == "") {
+        if (lines.at(6).trimmed() == "" && dat == today) {
+            ++k;
             continue;
         }
         for(int j = 0; j < lines.length(); ++j) {
             // qDebug() << "i=" << i << "  j=" << j << "  data=" << lines.at(j).trimmed();
-            model->setItem(i, j, new QStandardItem(lines.at(j).trimmed()));
+            model->setItem(i-k, j, new QStandardItem(lines.at(j).trimmed()));
         }
     }
+    qDebug() << "[WasteRecycle] on_btn_search_clicked OUT";
 }
 
 //template<typename ... Args>
@@ -1739,11 +1765,11 @@ void WasteRecycle::priceChanged()
 void WasteRecycle::openSerialPort()
 {
     QString port;
-    if(ui->le_com->text() != "") {
-        port = "COM" + ui->le_com->text();
-    } else {
+    // if(ui->le_com->text() != "") {
+        // port = "COM" + ui->le_com->text();
+    // } else {
         port = "COM4";
-    }
+    // }
     m_serial->setPortName(port);
     m_serial->setBaudRate(1200);
     if(m_serial->open(QIODevice::ReadWrite) == false) {
@@ -1874,6 +1900,15 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
 //    if (ui->le_VehicleWeigh->text().trimmed() == "") {
 //        on_btn_vWrite_clicked();
 //    }
+
+    // 当车重不是全为数字或者为空时，修改车重
+    bool flag = false;
+    if (ui->le_VehicleWeigh->text().trimmed() != "") {
+        flag = isAllDigital(ui->le_VehicleWeigh->text());
+    }
+    if (!flag) {
+        on_btn_vWrite_clicked();
+    }
 
     QDir dir;
     QDateTime date = QDateTime::currentDateTime();
