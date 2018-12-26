@@ -166,10 +166,10 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->vslider_percent->setValue(pos);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
     // 配置背景图
-    QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
-    QPalette  palette (this->palette());
-    palette .setBrush(QPalette::Background, QBrush(pixmap));
-    this->setPalette( palette );
+//    QPixmap pixmap = QPixmap( ":/images/0.jpg").scaled(this->size());
+//    QPalette  palette (this->palette());
+//    palette .setBrush(QPalette::Background, QBrush(pixmap));
+//    this->setPalette( palette );
 
     // 设置金龙纸业label
     QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
@@ -1796,6 +1796,8 @@ void WasteRecycle::on_btn_rWrite_clicked()
         float tmp = data.toFloat();
         ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
     }
+
+    on_btn_roughWeightCapture_clicked();
 }
 
 void WasteRecycle::on_btn_vWrite_clicked()
@@ -1805,6 +1807,8 @@ void WasteRecycle::on_btn_vWrite_clicked()
         float tmp = data.toFloat();
         ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
     }
+
+    on_btn_vechileWeightCapture_clicked();
 }
 
 void WasteRecycle::on_btn_rClear_clicked()
@@ -1871,9 +1875,9 @@ void WasteRecycle::on_btn_roughWeightCapture_clicked()
 //        filename.append(".jpeg");
 //    }
 
-    if (ui->le_RoughWeigh->text().trimmed() == "") {
-        on_btn_rWrite_clicked();
-    }
+//    if (ui->le_RoughWeigh->text().trimmed() == "") {
+//        on_btn_rWrite_clicked();
+//    }
 
     QDir dir;
     QDateTime date = QDateTime::currentDateTime();
@@ -1889,7 +1893,8 @@ void WasteRecycle::on_btn_roughWeightCapture_clicked()
 
     int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
     if (iRet != 0) {
-        this->showErrInfo(tr("图片保存失败！"));
+        qDebug() << "save pic failed!";
+        // this->showErrInfo(tr("图片保存失败！"));
     }
 }
 
@@ -1905,13 +1910,13 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
 //    }
 
     // 当车重不是全为数字或者为空时，修改车重
-    bool flag = false;
-    if (ui->le_VehicleWeigh->text().trimmed() != "") {
-        flag = isAllDigital(ui->le_VehicleWeigh->text());
-    }
-    if (!flag) {
-        on_btn_vWrite_clicked();
-    }
+//    bool flag = false;
+//    if (ui->le_VehicleWeigh->text().trimmed() != "") {
+//        flag = isAllDigital(ui->le_VehicleWeigh->text());
+//    }
+//    if (!flag) {
+//        on_btn_vWrite_clicked();
+//    }
 
     QDir dir;
     QDateTime date = QDateTime::currentDateTime();
@@ -1921,7 +1926,6 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
         dir.mkdir(dirName);
     }
 
-    // QString filename = QDir::currentPath() + "/CapturePicture.jpeg";
     QString index = ui->lb_CurrNum->text();
     QString vw = ui->le_VehicleWeigh->text();
     if(vw.trimmed() == "") {
@@ -1933,7 +1937,8 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
 
     int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
     if (iRet != 0) {
-        this->showErrInfo(tr("图片保存失败！"));
+        qDebug() << "save pic failed!";
+        // this->showErrInfo(tr("图片保存失败！"));
     }
 
     // 获取vwPicture目录下的所有图片
