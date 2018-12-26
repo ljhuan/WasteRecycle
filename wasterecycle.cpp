@@ -1775,11 +1775,11 @@ void WasteRecycle::priceChanged()
 
 void WasteRecycle::openSerialPort()
 {
-    QString port;
+    QString port = "COM4";
     // if(ui->le_com->text() != "") {
         // port = "COM" + ui->le_com->text();
     // } else {
-        port = "COM4";
+        // port = "COM4";
     // }
     m_serial->setPortName(port);
     m_serial->setBaudRate(1200);
@@ -2020,4 +2020,14 @@ void WasteRecycle::on_btn_openVehicleWeightDir_clicked()
     QString path = QDir::currentPath() +  "/" + today + "_vwPicture";
     qDebug() << "[WasteRecycle] VehicleWeightDir:" << path;
     QDesktopServices::openUrl(QUrl("file:"+path, QUrl::TolerantMode));
+}
+
+void WasteRecycle::on_btn_reconnection_clicked()
+{
+    m_serial->clear();
+    m_serial->clearError();
+    m_serial->close();
+    if(m_serial->open(QIODevice::ReadWrite) == false) {
+        qDebug() << "serial open error:" << m_serial->errorString();
+    }
 }
