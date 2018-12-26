@@ -698,8 +698,8 @@ void WasteRecycle::initTableView() {
     model->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
     model->setHorizontalHeaderItem(3, new QStandardItem("车重"));
     model->setHorizontalHeaderItem(4, new QStandardItem("净重"));
-    model->setHorizontalHeaderItem(5, new QStandardItem("单价"));
-    model->setHorizontalHeaderItem(6, new QStandardItem("价格"));
+    model->setHorizontalHeaderItem(5, new QStandardItem("价格"));
+    model->setHorizontalHeaderItem(6, new QStandardItem("总价"));
 
     ui->tableView->setModel(model);
     ui->tableView->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
@@ -708,13 +708,16 @@ void WasteRecycle::initTableView() {
 
     ui->tableView->verticalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
+    //根据内容来确定列宽度
+     ui->tableView->resizeColumnsToContents();
+     ui->tableView->horizontalHeader();
     ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 140);
-    ui->tableView->setColumnWidth(2, 50);
-    ui->tableView->setColumnWidth(3, 50);
-    ui->tableView->setColumnWidth(4, 50);
-    ui->tableView->setColumnWidth(5, 50);
-    ui->tableView->setColumnWidth(6, 70);
+    ui->tableView->setColumnWidth(1, 160);
+    ui->tableView->setColumnWidth(2, 60);
+    ui->tableView->setColumnWidth(3, 60);
+    ui->tableView->setColumnWidth(4, 60);
+    ui->tableView->setColumnWidth(5, 60);
+    ui->tableView->setColumnWidth(6, 60);
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
@@ -724,8 +727,8 @@ void WasteRecycle::initTableView() {
     model_unloading->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
     model_unloading->setHorizontalHeaderItem(3, new QStandardItem("车重"));
     model_unloading->setHorizontalHeaderItem(4, new QStandardItem("净重"));
-    model_unloading->setHorizontalHeaderItem(5, new QStandardItem("单价"));
-    model_unloading->setHorizontalHeaderItem(6, new QStandardItem("价格"));
+    model_unloading->setHorizontalHeaderItem(5, new QStandardItem("价格"));
+    model_unloading->setHorizontalHeaderItem(6, new QStandardItem("总价"));
 
     ui->tableView_unloading->setModel(model_unloading);
     ui->tableView_unloading->horizontalHeader()->setStyleSheet("QHeaderView::section {"
@@ -735,12 +738,12 @@ void WasteRecycle::initTableView() {
     ui->tableView_unloading->verticalHeader()->setStyleSheet("QHeaderView::section {"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
     ui->tableView_unloading->setColumnWidth(0, 40);
-    ui->tableView_unloading->setColumnWidth(1, 140);
-    ui->tableView_unloading->setColumnWidth(2, 50);
-    ui->tableView_unloading->setColumnWidth(3, 50);
-    ui->tableView_unloading->setColumnWidth(4, 50);
-    ui->tableView_unloading->setColumnWidth(5, 50);
-    ui->tableView_unloading->setColumnWidth(6, 70);
+    ui->tableView_unloading->setColumnWidth(1, 160);
+    ui->tableView_unloading->setColumnWidth(2, 60);
+    ui->tableView_unloading->setColumnWidth(3, 60);
+    ui->tableView_unloading->setColumnWidth(4, 60);
+    ui->tableView_unloading->setColumnWidth(5, 60);
+    ui->tableView_unloading->setColumnWidth(6, 60);
     ui->tableView_unloading->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView_unloading->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView_unloading->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
