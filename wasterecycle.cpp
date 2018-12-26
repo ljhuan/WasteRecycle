@@ -171,10 +171,18 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 //    palette .setBrush(QPalette::Background, QBrush(pixmap));
 //    this->setPalette( palette );
 
-    // 设置金龙纸业label
-    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
-    ui->lb_display->setPixmap(myPix);
+    // 设置标签图片
+    QPixmap titlePix = QPixmap(":/images/mimeiti_da.png").scaled(600, 160);
+    ui->lb_display->setPixmap(titlePix);
     ui->lb_display->show();
+
+    QPixmap pricePix = QPixmap(":/images/price_big.png").scaled(200, 80);
+    ui->label_9->setPixmap(pricePix);
+    ui->label_9->show();
+
+    QPixmap yuanPix = QPixmap(":/images/yuan_big.png").scaled(80, 80);
+    ui->label_8->setPixmap(yuanPix);
+    ui->label_8->show();
 
     // 设置默认的焦点
     ui->le_RoughWeigh->setFocus();
@@ -698,8 +706,8 @@ void WasteRecycle::initTableView() {
     model->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
     model->setHorizontalHeaderItem(3, new QStandardItem("车重"));
     model->setHorizontalHeaderItem(4, new QStandardItem("净重"));
-    model->setHorizontalHeaderItem(5, new QStandardItem("价格"));
-    model->setHorizontalHeaderItem(6, new QStandardItem("总价"));
+    model->setHorizontalHeaderItem(5, new QStandardItem("单价"));
+    model->setHorizontalHeaderItem(6, new QStandardItem("价格"));
 
     ui->tableView->setModel(model);
     ui->tableView->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
@@ -727,8 +735,8 @@ void WasteRecycle::initTableView() {
     model_unloading->setHorizontalHeaderItem(2, new QStandardItem("毛重"));
     model_unloading->setHorizontalHeaderItem(3, new QStandardItem("车重"));
     model_unloading->setHorizontalHeaderItem(4, new QStandardItem("净重"));
-    model_unloading->setHorizontalHeaderItem(5, new QStandardItem("价格"));
-    model_unloading->setHorizontalHeaderItem(6, new QStandardItem("总价"));
+    model_unloading->setHorizontalHeaderItem(5, new QStandardItem("单价"));
+    model_unloading->setHorizontalHeaderItem(6, new QStandardItem("价格"));
 
     ui->tableView_unloading->setModel(model_unloading);
     ui->tableView_unloading->horizontalHeader()->setStyleSheet("QHeaderView::section {"
@@ -1071,7 +1079,7 @@ void WasteRecycle::finalPrice(float level)
         qDebug() << "level: " << level << " VehicleWeigh is empty.";
         return;
     }
-    ui->lb_Price->setText(towDecimalPlaces(QString("%1").arg(priceCalculate(level))));
+    ui->lb_Price->setText(QString("%1").arg(priceCalculate(level)));
     /*QString qstrCurrIndex = ui->lb_CurrNum->text();
     int iCurrIndex = qstrCurrIndex.toInt();
 
@@ -1430,7 +1438,7 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
     }
 
     if (isAllDigit && strVw.trimmed() != "") {
-        ui->lb_NetWeight->setText(towDecimalPlaces(QString("%1").arg((fRw - fVw)*2)));
+        ui->lb_NetWeight->setText(QString("%1").arg((fRw - fVw)*2));
     } else {
         ui->lb_NetWeight->setText("");
     }

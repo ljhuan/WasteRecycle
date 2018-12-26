@@ -10,5 +10,7 @@
         <file>images/daliang_da.png</file>
         <file>images/luoluotangyuan_da.png</file>
         <file>images/mimeiti_da.png</file>
+        <file>images/price_big.png</file>
+        <file>images/yuan_big.png</file>
     </qresource>
 </RCC>
