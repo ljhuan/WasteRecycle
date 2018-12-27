@@ -240,6 +240,8 @@ private slots:
 
     void on_btn_openVehicleWeightDir_clicked();
 
+    void on_btn_reconnection_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 
