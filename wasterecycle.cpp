@@ -1792,7 +1792,7 @@ void WasteRecycle::handleTimeout()
 {
     m_pTimer->stop();
     // ui->lb_display->setText(QString::fromLocal8Bit("金龙纸业"));
-    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
+    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(600, 160);
     ui->lb_display->setPixmap(myPix);
     ui->lb_display->show();
 }
@@ -1874,6 +1874,10 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
     }
 
     qDebug() << "on_tableView_unloading_doubleClicked OUT";
+}
+
+void WasteRecycle::capture(QString dirName) {
+
 }
 
 void WasteRecycle::on_btn_roughWeightCapture_clicked()
@@ -2027,6 +2031,8 @@ void WasteRecycle::on_btn_reconnection_clicked()
     m_serial->clear();
     m_serial->clearError();
     m_serial->close();
+    m_serial->setBaudRate(1200);
+    m_serial->setPortName("COM4");
     if(m_serial->open(QIODevice::ReadWrite) == false) {
         qDebug() << "serial open error:" << m_serial->errorString();
     }

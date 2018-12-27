@@ -69,6 +69,15 @@ void PriceSetDialog::updatePrices()
 
 void PriceSetDialog::on_btn_priceRecommend_clicked()
 {
+    static bool flag = false;
+    if (!flag) {
+        ui->btn_priceRecommend->setText(QString("%1").arg(YEARLY_EXPENSES));
+        flag = true;
+    } else {
+        ui->btn_priceRecommend->setText("回收价推荐");
+        flag = false;
+    }
+
     qDebug() << "on_btn_priceRecommend_clicked IN";
     int iFactPrice_A = ui->le_factoryPrice_A->text().toInt();
     // int iFactPrice_B = ui->le_factoryPrice_B->text().toInt();
