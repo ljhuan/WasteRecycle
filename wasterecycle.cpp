@@ -1876,10 +1876,6 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
     qDebug() << "on_tableView_unloading_doubleClicked OUT";
 }
 
-void WasteRecycle::capture(QString dirName) {
-
-}
-
 void WasteRecycle::on_btn_roughWeightCapture_clicked()
 {
 //    QString filename = QFileDialog::getSaveFileName(this, tr("Save Image"), "CapturePicture.jpeg", "*.jpeg");
