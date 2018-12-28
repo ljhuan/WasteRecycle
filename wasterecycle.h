@@ -242,6 +242,10 @@ private slots:
 
     void on_btn_reconnection_clicked();
 
+    void clicked_rightMenu(const QPoint &pos);  //右键信号槽函数
+
+    // delete
+    void deleteData();
 private:
     Ui::WasteRecycle *ui;
 
@@ -304,9 +308,6 @@ private:
 
      // next
      void nextVehicle();
-
-     // delete
-     void deleteData();
 
      // update charts table
      void updateTableCharts();
@@ -393,6 +394,9 @@ private:
      void postCompareData(QString & qstrImg1, QString & qstrImg2);
      void jsonCompareDataParser(QByteArray & relpyJson);
 
+     // 右键菜单相关参数
+     QMenu *rightMenu = nullptr;
+     QAction *deleteAction = nullptr;
 };
 
 #endif // WASTERECYCLE_H

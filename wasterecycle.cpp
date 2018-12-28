@@ -251,6 +251,18 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         font.setBold(true);
         label->setFont(font);
     }
+
+    // 右键删除
+    ui->tableView_unloading->setContextMenuPolicy(Qt::CustomContextMenu);  //少这句，右键没有任何反应的。
+    ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    rightMenu = new QMenu;  //右键菜单
+    deleteAction = new QAction("删除",this);  //删除
+    rightMenu->addAction(deleteAction);
+
+    connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(clicked_rightMenu(QPoint)));
+    connect(ui->tableView_unloading, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(clicked_rightMenu(QPoint)));
+    connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteData()));
 }
 
 WasteRecycle::~WasteRecycle()
@@ -942,6 +954,13 @@ void WasteRecycle::nextVehicle()
 
 void WasteRecycle::deleteData()
 {
+    qDebug() << "table name:" << rightMenu->objectName();
+    if (rightMenu->objectName() == "tableView_unloading") {
+        bModifyUnloading =  true;
+    } else if (rightMenu->objectName() == "tableView") {
+        bModify = true;
+    }
+    qDebug() << "deleteData IN";
     QString date = ui->dateEdit->text().replace("-", "_");
     int row = ui->tableView->currentIndex().row();
     int urow = ui->tableView_unloading->currentIndex().row();
@@ -952,6 +971,7 @@ void WasteRecycle::deleteData()
     } else if (bModifyUnloading == true) {
         oper->sqlDeleteById(model_unloading->index(urow, 0).data().toString(), date);
         model_unloading->removeRow(urow);
+        bModifyUnloading = false;
         return;
     }
 
@@ -961,7 +981,10 @@ void WasteRecycle::deleteData()
     } else if (bModify == true) {
         oper->sqlDeleteById(model->index(row, 0).data().toString(), date);
         model->removeRow(row);
+        bModify = false;
     }
+
+    qDebug() << "deleteData IN";
 }
 
 void WasteRecycle::updateTableCharts()
@@ -1379,6 +1402,7 @@ void WasteRecycle::on_btn_Next_clicked()
     // QString qstrText = ui->lb_Price->text();
     if(ui->le_RoughWeigh->text().trimmed() == "") {
         qWarning() << "le_RoughWeigh is empty";
+        ui->le_RoughWeigh->setFocus();
         return;
     }
 
@@ -1614,33 +1638,38 @@ void WasteRecycle::on_tableView_doubleClicked(const QModelIndex &index)
 {
     qDebug() << "on_tableView_doubleClicked IN";
 
-    QString msg = "<font size='25' color='black'>" + QString("修改或者删除数据？") + "</font>";
-    int ret = QMessageBox::information(this,
-                                                            "警告",
-                                                            msg,
-                                                            "修改",
-                                                            "删除",
-                                                            "取消");
+//    QString msg = "<font size='25' color='black'>" + QString("修改或者删除数据？") + "</font>";
+//    int ret = QMessageBox::information(this,
+//                                                            "警告",
+//                                                            msg,
+//                                                            "修改",
+//                                                            "删除",
+//                                                            "取消");
     if (bModifyUnloading) {
         bModifyUnloading = false;
     }
     bModify = true;
-    switch (ret) {
-    case 0:
-        saveCurrentData();
-        dataRecoveryFromTableView(index);
-        setTextEnabled(true);
-        ui->tabWidget->setCurrentWidget(ui->tab);
-        break;
-    case 1:
-        deleteData();
-        break;
-    case 2:
-        qDebug() << "cancel";
-        break;
-    default:
-        break;
-    }
+//    switch (ret) {
+//    case 0:
+//        saveCurrentData();
+//        dataRecoveryFromTableView(index);
+//        setTextEnabled(true);
+//        ui->tabWidget->setCurrentWidget(ui->tab);
+//        break;
+//    case 1:
+//        deleteData();
+//        break;
+//    case 2:
+//        qDebug() << "cancel";
+//        bModify = false;
+//        break;
+//    default:
+//        break;
+//    }
+    saveCurrentData();
+    dataRecoveryFromTableView(index);
+    setTextEnabled(true);
+    ui->tabWidget->setCurrentWidget(ui->tab);
 
     qDebug() << "on_tableView_doubleClicked OUT";
 }
@@ -1806,6 +1835,7 @@ void WasteRecycle::on_btn_rWrite_clicked()
     }
 
     on_btn_roughWeightCapture_clicked();
+    on_btn_Next_clicked();
 }
 
 void WasteRecycle::on_btn_vWrite_clicked()
@@ -1844,19 +1874,19 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
 {
     qDebug() << "on_tableView_unloading_doubleClicked IN";
 
-    QString msg = "<font size='25' color='black'>" +QString("修改或者删除数据？") + "</font>";
-    int ret = QMessageBox::information(this,
-                                                             "警告",
-                                                             msg,
-                                                             "修改",
-                                                             "删除",
-                                                             "取消");
+//    QString msg = "<font size='25' color='black'>" +QString("修改或者删除数据？") + "</font>";
+//    int ret = QMessageBox::information(this,
+//                                                             "警告",
+//                                                             msg,
+//                                                             "修改",
+//                                                             "删除",
+//                                                             "取消");
 
     if (bModify) {
         bModify = false;
     }
     bModifyUnloading = true;
-    switch (ret) {
+    /*switch (ret) {
     case 0:
         saveCurrentData();
         // dataRecoveryFromTableView(index);
@@ -1868,10 +1898,15 @@ void WasteRecycle::on_tableView_unloading_doubleClicked(const QModelIndex &index
         break;
     case 2:
         qDebug() << "cancel";
+        bModifyUnloading = false;
         break;
     default:
         break;
-    }
+    }*/
+    saveCurrentData();
+    // dataRecoveryFromTableView(index);
+    dataRecoveryFromUnloadingTableView(index);
+    setTextEnabled(true);
 
     qDebug() << "on_tableView_unloading_doubleClicked OUT";
 }
@@ -2032,4 +2067,13 @@ void WasteRecycle::on_btn_reconnection_clicked()
     if(m_serial->open(QIODevice::ReadWrite) == false) {
         qDebug() << "serial open error:" << m_serial->errorString();
     }
+}
+
+void WasteRecycle::clicked_rightMenu(const QPoint &pos)
+{
+    QTableView *tableView=qobject_cast<QTableView*>(sender());
+    // qDebug() << "table name:" << tableView->objectName();
+    rightMenu->setObjectName(tableView->objectName());
+    rightMenu->exec(QCursor::pos());
+    rightMenu->setObjectName("");
 }
