@@ -1080,7 +1080,7 @@ QPushButton:hover{
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,1,25">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,2,1,1,1,2">
             <item>
              <widget class="QLabel" name="label_7">
               <property name="text">
@@ -1216,17 +1216,42 @@ QPushButton:hover{
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_17">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QPushButton" name="btn_monthlyStatics">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
+              <property name="styleSheet">
+               <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+			width:80px;
+			heigt:34px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+        }
+</string>
               </property>
-             </spacer>
+              <property name="text">
+               <string>近一个月数据统计</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

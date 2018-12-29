@@ -229,6 +229,27 @@ std::list<QString> SqlOper::queryTableRecords(QString sql)
     return results;
 }
 
+std::list<QString> SqlOper::queryTableCharts(QString sql)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "queryTableRecords db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    QSqlQuery query(*pDb);
+    qDebug() << sql;
+    query.exec(sql);
+    while(query.next()) {
+        QString result = query.value("time").toString() + UtilityTools::holdPlaces(2) + query.value("amouts").toString() + UtilityTools::holdPlaces(2) +
+                query.value("totalWeight").toString() + UtilityTools::holdPlaces(2) + query.value("totalPrice").toString() + UtilityTools::holdPlaces(2) +
+                query.value("averagePrice").toString();
+        // qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
 void SqlOper::sqlDeleteById(QString index, QString date)
 {
     if(!pDb->open()) {

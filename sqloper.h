@@ -84,6 +84,8 @@ public:
 
     std::list<QString> queryTableRecords(QString sql);
 
+    std::list<QString> queryTableCharts(QString sql);
+
 private:
     QSqlDatabase* pDb;
     QSqlQuery* pQuery;

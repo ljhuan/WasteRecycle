@@ -44,6 +44,7 @@ SOURCES += \
     utils/json/json_writer.cpp \
     cameramodel.cpp \
     opennetstream.cpp \
+    monthlystatics.cpp
 
 HEADERS += \
         wasterecycle.h \
@@ -65,10 +66,12 @@ HEADERS += \
     cameramodel.h \
     opennetstream.h \
     opennetstream_p.h \
+    monthlystatics.h
 
 FORMS += \
         wasterecycle.ui \
-    pricesetdialog.ui
+    pricesetdialog.ui \
+    monthlystatics.ui
 
 CONFIG += c++11
 

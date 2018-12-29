@@ -37,6 +37,7 @@
 #include "wasterecycle.h"
 #include "ui_wasterecycle.h"
 #include "sqloper.h"
+#include "monthlystatics.h"
 #include "opennetstream.h"
 #include "opennetstream_p.h"
 
@@ -2076,4 +2077,32 @@ void WasteRecycle::clicked_rightMenu(const QPoint &pos)
     rightMenu->setObjectName(tableView->objectName());
     rightMenu->exec(QCursor::pos());
     rightMenu->setObjectName("");
+}
+
+void WasteRecycle::on_btn_monthlyStatics_clicked()
+{
+    // 统计近一个月的总量，平均价，总价
+    qDebug() << "[WasteRecycle] on_btn_monthlyStatics_clicked IN";
+    QDate today = QDateTime::currentDateTime().date();
+    QDate monthEarlyDay = today.addMonths(-1);
+
+    QString sqlQueryCharts = "select * from charts where time < '"+ today.toString("yyyy_MM_dd")+"' and time >='" + monthEarlyDay.toString("yyyy_MM_dd")+"';";
+    std::list<QString> elements = oper->queryTableCharts(sqlQueryCharts);
+
+    float monthTotalWeight = 0.0, monthAveragePrice = 0.0, monthTotalPrice = 0.0;
+    int days = 0;
+    for (auto element : elements) {
+        QStringList line = element.split("  ");
+        monthTotalWeight += line.at(2).toFloat();
+        monthTotalPrice += line.at(3).toFloat();
+        monthAveragePrice += line.at(4).toFloat();
+    }
+
+    days = monthEarlyDay.daysTo(today);
+    monthAveragePrice /= days;
+
+    monthlyStatics* monthlyWin = new monthlyStatics(monthTotalWeight, monthAveragePrice, monthTotalPrice, days);
+    monthlyWin->show();
+
+    qDebug() << "[WasteRecycle] on_btn_monthlyStatics_clicked OUT";
 }

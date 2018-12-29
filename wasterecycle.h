@@ -246,6 +246,8 @@ private slots:
 
     // delete
     void deleteData();
+    void on_btn_monthlyStatics_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 

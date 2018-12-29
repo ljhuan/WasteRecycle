@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>monthlyStatics</class>
+ <widget class="QDialog" name="monthlyStatics">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>265</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>近一个月数据统计</string>
+  </property>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>41</y>
+     <width>261</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="lb_monthAverage">
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lb_monthTotalWeight">
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lb_monthTotalPrice">
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lb_dailyWeight">
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
