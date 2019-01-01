@@ -94,6 +94,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->btn_Level2->installEventFilter(this);
     ui->btn_Level3->installEventFilter(this);
     ui->btn_Level4->installEventFilter(this);
+    ui->btn_rClear->installEventFilter(this);
+    ui->btn_vClear->installEventFilter(this);
 
     // 初始化tableView
     initTableView();
@@ -872,6 +874,18 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             ui->btn_Level4->setText(QString("%1").arg(level));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_Level4->setText("民用纸");
+        }
+    } else if (obj == ui->btn_rClear) {
+        if (QEvent::Enter == e->type()) {
+            ui->btn_rClear->setText("清除");
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_rClear->setText("公斤");
+        }
+    } else if (obj == ui->btn_vClear) {
+        if (QEvent::Enter == e->type()) {
+            ui->btn_vClear->setText("清除");
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_vClear->setText("公斤");
         }
     }
 
@@ -1837,6 +1851,7 @@ void WasteRecycle::on_btn_rWrite_clicked()
 
     on_btn_roughWeightCapture_clicked();
     on_btn_Next_clicked();
+    ui->tableView_unloading->setFocus();
 }
 
 void WasteRecycle::on_btn_vWrite_clicked()
