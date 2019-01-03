@@ -2080,6 +2080,7 @@ void WasteRecycle::on_btn_reconnection_clicked()
     m_serial->clear();
     m_serial->clearError();
     m_serial->close();
+    m_serial->reset();
     m_serial->setBaudRate(1200);
     m_serial->setPortName("COM4");
     if(m_serial->open(QIODevice::ReadWrite) == false) {
