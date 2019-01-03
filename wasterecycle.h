@@ -126,7 +126,7 @@ public:
 
         // ...
         QDateTimeAxis *axisX = new QDateTimeAxis();
-        axisX->setFormat("dd/MM/yyyy");
+        axisX->setFormat("yyyy-MM-dd");
         auto it = data.rbegin();
         ++it;
         int days = data.begin()->first.daysTo(it->first);
@@ -135,7 +135,8 @@ public:
         param = (param==5 ? 0:param);
 
         axisX->setRange(data.begin()->first, it->first.addDays(param+1));
-        axisX->setTickCount((days+param)/5 + 1);
+        // axisX->setTickCount((days+param)/5 + 1);
+        axisX->setTickCount(6);
         qDebug() << "days=" << days << " param=" << param;
 
         chartView->chart()->setAxisX(axisX, series);

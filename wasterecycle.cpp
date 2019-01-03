@@ -253,6 +253,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         QFont font;
         font.setBold(true);
         label->setFont(font);
+        label->hide();
     }
 
     // 右键删除
@@ -270,6 +271,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 
 WasteRecycle::~WasteRecycle()
 {
+    OpenNetStream::getInstance()->stopRealPlayEx(sessionId_);
     OpenNetStream::getInstance()->freeSession(sessionId_);
     OpenNetStream::getInstance()->releaseLibrary();
     delete ui;
@@ -513,17 +515,17 @@ void WasteRecycle::slotPointHoverd(const QPointF &point, bool state)
 {
     qDebug() << "slotPointHoverd IN";
     if(state) {
-        char format = 'e';
-        int precision = 6;
-        qDebug() << "x:" << QString::number(point.x(), format, precision);
+        QString xTime = QDateTime::fromMSecsSinceEpoch(point.x()).toString("yyyy-MM-dd");
+        qDebug() << "x:" << xTime;
         qDebug() << "y:" << point.y();
-        label->setText(QString("%1").arg(point.y()));
+        QString text = QString("%1").arg(point.y()) + "\r\n" + xTime;
+        label->setText(text);
 
         QPoint curPos = chartView->mapFromGlobal(QCursor::pos());
         qDebug() << "curPos x:" << curPos.x();
         qDebug() << "curPos y:" << curPos.y();
-        label->move(curPos.x() - label->width()/2, curPos.y() - label->height()*1.5);//移动数值
-        label->show();//显示出来
+        label->move(curPos.x() - label->width()/2, curPos.y() - label->height()*1.5);  //移动数值
+        label->show();  //显示出来
     } else {
         label->hide();
     }
