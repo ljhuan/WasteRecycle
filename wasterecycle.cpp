@@ -526,8 +526,13 @@ void WasteRecycle::slotPointHoverd(const QPointF &point, bool state)
         qDebug() << "curPos y:" << curPos.y();
         label->move(curPos.x() - label->width()/2, curPos.y() - label->height()*1.5);  //移动数值
         label->show();  //显示出来
+
+        QScatterSeries* serie = reinterpret_cast<QScatterSeries*>(chartView->chart()->series()[1]);
+        serie->remove(point);
     } else {
         label->hide();
+        QScatterSeries* serie = reinterpret_cast<QScatterSeries*>(chartView->chart()->series()[1]);
+        serie->append(point);
     }
     qDebug() << "slotPointHoverd OUT";
 }

@@ -102,9 +102,9 @@ public:
         //散点图(用于中心)
         QScatterSeries *series2 = new QScatterSeries();
         series2->setMarkerShape(QScatterSeries::MarkerShapeCircle);//圆形的点
-        series2->setBorderColor(Qt::white);//边框颜色
+        series2->setBorderColor(QColor(21, 100, 255));//边框颜色
         series2->setBrush(QBrush(Qt::white));//背景颜色
-        series2->setMarkerSize(6);//点大小
+        series2->setMarkerSize(8);//点大小
 
 
         if (data.size() == 0) return;
@@ -157,7 +157,7 @@ public:
         chartView->chart()->setAxisY(axisY, series1);
         chartView->chart()->setAxisY(axisY, series2);
 
-        chartView->resize(800, 500);
+        chartView->resize(1000, 618);
         chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
         // chartView->chart()->createDefaultAxes();
         chartView->chart()->setTitle("均价走势图");
