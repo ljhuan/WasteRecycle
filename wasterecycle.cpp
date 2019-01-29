@@ -69,7 +69,8 @@ bool isAllDigital(QString txt) {
     return isAllDigit;
 }
 
-WasteRecycle::WasteRecycle(QWidget *parent) :
+WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
+    api_(api),
     QMainWindow(parent),
     ui(new Ui::WasteRecycle),
     toBeUseIndex(100),
@@ -223,13 +224,13 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->tw_devices->addTab(jsonTextBrowser_, tr("json"));
 
 
-    QThread* thread = new QThread(this);
-    connect(thread, &QThread::started, this, [&](){
+    thread_ = new QThread(this);
+    connect(thread_, &QThread::started, this, [&](){
         libInit();
         getDeviceList();
     });
-    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
-    thread->start();
+    connect(thread_, &QThread::finished, thread_, &QObject::deleteLater);
+    thread_->start();
     qDebug() << "[WasteRecycle] thread start";
     // getDeviceList();
 
@@ -274,6 +275,10 @@ WasteRecycle::~WasteRecycle()
     OpenNetStream::getInstance()->stopRealPlayEx(sessionId_);
     OpenNetStream::getInstance()->freeSession(sessionId_);
     OpenNetStream::getInstance()->releaseLibrary();
+    if (thread_ != nullptr && thread_->isRunning()) {
+        qDebug() << "thread quit...";
+        thread_->quit();
+    }
     delete ui;
     ui = nullptr;
     delete priceSetWin;
@@ -298,10 +303,10 @@ WasteRecycle::~WasteRecycle()
         delete chartView;
         chartView = nullptr;
     }
-    if(label != nullptr) {
-        delete label;
-        label = nullptr;
-    }
+//    if(label != nullptr) {
+//        delete label;
+//        label = nullptr;
+//    }
 }
 
 void WasteRecycle::getDeviceList() {
@@ -596,7 +601,7 @@ int WasteRecycle::switchVideoLevel(int videoLevel)
         return -1;
     }
 
-    bool bEncrypt = stDeviceInfo.bEncrypt;
+    // bool bEncrypt = stDeviceInfo.bEncrypt;
     QString devSerial = stDeviceInfo.strSubserial;
     int iChannelNo = stDeviceInfo.iChannelNo;
 
@@ -644,10 +649,9 @@ void WasteRecycle::startPlay()
             return;
         }
     }
-
     //Set the video store path
-    setVideoPath(devSerial);
-    OpenNetStream::getInstance()->setDataCallBack(sessionId_, videoDataHandler, this);
+     setVideoPath(devSerial);
+     OpenNetStream::getInstance()->setDataCallBack(sessionId_, videoDataHandler, this);
 
     HWND hWnd = NULL;
     hWnd = (HWND)ui->w_playWindow->winId();
@@ -2128,4 +2132,40 @@ void WasteRecycle::on_btn_monthlyStatics_clicked()
     monthlyWin->show();
 
     qDebug() << "[WasteRecycle] on_btn_monthlyStatics_clicked OUT";
+}
+
+void WasteRecycle::on_btn_capture_clicked()
+{
+    QDir dir;
+    QString dirName = "members";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+
+    QString filename = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
+
+    qDebug() << "filename:" << filename;
+
+    int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
+    if (iRet != 0) {
+        qDebug() << "save pic failed!";
+        this->showErrInfo(tr("图片保存失败！"));
+        return;
+    }
+
+    int width = ui->lb_show->width();
+    int height = ui->lb_show->height();
+    QPixmap myPix = QPixmap(filename).scaled(width, height);
+    ui->lb_show->setPixmap(myPix);
+    ui->lb_show->show();
+}
+
+void WasteRecycle::on_btn_register_clicked()
+{
+    QString user = ui->le_phone->text();
+    QString group = "test_group";
+    QString pic = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
+    QString info = ui->le_name->text();
+    std::string res = api_->user_add(user.toStdString().c_str(), group.toStdString().c_str(), pic.toStdString().c_str(), 2, info.toStdString().c_str());
+    qDebug() << "------res is:" << QString::fromStdString(res);
 }

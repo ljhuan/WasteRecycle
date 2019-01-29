@@ -27,6 +27,15 @@
 #include "sqloper.h"
 #include "cameramodel.h"
 #include "opennetstream.h"
+#include "opencv2\opencv.hpp"
+#include "baidu_face_api.h"
+#include "image_base64.h"
+#include "cv_help.h"
+#include "liveness.h"
+#include "manager.h"
+#include "compare.h"
+#include "set/setting.h"
+#include "image_buf.h"
 
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
@@ -57,7 +66,7 @@ class WasteRecycle : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit WasteRecycle(QWidget *parent = 0);
+    explicit WasteRecycle(BaiduFaceApi* api, QWidget *parent = 0);
     ~WasteRecycle();
 
     static void __stdcall videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser);
@@ -122,7 +131,7 @@ public:
         chartView->chart()->addSeries(series1);
         chartView->chart()->addSeries(series2);
 
-        connect(series2, &QScatterSeries::hovered, this, &slotPointHoverd);//用于鼠标移动到点上显示数值
+        connect(series2, &QScatterSeries::hovered, this, &WasteRecycle::slotPointHoverd);//用于鼠标移动到点上显示数值
 
         // ...
         QDateTimeAxis *axisX = new QDateTimeAxis();
@@ -249,6 +258,10 @@ private slots:
     void deleteData();
     void on_btn_monthlyStatics_clicked();
 
+    void on_btn_capture_clicked();
+
+    void on_btn_register_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 
@@ -373,6 +386,7 @@ private:
      int Channel_;
      bool bRealPlayStarted_ = false;
      QString videoPath_;
+     QThread* thread_ = nullptr;
 
      bool  GetDeviceTableViewInfo(DeviceTableViewInfo& stDeviceInfo);
      int switchVideoLevel(int videoLevel);
@@ -400,6 +414,9 @@ private:
      // 右键菜单相关参数
      QMenu *rightMenu = nullptr;
      QAction *deleteAction = nullptr;
+
+     // 百度人脸识别相关参数
+     BaiduFaceApi *api_ = nullptr;
 };
 
 #endif // WASTERECYCLE_H
