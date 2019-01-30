@@ -133,7 +133,7 @@ QVariant CameraModel::headerData(int section, Qt::Orientation orientation, int r
     if (Qt::Horizontal == orientation) {
         // return roleNames()[Qt::UserRole+1+section];
         // return roleNames()[CameraNameRole];
-        return "相机名称";
+        return QString::fromLocal8Bit("相机名称");
     }
     else {
         return section + 1;
