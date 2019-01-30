@@ -262,6 +262,10 @@ private slots:
 
     void on_btn_register_clicked();
 
+    void on_btn_analyze_clicked();
+
+    void on_btn_select_clicked();
+
 private:
     Ui::WasteRecycle *ui;
 

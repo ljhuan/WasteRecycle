@@ -90,14 +90,14 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="4,5">
+   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,5">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="styleSheet">
        <string notr="true">QTabWidget:pane {border-top:0px solid #e8f3f9;background:  transparent; }</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1380,8 +1380,8 @@ QPushButton:hover{
        <widget class="QLabel" name="lb_phone">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>80</y>
+          <x>360</x>
+          <y>200</y>
           <width>61</width>
           <height>21</height>
          </rect>
@@ -1393,9 +1393,9 @@ QPushButton:hover{
        <widget class="QLabel" name="lb_name">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>40</y>
-          <width>61</width>
+          <x>360</x>
+          <y>120</y>
+          <width>41</width>
           <height>21</height>
          </rect>
         </property>
@@ -1406,10 +1406,10 @@ QPushButton:hover{
        <widget class="QLabel" name="lb_show">
         <property name="geometry">
          <rect>
-          <x>50</x>
-          <y>250</y>
-          <width>441</width>
-          <height>272</height>
+          <x>40</x>
+          <y>120</y>
+          <width>311</width>
+          <height>271</height>
          </rect>
         </property>
         <property name="text">
@@ -1419,8 +1419,8 @@ QPushButton:hover{
        <widget class="QPushButton" name="btn_capture">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>150</y>
+          <x>240</x>
+          <y>80</y>
           <width>75</width>
           <height>23</height>
          </rect>
@@ -1432,8 +1432,8 @@ QPushButton:hover{
        <widget class="QLineEdit" name="le_name">
         <property name="geometry">
          <rect>
-          <x>110</x>
-          <y>40</y>
+          <x>360</x>
+          <y>150</y>
           <width>113</width>
           <height>20</height>
          </rect>
@@ -1442,8 +1442,8 @@ QPushButton:hover{
        <widget class="QLineEdit" name="le_phone">
         <property name="geometry">
          <rect>
-          <x>110</x>
-          <y>80</y>
+          <x>360</x>
+          <y>230</y>
           <width>113</width>
           <height>20</height>
          </rect>
@@ -1452,14 +1452,63 @@ QPushButton:hover{
        <widget class="QPushButton" name="btn_register">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>580</y>
+          <x>100</x>
+          <y>490</y>
           <width>75</width>
           <height>23</height>
          </rect>
         </property>
         <property name="text">
          <string>注册</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_analyze">
+        <property name="geometry">
+         <rect>
+          <x>260</x>
+          <y>490</y>
+          <width>75</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string> 识别</string>
+        </property>
+       </widget>
+       <widget class="QTextBrowser" name="textBrowser">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>540</y>
+          <width>401</width>
+          <height>81</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btn_select">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>80</y>
+          <width>75</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>选择图片</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="lb_path">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>410</y>
+          <width>391</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </widget>

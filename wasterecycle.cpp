@@ -2164,8 +2164,109 @@ void WasteRecycle::on_btn_register_clicked()
 {
     QString user = ui->le_phone->text();
     QString group = "test_group";
-    QString pic = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
+    QString pic;
+    if (ui->le_phone->text().isEmpty() || ui->le_name->text().isEmpty()) {
+        QMessageBox::warning(this, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("注册信息不完整"), QString::fromLocal8Bit("关闭"));
+        return;
+    }
+    if(ui->lb_path->text().isEmpty()) {
+        pic = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
+    } else {
+        pic = ui->lb_path->text();
+    }
     QString info = ui->le_name->text();
     std::string res = api_->user_add(user.toStdString().c_str(), group.toStdString().c_str(), pic.toStdString().c_str(), 2, info.toStdString().c_str());
     qDebug() << "------res is:" << QString::fromStdString(res);
+
+    // 还需要对返回信息做解析判断
+
+    QMessageBox::information(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("注册完毕"), QString::fromLocal8Bit("关闭"));
+    ui->le_phone->clear();
+    ui->le_name->clear();
+    ui->lb_show->clear();
+    ui->lb_path->clear();
+    ui->le_name->setFocus();
+    api_->load_db_face();
+}
+
+void WasteRecycle::on_btn_analyze_clicked()
+{
+    QString img = ui->lb_path->text();
+    if (img.isEmpty()) {
+        QString msg = QString::fromLocal8Bit("未选择图片");
+        ui->textBrowser->setText(msg);
+        return;
+    }
+    std::string res = api_->identify(img.toUtf8().data(), 2);
+    QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
+    qDebug() << "---200 identify res is:" << info;
+
+    Json::Reader reader;
+    Json::Value	value;
+    Json::Value  result;
+    Json::Value  userInfos_value;
+    std::string userID;
+    std::string score;
+    QString userInfos;
+    if(reader.parse(info.toUtf8().data(), value)) {
+        int err = value["errno"].asInt();
+
+        if (err != 0) {
+            qDebug() << "err:" << err;
+            return;
+        }
+
+        result = value["data"]["result"];
+        for (int i = 0; i < result.size(); ++i) {
+            userID = result[i]["user_id"].asString();
+            score = result[i]["score"].asString();
+            std::string groupID = result[i]["group_id"].asString();
+            qDebug() << "userID:" << QString::fromStdString(userID);
+            qDebug() << "groupID:" << QString::fromStdString(groupID);
+            userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+        }
+    } else {
+        qDebug() << "json file error";
+    }
+
+    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
+        int err = value["errno"].asInt();
+        if (err != 0) {
+            qDebug() << "err:" << err;
+            return;
+        }
+
+        result = userInfos_value["data"]["result"];
+        for (int i = 0; i < result.size(); ++i) {
+            std::string userInfo = result[i]["user_info"].asString();
+            qDebug() << "userInfo:" << QString::fromStdString(userInfo);
+            QString userMsg = QString::fromLocal8Bit("姓名：") + QString::fromStdString(userInfo) + "\n"
+                    + QString::fromLocal8Bit("电话：") + QString::fromStdString(userID) + "\n"
+                    + QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+            ui->textBrowser->clear();
+            ui->textBrowser->setText(userMsg);
+        }
+
+    } else {
+        qDebug() << "json file error";
+    }
+}
+
+void WasteRecycle::on_btn_select_clicked()
+{
+    QString imageName;
+    imageName = QFileDialog::getOpenFileName(this,
+                                             "选择图片",
+                                             "",
+                                             tr("Images (*.png *.bmp *.jpg *.jpeg *.tif *.GIF )"));
+    if(imageName.isEmpty()) {
+        qWarning() << "image is empty.";
+         return;
+    }
+
+    int width = ui->lb_show->width();
+    int height = ui->lb_show->height();
+    QPixmap myPix = QPixmap(imageName).scaled(width, height);
+    ui->lb_show->setPixmap(myPix);
+    ui->lb_path->setText(imageName);
 }
