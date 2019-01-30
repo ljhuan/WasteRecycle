@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1234</width>
-    <height>774</height>
+    <width>1287</width>
+    <height>795</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -97,7 +97,7 @@
        <string notr="true">QTabWidget:pane {border-top:0px solid #e8f3f9;background:  transparent; }</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1781,7 +1781,7 @@ QPushButton:hover{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1234</width>
+     <width>1287</width>
      <height>23</height>
     </rect>
    </property>
