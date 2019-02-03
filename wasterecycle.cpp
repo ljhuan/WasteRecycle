@@ -2525,7 +2525,7 @@ void WasteRecycle::on_btn_analyze_clicked()
         ui->lb_similarity->setText(msg);
         return;
     }
-    analyze(img);
+    identify(img);
     ui->lb_path->clear();
 }
 
