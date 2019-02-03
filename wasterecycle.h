@@ -3,6 +3,7 @@
 
 #include <list>
 #include <map>
+#include <mutex>
 #include <QMainWindow>
 #include <QString>
 #include <QTableView>
@@ -177,6 +178,9 @@ public:
 public slots:
     void slotPointHoverd(const QPointF &point, bool state);
 
+signals:
+    void newTrackImage(const QString & imagePath);
+
 private slots:
     void on_btn_Level1_clicked();
 
@@ -265,6 +269,15 @@ private slots:
     void on_btn_analyze_clicked();
 
     void on_btn_select_clicked();
+
+    void analyze(const QString imgPath);
+
+    void on_btn_faceAnalyze_clicked();
+
+    void on_btn_logout_clicked();
+
+protected:
+    void changeEvent(QEvent * event);
 
 private:
     Ui::WasteRecycle *ui;
@@ -419,8 +432,15 @@ private:
      QMenu *rightMenu = nullptr;
      QAction *deleteAction = nullptr;
 
-     // 百度人脸识别相关参数
+     // 百度离线人脸SDK相关参数
      BaiduFaceApi *api_ = nullptr;
+     std::mutex apiMutex_;
+     std::thread* t_ = nullptr;
+     bool stop_ = false;
+     void face_collect_opencv_video();
+     void identify(const QString & imgPath);
+     void parseInfo(QString& info);
+     void remove(const QString imgPath);
 };
 
 #endif // WASTERECYCLE_H

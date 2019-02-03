@@ -40,6 +40,7 @@
 #include "monthlystatics.h"
 #include "opennetstream.h"
 #include "opennetstream_p.h"
+// #include "plaympeg4.h"
 
 #define VNAME(value)  (#value)
 #define TIMEOUT  (10)
@@ -268,6 +269,7 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     connect(ui->tableView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(clicked_rightMenu(QPoint)));
     connect(ui->tableView_unloading, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(clicked_rightMenu(QPoint)));
     connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteData()));
+    connect(this, SIGNAL(newTrackImage(QString)), this, SLOT(analyze(QString)));
 }
 
 WasteRecycle::~WasteRecycle()
@@ -278,6 +280,9 @@ WasteRecycle::~WasteRecycle()
     if (thread_ != nullptr && thread_->isRunning()) {
         qDebug() << "thread quit...";
         thread_->quit();
+    }
+    if (t_ != nullptr) {
+        stop_ = true;
     }
     delete ui;
     ui = nullptr;
@@ -461,7 +466,7 @@ const QString& WasteRecycle::curVideoPath()
 
 void WasteRecycle::videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser)
 {
-    //qDebug() << __LINE__ << __FUNCTION__ <<"enType:"<< enType << "iLen:" << iLen;
+//    qDebug() << __LINE__ << __FUNCTION__ <<"enType:"<< enType << "iLen:" << iLen;
 //    WasteRecycle * mainWins = (WasteRecycle *)pUser;
 //    if(mainWins->curVideoPath().isEmpty())
 //    {
@@ -724,6 +729,147 @@ void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
 //    connect(thread_, &QThread::finished, thread_, &QObject::deleteLater);
 //    thread_->start();
     startPlay();
+
+//    QThread* thread = new QThread(this);
+//    connect(thread, &QThread::started, this, [&](){
+//        face_collect_opencv_video();
+//    });
+//    connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+//    thread->start();
+    qDebug() << "main thread is running...";
+    // face_collect_opencv_video();
+}
+
+void WasteRecycle::face_collect_opencv_video() {
+    qDebug() << "face_collect_opencv_video IN";
+
+    cv::VideoCapture cap("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
+    if (!cap.isOpened())
+    {
+        std::cout << "open camera error" << std::endl;
+        return;
+    }
+    cv::Mat frame;
+
+    int index = 0;
+    bool save_file = false;
+    float max_score = 1;
+    long faceID = -1;
+
+    cv::RotatedRect box;
+    std::vector<TrackFaceInfo> *track_info = new std::vector<TrackFaceInfo>();
+
+    // api_->set_isCheckQuality(true);
+    // api_->set_detect_in_video_interval(1000);
+
+    int count = 0;
+    int size = 0;
+    while (!stop_) {
+        cap >> frame;
+        track_info->clear();
+
+        if(count == 10) {
+            count = 0;
+            // emit newTrackImage(QString::fromStdString("abc"));
+            std::unique_lock<std::mutex> guard(apiMutex_);
+            size = api_->track_max_face(track_info, frame);
+        } else {
+            ++count;
+            size = 0;
+        }
+        for (int i = 0; i < size; i++) {
+            TrackFaceInfo info = track_info->at(i);
+            qDebug() << "in net_track score is:" << info.score;
+            qDebug() << "in net_track face_id:" << info.face_id;
+
+            if (info.face_id != faceID && info.score > 0.9) {
+                faceID = info.face_id;
+                max_score = info.score;
+                save_file = true;
+            } else if(max_score < info.score) {
+                max_score = info.score;
+                save_file = true;
+            } else {
+                break;
+            }
+
+            // 人脸信息
+            FaceInfo ibox = info.box;
+            // 角度
+            std::cout << "in net_track mAngle is:" << ibox.mAngle << std::endl;
+            // 人脸宽度
+            // std::cout << "in net_track mWidth is:" << ibox.mWidth << std::endl;
+            // 中心点X,Y坐标
+            // std::cout << "in net_track mCenter_x is:" << ibox.mCenter_x << std::endl;
+            // std::cout << "in net_track mCenter_y is:" << ibox.mCenter_y << std::endl;
+            // std::vector<float> headPose = info.headPose;
+            // 返回 x，y，z三个角度的人脸角度
+//            for (int k = 0; k < headPose.size(); k++) {
+//                float angle = headPose.at(k);
+//                std::cout << "in net_track angle is:" << angle << std::endl;
+//            }
+            // 以下注释代码为检测人脸的同时可获取属性和质量，建议不要全部都打开实时获取，否则可能会视频卡顿
+            // 实时获取人脸属性
+            // std::string res_attr = face_attr_by_landmark(frame, info.landmarks);
+            // std::cout << "attr result is:" << res_attr << std::endl;
+            // 实时获取人脸质量
+            //  std::string res_quality = face_quality_by_landmark(frame, info.landmarks);
+            //  std::cout << "quality result is:" << res_quality << std::endl;
+
+
+            // frame为视频帧,可根据采集到的人脸信息筛选需要的帧
+            // 以下为保存图片到本地的示例,可根据采集信息有选择的保存
+            if (save_file) {
+                save_file = false;
+                QDir dir;
+                QString dirName = "track";
+                if(!dir.exists(dirName)) {
+                    dir.mkdir(dirName);
+                }
+                std::string fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + ".jpg";
+                cv::imwrite(fileName, frame);
+                // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                // analyze(QString::fromStdString(fileName));
+                emit newTrackImage(QString::fromStdString(fileName));
+
+                fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_feature.jpg";
+                // 画人脸框
+                box = CvHelp::bounding_box(info.landmarks);
+                CvHelp::draw_rotated_box(frame, box, cv::Scalar(0, 255, 0));
+                // 画关键点轮廓
+                CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
+                cv::imwrite(fileName, frame);
+            }
+        }
+
+        if (!frame.empty()) {
+//            IplImage img = frame;
+//            QImage image = QImage((const uchar*)img.imageData, img.width, img.height, QImage::Format_RGB888).rgbSwapped();
+//            int w = ui->lb_show->width();
+//            int h = ui->lb_show->height();
+//            ui->lb_show->setPixmap(QPixmap::fromImage(image).scaled(w, h));
+//            cv::Mat outFrame;
+//            cv::resize(frame, outFrame, cv::Size(640, 480));
+//            // cv::resizeWindow("face", 640, 480);
+//            imshow("face", outFrame);
+//            cv::waitKey(1);
+//            outFrame.release();
+        } else {
+            std::cout << "mat is empty" << std::endl;
+            cap.open("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Sleep(10);
+        // frame.release();
+
+        /*imshow("face", frame);
+        cv::waitKey(1);*/
+        //  frame.release();
+    }
+
+    delete track_info;
+    qDebug() << "face_collect_opencv_video OUT";
 }
 
 void WasteRecycle::initTableView() {
@@ -840,7 +986,7 @@ void WasteRecycle::keyPressEvent(QKeyEvent *e)
         break;
     default:
          qDebug() << "default";
-         this->setFocus();
+         // this->setFocus();
          QWidget::keyPressEvent (e);
         break;
     }
@@ -2141,10 +2287,11 @@ void WasteRecycle::on_btn_capture_clicked()
     if(!dir.exists(dirName)) {
         dir.mkdir(dirName);
     }
+    QDateTime qtime = QDateTime::currentDateTime();
+    QString time = qtime.toString("yyyyMMddhhmmss");
 
-    QString filename = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
-
-    qDebug() << "filename:" << filename;
+    QString filename = QDir::currentPath() +  "/members/" + time + ".jpeg";
+    ui->lb_path->setText(filename);
 
     int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
     if (iRet != 0) {
@@ -2163,7 +2310,7 @@ void WasteRecycle::on_btn_capture_clicked()
 void WasteRecycle::on_btn_register_clicked()
 {
     QString user = ui->le_phone->text();
-    QString group = "test_group";
+    QString group = "packmen";
     QString pic;
     if (ui->le_phone->text().isEmpty() || ui->le_name->text().isEmpty()) {
         QMessageBox::warning(this, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("注册信息不完整"), QString::fromLocal8Bit("关闭"));
@@ -2189,18 +2336,15 @@ void WasteRecycle::on_btn_register_clicked()
     api_->load_db_face();
 }
 
-void WasteRecycle::on_btn_analyze_clicked()
-{
-    QString img = ui->lb_path->text();
-    if (img.isEmpty()) {
-        QString msg = QString::fromLocal8Bit("未选择图片");
-        ui->textBrowser->setText(msg);
-        return;
-    }
-    std::string res = api_->identify(img.toUtf8().data(), 2);
-    QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
-    qDebug() << "---200 identify res is:" << info;
+void WasteRecycle::remove(const QString imgPath) {
+    QDir dir;
+    dir.remove(imgPath);
+    QString featurePath = imgPath;
+    featurePath = featurePath.replace('.', "_feature.");
+    dir.remove(featurePath);
+}
 
+void WasteRecycle::parseInfo(QString& info) {
     Json::Reader reader;
     Json::Value	value;
     Json::Value  result;
@@ -2210,7 +2354,6 @@ void WasteRecycle::on_btn_analyze_clicked()
     QString userInfos;
     if(reader.parse(info.toUtf8().data(), value)) {
         int err = value["errno"].asInt();
-
         if (err != 0) {
             qDebug() << "err:" << err;
             return;
@@ -2240,16 +2383,150 @@ void WasteRecycle::on_btn_analyze_clicked()
         for (int i = 0; i < result.size(); ++i) {
             std::string userInfo = result[i]["user_info"].asString();
             qDebug() << "userInfo:" << QString::fromStdString(userInfo);
-            QString userMsg = QString::fromLocal8Bit("姓名：") + QString::fromStdString(userInfo) + "\n"
-                    + QString::fromLocal8Bit("电话：") + QString::fromStdString(userID) + "\n"
-                    + QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
-            ui->textBrowser->clear();
-            ui->textBrowser->setText(userMsg);
+            ui->le_name->setText(QString::fromStdString(userInfo));
+            ui->le_phone->setText(QString::fromStdString(userID));
+            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+            ui->lb_similarity->setText(scoreMsg);
+        }
+    } else {
+        qDebug() << "json file error";
+    }
+}
+
+void WasteRecycle::identify(const QString & imgPath) {
+    qDebug() << "identify IN";
+    qDebug() << "imgPath:" << imgPath;
+
+    std::string res;
+    {
+        std::unique_lock<std::mutex> guard(apiMutex_);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        res = api_->identify(imgPath.toUtf8().data(), 2);
+    }
+    QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
+    qDebug() << "---200 identify res is:" << info;
+
+    parseInfo(info);
+
+    qDebug() << "identify OUT";
+}
+
+void WasteRecycle::analyze(const QString imgPath) {
+    qDebug() << "analyze IN";
+    qDebug() << "imgPath:" << imgPath;
+
+    std::string res;
+    {
+        std::unique_lock<std::mutex> guard(apiMutex_);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        res = api_->identify(imgPath.toUtf8().data(), 2);
+    }
+    QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
+    qDebug() << "---200 identify res is:" << info;
+
+    Json::Reader reader;
+    Json::Value	value;
+    Json::Value  result;
+    Json::Value  userInfos_value;
+    std::string userID;
+    std::string score;
+    static float maxScore = 0.0;
+    static std::string currentUser;
+    // static std::string bestFaceImage;
+    QString userInfos;
+    if(reader.parse(info.toUtf8().data(), value)) {
+        int err = value["errno"].asInt();
+
+        if (err != 0) {
+            // 图片删除
+            remove(imgPath);
+            qDebug() << "err:" << err;
+            return;
+        }
+
+        result = value["data"]["result"];
+        for (int i = 0; i < result.size(); ++i) {
+            userID = result[i]["user_id"].asString();
+            score = result[i]["score"].asString();
+            std::cout << "score:" << QString::fromStdString(score).toFloat() << " maxScore:" << maxScore << std::endl;
+            float sc = QString::fromStdString(score).toFloat();
+            if (sc < 50 || (sc <= maxScore && userID == currentUser) ) {
+                qDebug() << "score is lower, score:" << QString::fromStdString(score);
+
+                // 分数比较低的图片删除
+                remove(imgPath);
+                return;
+            }
+
+            if (userID != currentUser) {
+                currentUser = userID;
+                qDebug() << "currentUser:" <<  QString::fromStdString(currentUser);
+            } else {
+
+            }
+            maxScore = QString::fromStdString(score).toFloat();
+            std::string groupID = result[i]["group_id"].asString();
+            qDebug() << "userID:" << QString::fromStdString(userID);
+            qDebug() << "groupID:" << QString::fromStdString(groupID);
+            userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+        }
+    } else {
+        qDebug() << "json file error";
+    }
+
+    // 分数最高的图片转存到bestFaces下
+    QDir dir;
+    QString dirName = "bestFaces";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+    QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + ".jpg";
+    remove(fileName);
+
+    QString featurePath = imgPath;
+    featurePath = featurePath.replace('.', "_feature.");
+    dir.rename(imgPath, fileName);
+    dir.rename(featurePath, fileName.replace('.', "_feature."));
+    QImage image = QImage(fileName.replace('.', "_feature."));
+    // 当不是注册时， 则进行图像显示
+    if (ui->lb_path->text().isEmpty()) {
+        ui->lb_show->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_show->width(), ui->lb_show->height()));
+    }
+
+    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
+        int err = value["errno"].asInt();
+        if (err != 0) {
+            qDebug() << "err:" << err;
+            return;
+        }
+
+        result = userInfos_value["data"]["result"];
+        for (int i = 0; i < result.size(); ++i) {
+            std::string userInfo = result[i]["user_info"].asString();
+            qDebug() << "userInfo:" << QString::fromStdString(userInfo);
+            ui->le_name->setText(QString::fromStdString(userInfo));
+            ui->le_phone->setText(QString::fromStdString(userID));
+            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+            ui->lb_similarity->setText(scoreMsg);
         }
 
     } else {
         qDebug() << "json file error";
     }
+
+    qDebug() << "analyze OUT";
+}
+
+void WasteRecycle::on_btn_analyze_clicked()
+{
+    QString img = ui->lb_path->text();
+    if (img.isEmpty()) {
+        QString msg = QString::fromLocal8Bit("未选择图片");
+        ui->lb_similarity->setText(msg);
+        return;
+    }
+    analyze(img);
+    ui->lb_path->clear();
 }
 
 void WasteRecycle::on_btn_select_clicked()
@@ -2269,4 +2546,53 @@ void WasteRecycle::on_btn_select_clicked()
     QPixmap myPix = QPixmap(imageName).scaled(width, height);
     ui->lb_show->setPixmap(myPix);
     ui->lb_path->setText(imageName);
+}
+
+void WasteRecycle::on_btn_faceAnalyze_clicked()
+{
+    if(t_ != nullptr) {
+        stop_ = true;
+        ui->btn_faceAnalyze->setText(QString::fromLocal8Bit("开启人脸识别"));
+        delete t_;
+        t_ = nullptr;
+//        if(t_->joinable()) {
+//            qDebug() << "waiting face analyze thread to quit...";
+//            t_->join();
+//            qDebug() << "face analye thread is already quit.";
+
+//        }
+    } else {
+        stop_ = false;
+        ui->btn_faceAnalyze->setText(QString::fromLocal8Bit("停止人脸识别"));
+        t_ = new std::thread(&WasteRecycle::face_collect_opencv_video, this);
+        t_->detach();
+    }
+}
+
+void WasteRecycle::changeEvent(QEvent *event)
+{
+    if(event->type()!=QEvent::WindowStateChange) return;
+    if(this->windowState()==Qt::WindowMaximized)
+    {
+       qDebug() << "windows size change...";
+    }
+}
+
+void WasteRecycle::on_btn_logout_clicked()
+{
+    std::string userID = ui->le_phone->text().toStdString();
+
+    if (userID.empty()) {
+        QMessageBox::warning(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("用户ID为空，用户ID为用户的电话号码"), QString::fromLocal8Bit("关闭"));
+    }
+
+    std::string group = "packmen";
+    std::string res = api_->user_delete(userID.c_str(), group.c_str());
+
+    // 对返回信息进行解析
+    qDebug() << "-----user_delete res:" << QString::fromStdString(res);
+
+    ui->le_name->clear();
+    ui->le_phone->clear();
+    ui->lb_similarity->clear();
 }

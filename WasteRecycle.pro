@@ -278,6 +278,7 @@ RESOURCES += \
     imgs.qrc
 
 LIBS += -L$$PWD/lib/win32/ -lOpenNetStream
+# LIBS += -L$$PWD/lib/win32/ -lPlayCtrl
 LIBS += -L$$PWD/lib/x86/ -lBaiduFaceApi
 LIBS += -L$$PWD/lib/x86/ -lopencv_world320
 LIBS += -L$$PWD/lib/x86/ -ljson_vc71_libmt
@@ -285,6 +286,7 @@ LIBS += -L$$PWD/lib/x86/ -lhjimi_camera
 LIBS += -L$$PWD/lib/x86/ -lorbe_camera
 LIBS += -L$$PWD/lib/x86/ -lOle32
 LIBS += -L$$PWD/lib/x86/ -lOleAut32
+
 
 INCLUDEPATH += $$PWD/lib/win32
 DEPENDPATH += $$PWD/lib/win32
