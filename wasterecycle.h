@@ -37,6 +37,7 @@
 #include "compare.h"
 #include "set/setting.h"
 #include "image_buf.h"
+#include "weighinfo.h"
 
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
@@ -441,6 +442,7 @@ private:
      void identify(const QString & imgPath);
      void parseInfo(QString& info);
      void remove(const QString imgPath);
+     WeighInfo* wi_ = nullptr;
 };
 
 #endif // WASTERECYCLE_H

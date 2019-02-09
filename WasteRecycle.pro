@@ -53,7 +53,8 @@ SOURCES += \
     test_face.cpp \
     compare.cpp \
     set/setting.cpp \
-    usb_device/device_enumerator.cpp
+    usb_device/device_enumerator.cpp \
+    weighinfo.cpp
 
 HEADERS += \
         wasterecycle.h \
@@ -263,12 +264,14 @@ HEADERS += \
     image_buf.h \
     liveness.h \
     manager.h \
-    test_face.h
+    test_face.h \
+    weighinfo.h
 
 FORMS += \
         wasterecycle.ui \
     pricesetdialog.ui \
-    monthlystatics.ui
+    monthlystatics.ui \
+    weighinfo.ui
 
 CONFIG += c++11
 

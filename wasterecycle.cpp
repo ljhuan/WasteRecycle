@@ -40,6 +40,7 @@
 #include "monthlystatics.h"
 #include "opennetstream.h"
 #include "opennetstream_p.h"
+#include "weighinfo.h"
 // #include "plaympeg4.h"
 
 #define VNAME(value)  (#value)
@@ -98,6 +99,7 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     ui->btn_Level4->installEventFilter(this);
     ui->btn_rClear->installEventFilter(this);
     ui->btn_vClear->installEventFilter(this);
+    ui->lb_rwScaledImage->installEventFilter(this);
 
     // 初始化tableView
     initTableView();
@@ -743,7 +745,8 @@ void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
 void WasteRecycle::face_collect_opencv_video() {
     qDebug() << "face_collect_opencv_video IN";
 
-    cv::VideoCapture cap("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
+    // cv::VideoCapture cap("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
+    cv::VideoCapture cap("rtmp://rtmp.open.ys7.com/openlive/14005824e5a146a3a8da14a5ab7d1038.hd");
     if (!cap.isOpened())
     {
         std::cout << "open camera error" << std::endl;
@@ -856,7 +859,7 @@ void WasteRecycle::face_collect_opencv_video() {
 //            outFrame.release();
         } else {
             std::cout << "mat is empty" << std::endl;
-            cap.open("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
+            cap.open("rtmp://rtmp.open.ys7.com/openlive/14005824e5a146a3a8da14a5ab7d1038.hd");
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1044,6 +1047,44 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         } else if (QEvent::Leave == e->type()) {
             ui->btn_vClear->setText(QString::fromLocal8Bit("公斤"));
         }
+    } else if (obj == ui->lb_rwScaledImage) {
+        static QLabel* lb = new QLabel();
+        if (QEvent::Enter == e->type() && ui->lb_rwScaledImage->pixmap()) {
+            QDateTime date = QDateTime::currentDateTime();
+            QString today = date.toString("yyyy_MM_dd");
+            QString dirName = today + "_rwPicture";
+
+            QString index = ui->lb_CurrNum->text();
+            QString rw = ui->le_RoughWeigh->text();
+
+            if (rw != "" || rw != QString::fromLocal8Bit("卸货中")) {
+                QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + rw + ".jpeg";
+                QImage image(filename);
+                lb->setPixmap(QPixmap::fromImage(image));
+                lb->resize(QSize(image.width(),image.height()));
+                lb->show();
+            }
+        } else if (QEvent::Leave == e->type()) {
+            lb->close();
+        }
+    } else if (obj == ui->lb_vwScaledImage) {
+        static QLabel* lb = new QLabel();
+        if (QEvent::Enter == e->type() && ui->lb_vwScaledImage->pixmap()) {
+            QDateTime date = QDateTime::currentDateTime();
+            QString today = date.toString("yyyy_MM_dd");
+            QString dirName = today + "_vwPicture";
+            QString index = ui->lb_CurrNum->text();
+            QString vw = ui->le_VehicleWeigh->text();
+            if (vw != "" || vw != QString::fromLocal8Bit("卸货中")) {
+                QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + vw + ".jpeg";
+                QImage image(filename);
+                lb->setPixmap(QPixmap::fromImage(image));
+                lb->resize(QSize(image.width(), image.height()));
+                lb->show();
+            }
+        } else if (QEvent::Leave == e->type()) {
+            lb->close();
+        }
     }
 
     return false;
@@ -1094,6 +1135,8 @@ void WasteRecycle::clearData()
     ui->le_VehicleWeigh->clear();
     ui->lb_Price->clear();
     ui->lb_unitPrice->clear();
+    ui->lb_rwScaledImage->clear();
+    ui->lb_vwScaledImage->clear();
 }
 
 void WasteRecycle::nextVehicle()
@@ -1105,7 +1148,7 @@ void WasteRecycle::nextVehicle()
     }*/
 
     // 当前索引值递增, 并显示下一辆车的索引值
-    if(ui->lb_CurrNum->text().toInt() == toBeUseIndex) {
+    if (ui->lb_CurrNum->text().toInt() == toBeUseIndex) {
         ++toBeUseIndex;
     }
 
@@ -1182,7 +1225,7 @@ void WasteRecycle::updateTableCharts()
             continue;
         }
 
-        //     a. 对每一天的数据进行统计
+        // a. 对每一天的数据进行统计
         if (!oper->searchTableWetherExist("charts", "time", date)) {
             qDebug() << "Insert date:" << date;
             std::list<QString> records;
@@ -2111,7 +2154,12 @@ void WasteRecycle::on_btn_roughWeightCapture_clicked()
     if (iRet != 0) {
         qDebug() << "save pic failed!";
         // this->showErrInfo(tr("图片保存失败！"));
+        // return;
     }
+
+    // filename = "C:\\Users\\ljhuan\\Downloads\\tlya.jpg";
+    QImage img(filename);
+    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(img).scaled(ui->lb_rwScaledImage->width(), ui->lb_vwScaledImage->height()));
 }
 
 void WasteRecycle::on_btn_vechileWeightCapture_clicked()
@@ -2282,15 +2330,10 @@ void WasteRecycle::on_btn_monthlyStatics_clicked()
 
 void WasteRecycle::on_btn_capture_clicked()
 {
-    QDir dir;
-    QString dirName = "members";
-    if(!dir.exists(dirName)) {
-        dir.mkdir(dirName);
-    }
     QDateTime qtime = QDateTime::currentDateTime();
     QString time = qtime.toString("yyyyMMddhhmmss");
 
-    QString filename = QDir::currentPath() +  "/members/" + time + ".jpeg";
+    QString filename = QDir::currentPath() + time + ".jpeg";
     ui->lb_path->setText(filename);
 
     int iRet = OpenNetStream::getInstance()->capturePicture(sessionId_, filename.toUtf8());
@@ -2317,7 +2360,7 @@ void WasteRecycle::on_btn_register_clicked()
         return;
     }
     if(ui->lb_path->text().isEmpty()) {
-        pic = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
+        // pic = QDir::currentPath() +  "/members/" + ui->le_phone->text() + ".jpeg";
     } else {
         pic = ui->lb_path->text();
     }
@@ -2326,6 +2369,15 @@ void WasteRecycle::on_btn_register_clicked()
     qDebug() << "------res is:" << QString::fromStdString(res);
 
     // 还需要对返回信息做解析判断
+    // 如果成功则保存图片到members文件夹
+    QDir dir;
+    QString dirName = "members";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+
+    QString newName = QDir::currentPath() + "/members/" + info + ".jpeg";
+    dir.rename(pic, newName);
 
     QMessageBox::information(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("注册完毕"), QString::fromLocal8Bit("关闭"));
     ui->le_phone->clear();
@@ -2432,6 +2484,7 @@ void WasteRecycle::analyze(const QString imgPath) {
     std::string score;
     static float maxScore = 0.0;
     static std::string currentUser;
+    std::string userInfo;
     // static std::string bestFaceImage;
     QString userInfos;
     if(reader.parse(info.toUtf8().data(), value)) {
@@ -2486,12 +2539,13 @@ void WasteRecycle::analyze(const QString imgPath) {
     QString featurePath = imgPath;
     featurePath = featurePath.replace('.', "_feature.");
     dir.rename(imgPath, fileName);
-    dir.rename(featurePath, fileName.replace('.', "_feature."));
-    QImage image = QImage(fileName.replace('.', "_feature."));
+    QString bestFeaturePath = fileName.replace('.', "_feature.");
+    dir.rename(featurePath, bestFeaturePath);
+    // QImage image = QImage(bestFeaturePath);
     // 当不是注册时， 则进行图像显示
-    if (ui->lb_path->text().isEmpty()) {
-        ui->lb_show->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_show->width(), ui->lb_show->height()));
-    }
+//    if (ui->lb_path->text().isEmpty()) {
+//        ui->lb_show->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_show->width(), ui->lb_show->height()));
+//    }
 
     if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
         int err = value["errno"].asInt();
@@ -2502,7 +2556,7 @@ void WasteRecycle::analyze(const QString imgPath) {
 
         result = userInfos_value["data"]["result"];
         for (int i = 0; i < result.size(); ++i) {
-            std::string userInfo = result[i]["user_info"].asString();
+            userInfo = result[i]["user_info"].asString();
             qDebug() << "userInfo:" << QString::fromStdString(userInfo);
             ui->le_name->setText(QString::fromStdString(userInfo));
             ui->le_phone->setText(QString::fromStdString(userID));
@@ -2513,6 +2567,18 @@ void WasteRecycle::analyze(const QString imgPath) {
     } else {
         qDebug() << "json file error";
     }
+
+    QString headPhoto = QDir::currentPath() + "/members/" + QString::fromStdString(userInfo) + ".jpeg";
+    QImage image = QImage(headPhoto);
+    ui->lb_photo->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
+
+    // 当在卸货表格中查找不到当前号码时，则填入毛重；当查到当前号码时，则填入车重
+//    if (wi_ == nullptr) {
+//        wi_ = new WeighInfo(ui->lb_CurrNum->text(), QString::fromStdString(userInfo), this);
+//        wi_->exec();
+//        delete wi_;
+//        wi_ = nullptr;
+//    }
 
     qDebug() << "analyze OUT";
 }
@@ -2546,6 +2612,8 @@ void WasteRecycle::on_btn_select_clicked()
     QPixmap myPix = QPixmap(imageName).scaled(width, height);
     ui->lb_show->setPixmap(myPix);
     ui->lb_path->setText(imageName);
+    ui->le_name->clear();
+    ui->le_phone->clear();
 }
 
 void WasteRecycle::on_btn_faceAnalyze_clicked()
