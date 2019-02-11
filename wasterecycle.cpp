@@ -100,6 +100,8 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     ui->btn_rClear->installEventFilter(this);
     ui->btn_vClear->installEventFilter(this);
     ui->lb_rwScaledImage->installEventFilter(this);
+    ui->lb_vwScaledImage->installEventFilter(this);
+    ui->lb_photo->installEventFilter(this);
 
     // 初始化tableView
     initTableView();
@@ -883,6 +885,8 @@ void WasteRecycle::initTableView() {
     model->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
     model->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
     model->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+    model->setHorizontalHeaderItem(7, new QStandardItem(QString::fromLocal8Bit("姓名")));
+    model->setHorizontalHeaderItem(8, new QStandardItem(QString::fromLocal8Bit("种类")));
 
     ui->tableView->setModel(model);
     ui->tableView->horizontalHeader()->setStyleSheet("QHeaderView::section {background-color:rgb(230, 253, 255);"
@@ -895,12 +899,14 @@ void WasteRecycle::initTableView() {
      ui->tableView->resizeColumnsToContents();
      ui->tableView->horizontalHeader();
     ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 160);
-    ui->tableView->setColumnWidth(2, 60);
-    ui->tableView->setColumnWidth(3, 60);
-    ui->tableView->setColumnWidth(4, 60);
-    ui->tableView->setColumnWidth(5, 60);
-    ui->tableView->setColumnWidth(6, 60);
+    ui->tableView->setColumnWidth(1, 150);
+    ui->tableView->setColumnWidth(2, 55);
+    ui->tableView->setColumnWidth(3, 55);
+    ui->tableView->setColumnWidth(4, 55);
+    ui->tableView->setColumnWidth(5, 50);
+    ui->tableView->setColumnWidth(6, 55);
+    ui->tableView->setColumnWidth(7, 55);
+    ui->tableView->setColumnWidth(8, 50);
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
@@ -912,6 +918,8 @@ void WasteRecycle::initTableView() {
     model_unloading->setHorizontalHeaderItem(4, new QStandardItem(QString::fromLocal8Bit("净重")));
     model_unloading->setHorizontalHeaderItem(5, new QStandardItem(QString::fromLocal8Bit("单价")));
     model_unloading->setHorizontalHeaderItem(6, new QStandardItem(QString::fromLocal8Bit("价格")));
+    model_unloading->setHorizontalHeaderItem(7, new QStandardItem(QString::fromLocal8Bit("姓名")));
+    model_unloading->setHorizontalHeaderItem(8, new QStandardItem(QString::fromLocal8Bit("种类")));
 
     ui->tableView_unloading->setModel(model_unloading);
     ui->tableView_unloading->horizontalHeader()->setStyleSheet("QHeaderView::section {"
@@ -921,12 +929,14 @@ void WasteRecycle::initTableView() {
     ui->tableView_unloading->verticalHeader()->setStyleSheet("QHeaderView::section {"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
     ui->tableView_unloading->setColumnWidth(0, 40);
-    ui->tableView_unloading->setColumnWidth(1, 160);
-    ui->tableView_unloading->setColumnWidth(2, 60);
-    ui->tableView_unloading->setColumnWidth(3, 60);
-    ui->tableView_unloading->setColumnWidth(4, 60);
-    ui->tableView_unloading->setColumnWidth(5, 60);
-    ui->tableView_unloading->setColumnWidth(6, 60);
+    ui->tableView_unloading->setColumnWidth(1, 150);
+    ui->tableView_unloading->setColumnWidth(2, 55);
+    ui->tableView_unloading->setColumnWidth(3, 55);
+    ui->tableView_unloading->setColumnWidth(4, 55);
+    ui->tableView_unloading->setColumnWidth(5, 50);
+    ui->tableView_unloading->setColumnWidth(6, 55);
+    ui->tableView_unloading->setColumnWidth(7, 55);
+    ui->tableView_unloading->setColumnWidth(8, 50);
     ui->tableView_unloading->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
     ui->tableView_unloading->setSelectionMode( QAbstractItemView::SingleSelection);  // 设置选中单个
     ui->tableView_unloading->setEditTriggers(QAbstractItemView::NoEditTriggers);  // 设置不可编辑
@@ -1049,6 +1059,8 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         }
     } else if (obj == ui->lb_rwScaledImage) {
         static QLabel* lb = new QLabel();
+        QPoint curPos = QCursor::pos();
+        lb->move(curPos.x()+ui->lb_rwScaledImage->width(), 0);
         if (QEvent::Enter == e->type() && ui->lb_rwScaledImage->pixmap()) {
             QDateTime date = QDateTime::currentDateTime();
             QString today = date.toString("yyyy_MM_dd");
@@ -1057,31 +1069,48 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             QString index = ui->lb_CurrNum->text();
             QString rw = ui->le_RoughWeigh->text();
 
-            if (rw != "" || rw != QString::fromLocal8Bit("卸货中")) {
-                QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + rw + ".jpeg";
-                QImage image(filename);
-                lb->setPixmap(QPixmap::fromImage(image));
-                lb->resize(QSize(image.width(),image.height()));
-                lb->show();
-            }
+            QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + rw + ".jpeg";
+            QImage image(filename);
+            lb->setPixmap(QPixmap::fromImage(image).scaled(ui->w_playWindow->width(), ui->w_playWindow->height()));
+            lb->setWindowFilePath(filename);
+            lb->show();
         } else if (QEvent::Leave == e->type()) {
             lb->close();
         }
     } else if (obj == ui->lb_vwScaledImage) {
         static QLabel* lb = new QLabel();
+        QPoint curPos = QCursor::pos();
+        lb->move(curPos.x()+ui->lb_vwScaledImage->width(), 0);
         if (QEvent::Enter == e->type() && ui->lb_vwScaledImage->pixmap()) {
             QDateTime date = QDateTime::currentDateTime();
             QString today = date.toString("yyyy_MM_dd");
             QString dirName = today + "_vwPicture";
             QString index = ui->lb_CurrNum->text();
             QString vw = ui->le_VehicleWeigh->text();
-            if (vw != "" || vw != QString::fromLocal8Bit("卸货中")) {
-                QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + vw + ".jpeg";
-                QImage image(filename);
-                lb->setPixmap(QPixmap::fromImage(image));
-                lb->resize(QSize(image.width(), image.height()));
-                lb->show();
+            QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + vw + ".jpeg";
+            QImage image(filename);
+            lb->setPixmap(QPixmap::fromImage(image).scaled(ui->w_playWindow->width(), ui->w_playWindow->height()));
+            lb->setWindowFilePath(filename);
+            lb->show();
+        } else if (QEvent::Leave == e->type()) {
+            lb->close();
+        }
+    } else if (obj == ui->lb_photo) {
+        static QLabel* lb = new QLabel();
+        QPoint curPos = QCursor::pos();
+        lb->move(curPos.x()+ui->lb_photo->width(), 0);
+        if (QEvent::Enter == e->type() && ui->lb_photo->pixmap()) {
+            QString filename = QDir::currentPath() +  "/members/" + ui->le_name->text() + ".jpeg";
+            // QString filename = "C:\\Users\\ljhuan\\Desktop\\tmp\\tlya.jpg";
+            QImage image(filename);
+            int param = 1;
+            while((image.height() / param) > ui->w_playWindow->height()) {
+                ++param;
             }
+            // lb->setParent(ui->lb_photo);
+            lb->setPixmap(QPixmap::fromImage(image).scaled(image.width()/param, image.height()/param));
+            lb->setWindowFilePath(filename);
+            lb->show();
         } else if (QEvent::Leave == e->type()) {
             lb->close();
         }
@@ -1137,6 +1166,10 @@ void WasteRecycle::clearData()
     ui->lb_unitPrice->clear();
     ui->lb_rwScaledImage->clear();
     ui->lb_vwScaledImage->clear();
+    ui->lb_photo->clear();
+    ui->le_name->clear();
+    ui->le_phone->clear();
+    ui->lb_similarity->clear();
 }
 
 void WasteRecycle::nextVehicle()
@@ -1348,6 +1381,8 @@ void WasteRecycle::writeData(float level)
     info.m_nWeight = ui->lb_NetWeight->text();
     info.m_price = ui->lb_Price->text();
     info.m_unitPrice =  towDecimalPlaces(QString("%1").arg(level));
+    info.m_kind = QString::fromLocal8Bit("纸");
+    info.m_name = ui->le_name->text();
 
     QDateTime qdtTime =QDateTime::currentDateTime();
     info.m_time = qdtTime.toString("yyyy-MM-dd hh:mm:ss");
@@ -1383,6 +1418,8 @@ void WasteRecycle::updateUnloadingTableView(float level)
     model_unloading->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
     model_unloading->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
     model_unloading->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
+    model_unloading->setItem(row, 7, new QStandardItem(ui->le_name->text()));
+    model_unloading->setItem(row, 8, new QStandardItem(QString::fromLocal8Bit("纸")));
     ui->tableView_unloading->selectRow(row);
     qDebug() << "updateUnloadingTableView OUT";
 }
@@ -1400,6 +1437,8 @@ void WasteRecycle::updateTableView(float level)
     model->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
     model->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
     model->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
+    model->setItem(row, 7, new QStandardItem(ui->le_name->text()));
+    model->setItem(row, 8, new QStandardItem(QString::fromLocal8Bit("纸")));
     ui->tableView->selectRow(row);
     qDebug() << "updateTableView OUT";
 }
@@ -2154,12 +2193,12 @@ void WasteRecycle::on_btn_roughWeightCapture_clicked()
     if (iRet != 0) {
         qDebug() << "save pic failed!";
         // this->showErrInfo(tr("图片保存失败！"));
-        // return;
+        return;
     }
 
     // filename = "C:\\Users\\ljhuan\\Downloads\\tlya.jpg";
     QImage img(filename);
-    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(img).scaled(ui->lb_rwScaledImage->width(), ui->lb_vwScaledImage->height()));
+    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(img).scaled(ui->lb_rwScaledImage->width(), ui->lb_rwScaledImage->height()));
 }
 
 void WasteRecycle::on_btn_vechileWeightCapture_clicked()
@@ -2194,6 +2233,7 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
     QString vw = ui->le_VehicleWeigh->text();
     if(vw.trimmed() == "") {
         vw = "0";
+        ui->le_VehicleWeigh->setText("0");
     }
     QString filename = QDir::currentPath() +  "/" + today + "_vwPicture" + "/" + index + "_" + vw + ".jpeg";
 
@@ -2203,7 +2243,10 @@ void WasteRecycle::on_btn_vechileWeightCapture_clicked()
     if (iRet != 0) {
         qDebug() << "save pic failed!";
         // this->showErrInfo(tr("图片保存失败！"));
+        return;
     }
+    QImage img(filename);
+    ui->lb_vwScaledImage->setPixmap(QPixmap::fromImage(img).scaled(ui->lb_vwScaledImage->width(), ui->lb_vwScaledImage->height()));
 
     // 获取vwPicture目录下的所有图片
     // QStringList imageList;
@@ -2482,14 +2525,13 @@ void WasteRecycle::analyze(const QString imgPath) {
     Json::Value  userInfos_value;
     std::string userID;
     std::string score;
-    static float maxScore = 0.0;
+    // static float maxScore = 0.0;
     static std::string currentUser;
     std::string userInfo;
     // static std::string bestFaceImage;
     QString userInfos;
     if(reader.parse(info.toUtf8().data(), value)) {
         int err = value["errno"].asInt();
-
         if (err != 0) {
             // 图片删除
             remove(imgPath);
@@ -2501,15 +2543,17 @@ void WasteRecycle::analyze(const QString imgPath) {
         for (int i = 0; i < result.size(); ++i) {
             userID = result[i]["user_id"].asString();
             score = result[i]["score"].asString();
-            std::cout << "score:" << QString::fromStdString(score).toFloat() << " maxScore:" << maxScore << std::endl;
+            // std::cout << "score:" << QString::fromStdString(score).toFloat() << " maxScore:" << maxScore << std::endl;
             float sc = QString::fromStdString(score).toFloat();
-            if (sc < 50 || (sc <= maxScore && userID == currentUser) ) {
-                qDebug() << "score is lower, score:" << QString::fromStdString(score);
-
+            if (sc < 50 ) {
+                qDebug() << "score is too low, score:" << QString::fromStdString(score);
                 // 分数比较低的图片删除
                 remove(imgPath);
                 return;
-            }
+            } /*else if (sc <= maxScore && userID == currentUser) {
+                // 分数比较低的图片删除
+                remove(imgPath);
+            }*/
 
             if (userID != currentUser) {
                 currentUser = userID;
@@ -2517,7 +2561,11 @@ void WasteRecycle::analyze(const QString imgPath) {
             } else {
 
             }
-            maxScore = QString::fromStdString(score).toFloat();
+//            if (sc > maxScore && userID == currentUser) {
+//                    // maxScore = QString::fromStdString(score).toFloat();
+//                    // 分数最高的图片转存到bestFaces下
+
+//            }
             std::string groupID = result[i]["group_id"].asString();
             qDebug() << "userID:" << QString::fromStdString(userID);
             qDebug() << "groupID:" << QString::fromStdString(groupID);
@@ -2527,20 +2575,7 @@ void WasteRecycle::analyze(const QString imgPath) {
         qDebug() << "json file error";
     }
 
-    // 分数最高的图片转存到bestFaces下
-    QDir dir;
-    QString dirName = "bestFaces";
-    if(!dir.exists(dirName)) {
-        dir.mkdir(dirName);
-    }
-    QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + ".jpg";
-    remove(fileName);
 
-    QString featurePath = imgPath;
-    featurePath = featurePath.replace('.', "_feature.");
-    dir.rename(imgPath, fileName);
-    QString bestFeaturePath = fileName.replace('.', "_feature.");
-    dir.rename(featurePath, bestFeaturePath);
     // QImage image = QImage(bestFeaturePath);
     // 当不是注册时， 则进行图像显示
 //    if (ui->lb_path->text().isEmpty()) {
@@ -2568,9 +2603,37 @@ void WasteRecycle::analyze(const QString imgPath) {
         qDebug() << "json file error";
     }
 
+    // 达标的图片转存到bestFaces下
+    QDir dir;
+    QString dirName = "bestFaces";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+
+    QString index = ui->lb_CurrNum->text();
+    QString tag;
+    if (ui->le_RoughWeigh->text() == "") {
+        tag = "_" + index + "_rw";
+    } else if (ui->le_VehicleWeigh->text() == "") {
+        tag = "_" + index + "_vw";
+    }
+    QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + tag+ ".jpg";
+    remove(fileName);
+
+    QString featurePath = imgPath;
+    featurePath = featurePath.replace('.', "_feature.");
+    dir.rename(imgPath, fileName);
+    QString bestFeaturePath = fileName.replace('.', "_feature.");
+    dir.rename(featurePath, bestFeaturePath);
+
     QString headPhoto = QDir::currentPath() + "/members/" + QString::fromStdString(userInfo) + ".jpeg";
     QImage image = QImage(headPhoto);
     ui->lb_photo->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
+    if (!bModify && !bModifyUnloading) {
+        on_btn_rWrite_clicked();
+    }
+
+    // 当在unloading表格中查找到该用户并且车重为“卸载中”或者空时，执行恢复操作，之后再点击车重填入按钮
 
     // 当在卸货表格中查找不到当前号码时，则填入毛重；当查到当前号码时，则填入车重
 //    if (wi_ == nullptr) {

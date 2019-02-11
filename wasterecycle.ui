@@ -103,7 +103,7 @@
        <attribute name="title">
         <string>当前</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_5" stretch="3,1,2,2,1,3,5">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
@@ -322,6 +322,9 @@ QPushButton:hover{
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,8,1,1,2,3">
+          <property name="verticalSpacing">
+           <number>6</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="sizePolicy">
@@ -841,10 +844,16 @@ QPushButton:hover{
           <item>
            <widget class="QPushButton" name="btn_Level1">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>200</height>
+             </size>
             </property>
             <property name="font">
              <font>
@@ -899,10 +908,16 @@ QPushButton:hover{
           <item>
            <widget class="QPushButton" name="btn_Level2">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>200</height>
+             </size>
             </property>
             <property name="font">
              <font>
@@ -969,10 +984,16 @@ QPushButton:hover{
           <item>
            <widget class="QPushButton" name="btn_Level3">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>200</height>
+             </size>
             </property>
             <property name="font">
              <font>
@@ -1027,10 +1048,16 @@ QPushButton:hover{
           <item>
            <widget class="QPushButton" name="btn_Level4">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>200</height>
+             </size>
             </property>
             <property name="font">
              <font>

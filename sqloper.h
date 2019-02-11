@@ -11,19 +11,21 @@
 
 //#define VNAME(value)  (#value)
 
-// 需要写入的信息有排队号码, 时间， 毛重， 车重， 净重， 价格， 总价
+// 需要写入的信息有排队号码, 时间， 毛重， 车重， 净重， 价格， 总价，卖货人姓名，货物种类
 class RecordInfo
 {
 public:
     RecordInfo(): m_index(""), m_time(""), m_rWeight(""), m_vWeight(""),
-        m_nWeight(""), m_unitPrice(""), m_price(""){}
+        m_nWeight(""), m_unitPrice(""), m_price(""), m_name(""), m_kind(QString::fromLocal8Bit("纸")){}
     QString m_index;  // 当日排队号
-    QString m_time;  // 回磅算价时间
+    QString m_time;   // 回磅算价时间
     QString m_rWeight;  // 毛重
     QString m_vWeight;  // 车重
     QString m_nWeight;  // 净重
     QString m_unitPrice;  // 单价
     QString m_price;  // 总价
+    QString m_name; // 卖货人姓名
+    QString m_kind;   // 货物种类
 };
 
 class PriceInfo

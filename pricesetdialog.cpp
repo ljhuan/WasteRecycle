@@ -74,7 +74,7 @@ void PriceSetDialog::on_btn_priceRecommend_clicked()
         ui->btn_priceRecommend->setText(QString("%1").arg(YEARLY_EXPENSES));
         flag = true;
     } else {
-        ui->btn_priceRecommend->setText("回收价推荐");
+        ui->btn_priceRecommend->setText(QString::fromLocal8Bit("回收价推荐"));
         flag = false;
     }
 

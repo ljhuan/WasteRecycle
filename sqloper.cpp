@@ -62,8 +62,8 @@ void SqlOper::sqlInsert(RecordInfo info, QString date)
 
     // 拼接sql语句
     QString qstrSqlJudgeTableExist = "select * from " + tableName + ";";
-    // 需要写入的信息有排队号码, 时间， 毛重， 车重， 净重， 价格， 总价
-    QString qstrSqlCreateTable = "create table " + tableName + "(id INTEGER PRIMARY KEY, time varchar(100), rWeight varchar(10), vWeight varchar(10), nWeight varchar(10), unitPrice varchar(10), price varchar(10));";
+    // 需要写入的信息有排队号码, 时间， 毛重， 车重， 净重， 价格， 总价， 姓名，种类
+    QString qstrSqlCreateTable = "create table " + tableName + "(id INTEGER PRIMARY KEY, time varchar(100), rWeight varchar(10), vWeight varchar(10), nWeight varchar(10), unitPrice varchar(10), price varchar(10), name varchar(15), kind varchar(10));";
     QSqlQuery query(*pDb);
     query.exec(qstrSqlJudgeTableExist);
 
@@ -76,7 +76,8 @@ void SqlOper::sqlInsert(RecordInfo info, QString date)
 
     QString qstrIndex = info.m_index;
     QString sqlSqlInsert = "insert into " + tableName + " values(" + qstrIndex + ", '" +  info.m_time + "'" + ", '" +  info.m_rWeight + "'"
-            + ", '" +  info.m_vWeight + "'" + ", '" +  info.m_nWeight + "'"+ ", '" +  info.m_unitPrice + "'"+ ", '" +  info.m_price + "'"+  ");";
+            + ", '" +  info.m_vWeight + "'" + ", '" +  info.m_nWeight + "'"+ ", '" +  info.m_unitPrice + "'"+ ", '" +  info.m_price+ "'"
+            + ", '" +  info.m_name + "'"+ ", '" +  info.m_kind + "'"+  ");";
     qDebug() << sqlSqlInsert;
     query.exec(sqlSqlInsert);
     query.finish();
@@ -286,7 +287,8 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
         QString result = query.value("id").toString() + UtilityTools::holdPlaces(2) + query.value("time").toString() + UtilityTools::holdPlaces(2) +
                 query.value("rWeight").toString() + UtilityTools::holdPlaces(2) + query.value("vWeight").toString() + UtilityTools::holdPlaces(2) +
                 query.value("nWeight").toString() + UtilityTools::holdPlaces(2) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(2) +
-                query.value("price").toString();
+                query.value("price").toString() + UtilityTools::holdPlaces(2) + query.value("name").toString() + UtilityTools::holdPlaces(2) +
+                query.value("kind").toString();
         qDebug() << "record:" << result;
         results.push_back(result);
     }
