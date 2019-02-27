@@ -68,7 +68,7 @@ class WasteRecycle : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit WasteRecycle(BaiduFaceApi* api, QWidget *parent = 0);
+    explicit WasteRecycle(QWidget *parent = 0);
     ~WasteRecycle();
 
     static void __stdcall videoDataHandler(DataType enType, char* const pData, int iLen, void* pUser);
@@ -277,6 +277,7 @@ private slots:
 
     void on_btn_logout_clicked();
 
+    void setFlag(bool);
 protected:
     void changeEvent(QEvent * event);
 
@@ -438,11 +439,26 @@ private:
      std::mutex apiMutex_;
      std::thread* t_ = nullptr;
      bool stop_ = false;
+     bool pause_ = false;
      void face_collect_opencv_video();
      void identify(const QString & imgPath);
      void parseInfo(QString& info);
      void remove(const QString imgPath);
      WeighInfo* wi_ = nullptr;
+     bool searchUnloadingTableByName(QString & name);
+     // 信息界面点击确认 flag=true，点击取消 flag=false;
+     bool flag_ = false;
+     bool hasReturnZero = true;
+
+     // 存储10个稳定过3秒的重量为可用重量
+     std::mutex validWeightMapMutex;
+     std::map<int, float> validWeightMap;
+     int count = 0;
+     float theTimingWeigh = 0;
+
+     // 定时器相关参数和函数
+     QTimer * weighTimer = nullptr;
+     void weighTimerHandleTimeout();
 };
 
 #endif // WASTERECYCLE_H

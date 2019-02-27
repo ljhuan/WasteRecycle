@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
-    <height>480</height>
+    <width>359</width>
+    <height>596</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,1,1,1,2,1,1,1,1,2">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,3,1,4,1,4,1">
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
@@ -25,40 +25,64 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,4,1">
-     <item>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>A级黄板纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1" colspan="2">
       <widget class="QLineEdit" name="le_factoryPrice_A">
        <property name="styleSheet">
         <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="3">
       <widget class="QLabel" name="label_10">
        <property name="text">
         <string>元/吨</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,4,1">
-     <item>
+     <item row="1" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>超市纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>普通黄板：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1" colspan="2">
+      <widget class="QLineEdit" name="le_factoryPrice_C">
+       <property name="styleSheet">
+        <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>元/吨</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>元/吨</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="2">
       <widget class="QLineEdit" name="le_factoryPrice_B">
        <property name="enabled">
         <bool>false</bool>
@@ -68,38 +92,6 @@
        </property>
        <property name="readOnly">
         <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>元/吨</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,4,1">
-     <item>
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>普通黄板：</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="le_factoryPrice_C">
-       <property name="styleSheet">
-        <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>元/吨</string>
        </property>
       </widget>
      </item>
@@ -150,69 +142,57 @@ QPushButton:hover{
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,5">
-     <item>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
       <widget class="QLabel" name="label_6">
        <property name="text">
         <string>黄板纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1" colspan="2">
       <widget class="QLineEdit" name="le_storePrice_A">
        <property name="styleSheet">
         <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,5">
-     <item>
+     <item row="1" column="0">
       <widget class="QLabel" name="label_7">
        <property name="text">
         <string>超市纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="1" colspan="2">
       <widget class="QLineEdit" name="le_storePrice_B">
        <property name="styleSheet">
         <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="2,5">
-     <item>
+     <item row="2" column="0">
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>统货纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="2" column="1" colspan="2">
       <widget class="QLineEdit" name="le_storePrice_C">
        <property name="styleSheet">
         <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
        </property>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,5">
-     <item>
+     <item row="3" column="0" colspan="2">
       <widget class="QLabel" name="label_9">
        <property name="text">
         <string>居民用纸：</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="3" column="2">
       <widget class="QLineEdit" name="le_storePrice_D">
        <property name="styleSheet">
         <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
@@ -222,23 +202,70 @@ QPushButton:hover{
     </layout>
    </item>
    <item>
-    <widget class="QPushButton" name="btn_priceSet">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>人脸识别相关配置</string>
      </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>18</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton{color: rgb(255, 255, 255);
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="text">
+        <string>取流URL：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="3">
+      <widget class="QLineEdit" name="le_url"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_14">
+       <property name="text">
+        <string>人脸阈值：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="3">
+      <widget class="QLineEdit" name="le_threshold"/>
+     </item>
+     <item row="2" column="0" colspan="3">
+      <widget class="QLabel" name="label_15">
+       <property name="text">
+        <string>同一张人脸识别间隔秒数：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QLineEdit" name="le_interval"/>
+     </item>
+     <item row="3" column="0" colspan="2">
+      <widget class="QLabel" name="label_16">
+       <property name="text">
+        <string>相差公斤数：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2" colspan="2">
+      <widget class="QLineEdit" name="le_differWeigh"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="btn_ok">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>18</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton{color: rgb(255, 255, 255);
 			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
             border:1px;
             border-radius:10px;
@@ -259,11 +286,51 @@ QPushButton:hover{
             padding:2px 4px;
         }
 </string>
-     </property>
-     <property name="text">
-      <string>设置收购价格</string>
-     </property>
-    </widget>
+       </property>
+       <property name="text">
+        <string>确定</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>18</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px;
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px;
+        }
+</string>
+       </property>
+       <property name="text">
+        <string>取消</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

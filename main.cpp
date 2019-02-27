@@ -54,17 +54,7 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(outputMessage);
     QApplication a(argc, argv);
 
-    //api实例指针
-    BaiduFaceApi* api = new BaiduFaceApi();
-    //初始化sdk
-    // 若采用证件照模式，请把id_card设为true，否则为false，证件照模式和非证件照模式提取的人脸特征值不同，
-    // 不能混用
-    bool id_card = false;
-    api->sdk_init(id_card);
-    // 提前加载人脸库到内存
-    api->load_db_face();
-
-    WasteRecycle w(api);
+    WasteRecycle w;
     w.show();
 
     return a.exec();

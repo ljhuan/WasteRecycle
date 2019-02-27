@@ -2,6 +2,7 @@
 #define PRICESETDIALOG_H
 
 #include <QDialog>
+#include <QString>
 #include "sqloper.h"
 
 namespace Ui {
@@ -22,10 +23,19 @@ public:
     float getDPrice();
     void updatePrices();
 
+    QString threshold_;
+    QString url_;
+    QString interval_;
+    QString differWeigh_;
+
 private slots:
     void on_btn_priceRecommend_clicked();
 
     void on_btn_priceSet_clicked();
+
+    void on_btn_ok_clicked();
+
+    void on_btn_cancel_clicked();
 
 private:
     Ui::PriceSetDialog *ui;

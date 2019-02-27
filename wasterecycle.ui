@@ -90,7 +90,7 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="4,6">
+   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="5,6">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="styleSheet">

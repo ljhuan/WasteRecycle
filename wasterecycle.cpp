@@ -71,8 +71,7 @@ bool isAllDigital(QString txt) {
     return isAllDigit;
 }
 
-WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
-    api_(api),
+WasteRecycle::WasteRecycle(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WasteRecycle),
     toBeUseIndex(100),
@@ -197,6 +196,10 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     ui->le_RoughWeigh->setFocus();
 
     connect(priceSetWin, SIGNAL(finished(int)), this, SLOT(priceChanged()));
+
+    wi_ = new WeighInfo(this);
+    wi_->setWindowFilePath(QString::fromLocal8Bit("过磅信息"));
+    connect(wi_, SIGNAL(flag(bool)), this, SLOT(setFlag(bool)));
     // 日历设置
     QCalendarWidget* calendar = new QCalendarWidget(this);
     calendar->hide();
@@ -211,6 +214,8 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     // 定时器设置
     m_pTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
+    m_pTimer = new QTimer(this);
+    connect(weighTimer, SIGNAL(timeout()), this, SLOT(weighTimerHandleTimeout()));
     // 登录摄像头并获取码流
     deviceTableView_ = new QTableView(this);
     deviceTableView_->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -274,6 +279,18 @@ WasteRecycle::WasteRecycle(BaiduFaceApi* api, QWidget *parent) :
     connect(ui->tableView_unloading, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(clicked_rightMenu(QPoint)));
     connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteData()));
     connect(this, SIGNAL(newTrackImage(QString)), this, SLOT(analyze(QString)));
+
+    // 百度人脸库初始化
+    //api实例指针
+    api_ = new BaiduFaceApi();
+    //初始化sdk
+    // 若采用证件照模式，请把id_card设为true，否则为false，证件照模式和非证件照模式提取的人脸特征值不同，
+    // 不能混用
+    bool id_card = false;
+    api_->sdk_init(id_card);
+    // 提前加载人脸库到内存
+    api_->load_db_face();
+    qDebug() << ">>>>>>> api load face db";
 }
 
 WasteRecycle::~WasteRecycle()
@@ -745,10 +762,12 @@ void WasteRecycle::slotDeviceTableViewPressed(const QModelIndex & index)
 }
 
 void WasteRecycle::face_collect_opencv_video() {
-    qDebug() << "face_collect_opencv_video IN";
+    qDebug() << ">>>>>>> face_collect_opencv_video IN";
 
     // cv::VideoCapture cap("rtsp://admin:XJITJW@192.168.0.102:554/h264/ch33/main/av_stream");
-    cv::VideoCapture cap("rtmp://rtmp.open.ys7.com/openlive/14005824e5a146a3a8da14a5ab7d1038.hd");
+    QString url = priceSetWin->url_;
+    qDebug() << ">>>>>>> url:" << url;
+    cv::VideoCapture cap(url.toStdString());
     if (!cap.isOpened())
     {
         std::cout << "open camera error" << std::endl;
@@ -756,7 +775,7 @@ void WasteRecycle::face_collect_opencv_video() {
     }
     cv::Mat frame;
 
-    int index = 0;
+    // int index = 0;
     bool save_file = false;
     float max_score = 1;
     long faceID = -1;
@@ -773,6 +792,11 @@ void WasteRecycle::face_collect_opencv_video() {
         cap >> frame;
         track_info->clear();
 
+        if (pause_) {
+            Sleep(20);
+            continue;
+        }
+
         if(count == 10) {
             count = 0;
             // emit newTrackImage(QString::fromStdString("abc"));
@@ -784,8 +808,8 @@ void WasteRecycle::face_collect_opencv_video() {
         }
         for (int i = 0; i < size; i++) {
             TrackFaceInfo info = track_info->at(i);
-            qDebug() << "in net_track score is:" << info.score;
-            qDebug() << "in net_track face_id:" << info.face_id;
+            qDebug() << ">>>>>>> in net_track score is:" << info.score;
+            qDebug() << ">>>>>>> in net_track face_id:" << info.face_id;
 
             if (info.face_id != faceID && info.score > 0.9) {
                 faceID = info.face_id;
@@ -835,7 +859,6 @@ void WasteRecycle::face_collect_opencv_video() {
                 cv::imwrite(fileName, frame);
                 // std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 // analyze(QString::fromStdString(fileName));
-                emit newTrackImage(QString::fromStdString(fileName));
 
                 fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_feature.jpg";
                 // 画人脸框
@@ -844,7 +867,10 @@ void WasteRecycle::face_collect_opencv_video() {
                 // 画关键点轮廓
                 CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
                 cv::imwrite(fileName, frame);
+                emit newTrackImage(QString::fromStdString(fileName));
             }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         if (!frame.empty()) {
@@ -861,10 +887,8 @@ void WasteRecycle::face_collect_opencv_video() {
 //            outFrame.release();
         } else {
             std::cout << "mat is empty" << std::endl;
-            cap.open("rtmp://rtmp.open.ys7.com/openlive/14005824e5a146a3a8da14a5ab7d1038.hd");
+            cap.open(url.toStdString());
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         // Sleep(10);
         // frame.release();
 
@@ -1057,7 +1081,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         } else if (QEvent::Leave == e->type()) {
             ui->btn_vClear->setText(QString::fromLocal8Bit("公斤"));
         }
-    } else if (obj == ui->lb_rwScaledImage) {
+    } else if (obj == ui->lb_rwScaledImage && !ui->le_RoughWeigh->text().isEmpty()) {
         static QLabel* lb = new QLabel();
         QPoint curPos = QCursor::pos();
         lb->move(curPos.x()+ui->lb_rwScaledImage->width(), 0);
@@ -1070,6 +1094,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             QString rw = ui->le_RoughWeigh->text();
 
             QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + rw + ".jpeg";
+            std::cout << "filename1:" << filename.toStdString() << std::endl;
             QImage image(filename);
             lb->setPixmap(QPixmap::fromImage(image).scaled(ui->w_playWindow->width(), ui->w_playWindow->height()));
             lb->setWindowFilePath(filename);
@@ -1077,7 +1102,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         } else if (QEvent::Leave == e->type()) {
             lb->close();
         }
-    } else if (obj == ui->lb_vwScaledImage) {
+    } else if (obj == ui->lb_vwScaledImage && !ui->le_VehicleWeigh->text().isEmpty()) {
         static QLabel* lb = new QLabel();
         QPoint curPos = QCursor::pos();
         lb->move(curPos.x()+ui->lb_vwScaledImage->width(), 0);
@@ -1088,6 +1113,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             QString index = ui->lb_CurrNum->text();
             QString vw = ui->le_VehicleWeigh->text();
             QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + vw + ".jpeg";
+            std::cout << "filename2:" << filename.toStdString() << std::endl;
             QImage image(filename);
             lb->setPixmap(QPixmap::fromImage(image).scaled(ui->w_playWindow->width(), ui->w_playWindow->height()));
             lb->setWindowFilePath(filename);
@@ -1101,7 +1127,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         lb->move(curPos.x()+ui->lb_photo->width(), 0);
         if (QEvent::Enter == e->type() && ui->lb_photo->pixmap()) {
             QString filename = QDir::currentPath() +  "/members/" + ui->le_name->text() + ".jpeg";
-            // QString filename = "C:\\Users\\ljhuan\\Desktop\\tmp\\tlya.jpg";
+            std::cout << "filename3:" << filename.toStdString() << std::endl;
             QImage image(filename);
             int param = 1;
             while((image.height() / param) > ui->w_playWindow->height()) {
@@ -1147,6 +1173,8 @@ void WasteRecycle::showPrice(float level)
         }
         storeData(level);
         nextVehicle();
+        // 当单子已结算，则当做磅秤已回到过0，可更换当前识别用户
+        hasReturnZero = true;
         break;
     case 1:
         setTextEnabled(true);
@@ -1198,6 +1226,9 @@ void WasteRecycle::nextVehicle()
     bPriceInit = true;
     ui->vslider_percent->setValue(pos);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
+    if(!stop_) {
+        pause_ = false;
+    }
 }
 
 void WasteRecycle::deleteData()
@@ -1314,10 +1345,19 @@ void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
         if(fWeight != qqba.toFloat()) {
             m_pTimer->stop();
             fWeight = qqba.toFloat();
+            if (fWeight < 1) {
+                hasReturnZero = true;
+            }
+
+            if (theTimingWeigh !=0 && (fWeight - theTimingWeigh > 0.5|| theTimingWeigh - fWeight > 0.5)) {
+                theTimingWeigh = fWeight;
+                // 开始计时3秒，3秒到，则把该稳定重量存入可用重量的map中
+                weighTimer->start(1000*3);
+            }
             ui->lb_display->setText(QString("%1").arg(fWeight));
 
-            // 设置1分钟超时
-            m_pTimer->start(1000*60*1);
+            // 设置2分钟超时
+            m_pTimer->start(1000*60*2);
         }
         // weighBridgeData.clear();
     }
@@ -1802,6 +1842,8 @@ void WasteRecycle::dataRecoveryFromUnloadingTableView(const QModelIndex &index)
     QString nw = model_unloading->index(index.row(), 4).data().toString();
     QString uprice = model_unloading->index(index.row(), 5).data().toString();
     QString price = model_unloading->index(index.row(), 6).data().toString();
+    QString time = model_unloading->index(index.row(), 1).data().toString();
+    QString usr = model_unloading->index(index.row(), 7).data().toString();
 
     ui->lb_CurrNum->setText(currIndex);
     ui->le_RoughWeigh->setText(rw);
@@ -1826,6 +1868,29 @@ void WasteRecycle::dataRecoveryFromUnloadingTableView(const QModelIndex &index)
     } else {
         setTextEnabled(false);
     }
+
+    QStringList tmp = time.split(" ");
+    QString date = tmp.at(0);
+    date = date.replace('-', '_');
+
+    QString rwFilename = QDir::currentPath() +  "/" + date + "_rwPicture" + "/" + currIndex + "_" + rw + ".jpeg";
+    QImage rwImage = QImage(rwFilename);
+    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(rwImage).scaled(ui->lb_rwScaledImage->width(), ui->lb_rwScaledImage->height()));
+
+    if(vw.trimmed() == "") {
+        vw = "0";
+        ui->le_VehicleWeigh->setText("0");
+    }
+    QString vwFilename = QDir::currentPath() +  "/" + date + "_vwPicture" + "/" + currIndex + "_" + vw + ".jpeg";
+    QImage vwImage = QImage(vwFilename);
+    ui->lb_vwScaledImage->setPixmap(QPixmap::fromImage(vwImage).scaled(ui->lb_vwScaledImage->width(), ui->lb_vwScaledImage->height()));
+
+    if(!usr.isEmpty()) {
+        QString usrFilename = QDir::currentPath() +  "/members/" + usr + ".jpeg";
+        QImage usrImage = QImage(usrFilename);
+        ui->le_name->setText(usr);
+        ui->lb_photo->setPixmap(QPixmap::fromImage(usrImage).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
+    }
 }
 
 void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
@@ -1837,6 +1902,8 @@ void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
     QString nw = model->index(index.row(), 4).data().toString();
     QString uprice = model->index(index.row(), 5).data().toString();
     QString price = model->index(index.row(), 6).data().toString();
+    QString time = model->index(index.row(), 1).data().toString();
+    QString usr = model->index(index.row(), 7).data().toString();
 
     ui->lb_CurrNum->setText(currIndex);
     ui->le_RoughWeigh->setText(rw);
@@ -1859,6 +1926,28 @@ void WasteRecycle::dataRecoveryFromTableView(const QModelIndex &index)
         ui->le_VehicleWeigh->selectAll();
     } else {
         setTextEnabled(false);
+    }
+
+    QStringList tmp = time.split(" ");
+    QString date = tmp.at(0);
+    date = date.replace('-', '_');
+
+    QString rwFilename = QDir::currentPath() +  "/" + date + "_rwPicture" + "/" + currIndex + "_" + rw + ".jpeg";
+    QImage rwImage = QImage(rwFilename);
+    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(rwImage).scaled(ui->lb_rwScaledImage->width(), ui->lb_rwScaledImage->height()));
+
+    if(vw.trimmed() == "") {
+        vw = "0";
+        ui->le_VehicleWeigh->setText("0");
+    }
+    QString vwFilename = QDir::currentPath() +  "/" + date + "_vwPicture" + "/" + currIndex + "_" + vw + ".jpeg";
+    QImage vwImage = QImage(vwFilename);
+    ui->lb_vwScaledImage->setPixmap(QPixmap::fromImage(vwImage).scaled(ui->lb_vwScaledImage->width(), ui->lb_vwScaledImage->height()));
+    if(!usr.isEmpty()) {
+        QString usrFilename = QDir::currentPath() +  "/members/" + usr + ".jpeg";
+        QImage usrImage = QImage(usrFilename);
+        ui->le_name->setText(usr);
+        ui->lb_photo->setPixmap(QPixmap::fromImage(usrImage).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
     }
 }
 
@@ -2071,6 +2160,19 @@ void WasteRecycle::openSerialPort()
     }
 }
 
+void WasteRecycle::weighTimerHandleTimeout()
+{
+    weighTimer->stop();
+    if(count == 10) {
+        count = 0;
+    }
+    {
+        std::unique_lock<std::mutex> lock(validWeightMapMutex);
+        validWeightMap[count] = theTimingWeigh;
+    }
+    ++count;
+}
+
 void WasteRecycle::handleTimeout()
 {
     m_pTimer->stop();
@@ -2108,19 +2210,22 @@ void WasteRecycle::on_btn_rClear_clicked()
 {
     ui->le_RoughWeigh->clear();
     ui->le_RoughWeigh->setFocus();
+    ui->lb_rwScaledImage->clear();
+    ui->lb_photo->clear();
 }
 
 void WasteRecycle::on_btn_vClear_clicked()
 {
     ui->le_VehicleWeigh->clear();
-     ui->le_VehicleWeigh->setFocus();
+    ui->le_VehicleWeigh->setFocus();
+    ui->lb_vwScaledImage->clear();
 }
 
 void WasteRecycle::on_le_com_textChanged(const QString &arg1)
 {
     m_serial->close();
     openSerialPort();
-    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(425, 97);
+    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(600, 160);
     ui->lb_display->setPixmap(myPix);
     ui->lb_display->show();
 }
@@ -2439,6 +2544,36 @@ void WasteRecycle::remove(const QString imgPath) {
     dir.remove(featurePath);
 }
 
+bool WasteRecycle::searchUnloadingTableByName(QString &name)
+{
+    // 当在unloading表格中查找到该用户并且车重不为“卸载中”或者空并且车重毛重相差超过一公斤时，执行恢复操作，之后再点击车重填入按钮
+    // 当在卸货表格中查找不到当前号码时，则填入毛重；当查到当前号码时，则填入车重
+    int rowCount = model_unloading->rowCount();
+    int row = 0;
+    for (; row < rowCount; ++row) {
+        QString vWeigh = model_unloading->index(row, 3).data().toString();
+        QString usr = model_unloading->index(row, 7).data().toString();
+        if(usr == name && (vWeigh == "" || vWeigh == QString::fromLocal8Bit("卸货中"))) {
+            QModelIndex index = model_unloading->index(row, 7);
+            QString data = ui->lb_display->text();
+            float fVWeight = data.toFloat();
+            float fRWeight = model_unloading->index(row, 2).data().toFloat();
+
+            // 当待机或者毛重车重相差不足一公斤时，则认为小贩还未开始卸货，不进行结算
+            if (data == "" || (fRWeight-fVWeight) < 1) {
+                qDebug() << "fRWeight-fVWeight is less than 1 kilo";
+            } else {
+                on_tableView_unloading_doubleClicked(index);
+            }
+
+            return true;
+        }
+    }
+    if (row == rowCount) {
+        return false;
+    }
+}
+
 void WasteRecycle::parseInfo(QString& info) {
     Json::Reader reader;
     Json::Value	value;
@@ -2489,8 +2624,8 @@ void WasteRecycle::parseInfo(QString& info) {
 }
 
 void WasteRecycle::identify(const QString & imgPath) {
-    qDebug() << "identify IN";
-    qDebug() << "imgPath:" << imgPath;
+    qDebug() << ">>>>>>> identify IN";
+    qDebug() << ">>>>>>> imgPath:" << imgPath;
 
     std::string res;
     {
@@ -2499,16 +2634,16 @@ void WasteRecycle::identify(const QString & imgPath) {
         res = api_->identify(imgPath.toUtf8().data(), 2);
     }
     QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
-    qDebug() << "---200 identify res is:" << info;
+    qDebug() << ">>>>>>> ---200 identify res is:" << info;
 
     parseInfo(info);
 
-    qDebug() << "identify OUT";
+    qDebug() << ">>>>>>> identify OUT";
 }
 
 void WasteRecycle::analyze(const QString imgPath) {
-    qDebug() << "analyze IN";
-    qDebug() << "imgPath:" << imgPath;
+    qDebug() << ">>>>>>> analyze IN";
+    qDebug() << ">>>>>>> imgPath:" << imgPath;
 
     std::string res;
     {
@@ -2517,7 +2652,7 @@ void WasteRecycle::analyze(const QString imgPath) {
         res = api_->identify(imgPath.toUtf8().data(), 2);
     }
     QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
-    qDebug() << "---200 identify res is:" << info;
+    qDebug() << ">>>>>>> ---200 analyze res is:" << info;
 
     Json::Reader reader;
     Json::Value	value;
@@ -2525,10 +2660,8 @@ void WasteRecycle::analyze(const QString imgPath) {
     Json::Value  userInfos_value;
     std::string userID;
     std::string score;
-    // static float maxScore = 0.0;
     static std::string currentUser;
     std::string userInfo;
-    // static std::string bestFaceImage;
     QString userInfos;
     if(reader.parse(info.toUtf8().data(), value)) {
         int err = value["errno"].asInt();
@@ -2545,8 +2678,9 @@ void WasteRecycle::analyze(const QString imgPath) {
             score = result[i]["score"].asString();
             // std::cout << "score:" << QString::fromStdString(score).toFloat() << " maxScore:" << maxScore << std::endl;
             float sc = QString::fromStdString(score).toFloat();
-            if (sc < 50 ) {
-                qDebug() << "score is too low, score:" << QString::fromStdString(score);
+            float threshold = priceSetWin->threshold_.toFloat();
+            if (sc < threshold ) {
+                qDebug() << "score is too low, score:" << QString::fromStdString(score) << " threshold:" << priceSetWin->threshold_;
                 // 分数比较低的图片删除
                 remove(imgPath);
                 return;
@@ -2554,6 +2688,35 @@ void WasteRecycle::analyze(const QString imgPath) {
                 // 分数比较低的图片删除
                 remove(imgPath);
             }*/
+
+            if (userID != currentUser && hasReturnZero==false) {
+                qDebug() << "has not yet return zero and not analyze!, current userID is:" << QString::fromStdString(userID);
+                return;
+            } else {
+                float data = ui->lb_display->text().toFloat();
+                std::unique_lock<std::mutex> lock(validWeightMapMutex);
+                int size = validWeightMap.size();
+                int i = 0;
+                for (; i < size ;++i) {
+                    if((data - validWeightMap[i] < 1) || (validWeightMap[i] - data < 1)) {
+                        break;
+                    }
+                }
+                if (ui->lb_display->text() !="" && i == size) {
+                    // QMessageBox::information(NULL, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("当前地磅上分量未稳定!"));
+//                    ui->lb_display->setText(QString::fromLocal8Bit("当前地磅上重量未稳定，请重新检测人脸! 3"));
+                    qDebug() << QString::fromLocal8Bit("当前地磅上分量未稳定!");
+//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//                    ui->lb_display->setText(QString::fromLocal8Bit("重量未稳定，请重新检测人脸! 2"));
+//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//                    ui->lb_display->setText(QString::fromLocal8Bit("重量未稳定，请重新检测人脸! 1"));
+//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//                    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(600, 160);
+//                    ui->lb_display->setPixmap(myPix);
+//                    ui->lb_display->show();
+                    return;
+                }
+            }
 
             if (userID != currentUser) {
                 currentUser = userID;
@@ -2567,12 +2730,12 @@ void WasteRecycle::analyze(const QString imgPath) {
 
 //            }
             std::string groupID = result[i]["group_id"].asString();
-            qDebug() << "userID:" << QString::fromStdString(userID);
-            qDebug() << "groupID:" << QString::fromStdString(groupID);
+            qDebug() << ">>>>>>> userID:" << QString::fromStdString(userID);
+            qDebug() << ">>>>>>> groupID:" << QString::fromStdString(groupID);
             userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
         }
     } else {
-        qDebug() << "json file error";
+        qDebug() << ">>>>>>> json file error";
     }
 
 
@@ -2585,14 +2748,14 @@ void WasteRecycle::analyze(const QString imgPath) {
     if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
         int err = value["errno"].asInt();
         if (err != 0) {
-            qDebug() << "err:" << err;
+            qDebug() << ">>>>>>> err:" << err;
             return;
         }
 
         result = userInfos_value["data"]["result"];
         for (int i = 0; i < result.size(); ++i) {
             userInfo = result[i]["user_info"].asString();
-            qDebug() << "userInfo:" << QString::fromStdString(userInfo);
+            qDebug() << ">>>>>>> userInfo:" << QString::fromStdString(userInfo);
             ui->le_name->setText(QString::fromStdString(userInfo));
             ui->le_phone->setText(QString::fromStdString(userID));
             QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
@@ -2600,7 +2763,7 @@ void WasteRecycle::analyze(const QString imgPath) {
         }
 
     } else {
-        qDebug() << "json file error";
+        qDebug() << ">>>>>>> json file error";
     }
 
     // 达标的图片转存到bestFaces下
@@ -2629,21 +2792,67 @@ void WasteRecycle::analyze(const QString imgPath) {
     QString headPhoto = QDir::currentPath() + "/members/" + QString::fromStdString(userInfo) + ".jpeg";
     QImage image = QImage(headPhoto);
     ui->lb_photo->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
-    if (!bModify && !bModifyUnloading) {
-        on_btn_rWrite_clicked();
+    if (bModify || bModifyUnloading) {
+        // on_btn_rWrite_clicked();
+        return;
     }
 
-    // 当在unloading表格中查找到该用户并且车重为“卸载中”或者空时，执行恢复操作，之后再点击车重填入按钮
-
+    // 当在unloading表格中查找到该用户并且车重不为“卸载中”或者不为空并且毛重不为空并且车重毛重相差超过一公斤时，执行恢复操作，之后再点击车重填入按钮
     // 当在卸货表格中查找不到当前号码时，则填入毛重；当查到当前号码时，则填入车重
-//    if (wi_ == nullptr) {
-//        wi_ = new WeighInfo(ui->lb_CurrNum->text(), QString::fromStdString(userInfo), this);
-//        wi_->exec();
-//        delete wi_;
-//        wi_ = nullptr;
-//    }
+    bool exist = searchUnloadingTableByName(QString::fromStdString(userInfo));
 
-    qDebug() << "analyze OUT";
+    bool toShow = true;
+    QString data = ui->lb_display->text();
+    wi_->name_ = QString::fromStdString(userInfo);
+    wi_->num_ = ui->lb_CurrNum->text();
+
+    if (exist) {
+        // on_btn_vWrite_clicked();
+        if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+            float tmp = data.toFloat();
+            ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
+        }
+
+        // 当数据未恢复时，则不进行结算
+        if (ui->le_RoughWeigh->text().isEmpty() && ui->le_RoughWeigh->text().isEmpty()) {
+            qDebug() << ">>>>>>> toShow is false";
+            toShow = false;
+        } else {
+            wi_->rWeight_ = ui->le_RoughWeigh->text();
+            wi_->vWeight_ = ui->le_VehicleWeigh->text();
+            on_btn_vechileWeightCapture_clicked();
+        }
+    } else {
+        // on_btn_rWrite_clicked();
+        wi_->clear();
+        if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
+            float tmp = data.toFloat();
+            ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
+        }
+
+        wi_->rWeight_ = ui->le_RoughWeigh->text();
+        if (wi_->rWeight_ != "") {
+            on_btn_roughWeightCapture_clicked();
+        } else {
+            toShow = false;
+            pause_ = true;
+        }
+    }
+
+
+    if(toShow) {
+        wi_->flush();
+        pause_ = true;
+        wi_->exec();
+
+        if (!exist && flag_) {
+            on_btn_Next_clicked();
+            hasReturnZero = false;
+            ui->tableView_unloading->setFocus();
+        }
+    }
+
+    qDebug() << ">>>>>>> analyze OUT";
 }
 
 void WasteRecycle::on_btn_analyze_clicked()
@@ -2694,6 +2903,7 @@ void WasteRecycle::on_btn_faceAnalyze_clicked()
 //        }
     } else {
         stop_ = false;
+        pause_ = false;
         ui->btn_faceAnalyze->setText(QString::fromLocal8Bit("停止人脸识别"));
         t_ = new std::thread(&WasteRecycle::face_collect_opencv_video, this);
         t_->detach();
@@ -2726,4 +2936,10 @@ void WasteRecycle::on_btn_logout_clicked()
     ui->le_name->clear();
     ui->le_phone->clear();
     ui->lb_similarity->clear();
+}
+
+void WasteRecycle::setFlag(bool flag)
+{
+    std::cout << "flag:" << flag << std::endl;
+    flag_ = flag;
 }

@@ -19,9 +19,45 @@
 PriceSetDialog::PriceSetDialog(QWidget *parent, SqlOper* pOper) :
     QDialog(parent),
     ui(new Ui::PriceSetDialog),
-    oper(pOper)
+    oper(pOper),
+    threshold_("50"),
+    url_("rtmp://rtmp.open.ys7.com/openlive/14005824e5a146a3a8da14a5ab7d1038.hd"),
+    // url_("rtmp://rtmp.open.ys7.com/openlive/ca337043735e48cc941c47193443c3ab.hd"),
+    interval_("10"),
+    differWeigh_("1")
 {
     ui->setupUi(this);
+    QDir dir;
+    QString config = QDir::currentPath() + "/config.txt";
+    QFile file(config);
+    if (file.exists()) {
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream in(&file);
+        QString line = "***";
+        while(!line.isNull()) {
+            line = in.readLine();
+            if(line.contains("url=>")) {
+                url_ = line.split(">").at(1).trimmed();
+                qDebug() << ">>>>>>> url_ =" << url_;
+                continue;
+            }
+            if(line.contains("threshold=>")) {
+                threshold_ = line.split(">").at(1).trimmed();
+                qDebug() << ">>>>>>> threshold_ =" << threshold_;
+                continue;
+            }
+            if(line.contains("interval=>")) {
+                interval_ = line.split(">").at(1).trimmed();
+                qDebug() << ">>>>>>> interval_ =" << interval_;
+                continue;
+            }
+            if(line.contains("differWeigh=>")) {
+                differWeigh_ = line.split(">").at(1).trimmed();
+                qDebug() << ">>>>>>> differWeigh_ =" << differWeigh_;
+                continue;
+            }
+        }
+    }
     updatePrices();
 }
 
@@ -116,7 +152,33 @@ void PriceSetDialog::on_btn_priceSet_clicked()
 
     oper->sqlPriceSet(prices);
 
+//    this->close();
+//    this->done(0);
+    qDebug() << "on_btn_priceSet_clicked OUT";
+}
+
+void PriceSetDialog::on_btn_ok_clicked()
+{
+    on_btn_priceSet_clicked();
+
+    if(!ui->le_threshold->text().isEmpty()) {
+        threshold_ = ui->le_threshold->text();
+    }
+    if(!ui->le_url->text().isEmpty()) {
+        url_ = ui->le_url->text();
+    }
+    if(!ui->le_interval->text().isEmpty()) {
+        interval_ = ui->le_interval->text();
+    }
+    if(!ui->le_differWeigh->text().isEmpty()) {
+        differWeigh_ = ui->le_differWeigh->text();
+    }
+
     this->close();
     this->done(0);
-    qDebug() << "on_btn_priceSet_clicked OUT";
+}
+
+void PriceSetDialog::on_btn_cancel_clicked()
+{
+    this->close();
 }
