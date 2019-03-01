@@ -855,18 +855,18 @@ void WasteRecycle::face_collect_opencv_video() {
                 if(!dir.exists(dirName)) {
                     dir.mkdir(dirName);
                 }
-                std::string fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + ".jpg";
+                std::string fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_" + std::to_string(info.score) + ".jpg";
                 cv::imwrite(fileName, frame);
                 // std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 // analyze(QString::fromStdString(fileName));
 
-                fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_feature.jpg";
+                std::string featureFileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_" + std::to_string(info.score) + "_feature.jpg";
                 // 画人脸框
                 box = CvHelp::bounding_box(info.landmarks);
                 CvHelp::draw_rotated_box(frame, box, cv::Scalar(0, 255, 0));
                 // 画关键点轮廓
                 CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
-                cv::imwrite(fileName, frame);
+                cv::imwrite(featureFileName, frame);
                 emit newTrackImage(QString::fromStdString(fileName));
             }
 
@@ -923,12 +923,12 @@ void WasteRecycle::initTableView() {
      ui->tableView->resizeColumnsToContents();
      ui->tableView->horizontalHeader();
     ui->tableView->setColumnWidth(0, 40);
-    ui->tableView->setColumnWidth(1, 150);
+    ui->tableView->setColumnWidth(1, 160);
     ui->tableView->setColumnWidth(2, 55);
     ui->tableView->setColumnWidth(3, 55);
     ui->tableView->setColumnWidth(4, 55);
     ui->tableView->setColumnWidth(5, 50);
-    ui->tableView->setColumnWidth(6, 55);
+    ui->tableView->setColumnWidth(6, 60);
     ui->tableView->setColumnWidth(7, 55);
     ui->tableView->setColumnWidth(8, 50);
     ui->tableView->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
@@ -953,12 +953,12 @@ void WasteRecycle::initTableView() {
     ui->tableView_unloading->verticalHeader()->setStyleSheet("QHeaderView::section {"
                                                          "color: black;padding-left: 4px;border: 1px solid #6c6c6c;}");
     ui->tableView_unloading->setColumnWidth(0, 40);
-    ui->tableView_unloading->setColumnWidth(1, 150);
+    ui->tableView_unloading->setColumnWidth(1, 160);
     ui->tableView_unloading->setColumnWidth(2, 55);
     ui->tableView_unloading->setColumnWidth(3, 55);
     ui->tableView_unloading->setColumnWidth(4, 55);
     ui->tableView_unloading->setColumnWidth(5, 50);
-    ui->tableView_unloading->setColumnWidth(6, 55);
+    ui->tableView_unloading->setColumnWidth(6, 60);
     ui->tableView_unloading->setColumnWidth(7, 55);
     ui->tableView_unloading->setColumnWidth(8, 50);
     ui->tableView_unloading->setSelectionBehavior(QAbstractItemView::SelectRows);  // 设置选中模式为选中行
@@ -1762,6 +1762,28 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
     }
 }
 
+void WasteRecycle::on_le_RoughWeigh_textChanged(const QString &arg1)
+{
+    QString strRw = ui->le_RoughWeigh->text();
+    QString strVw = ui->le_VehicleWeigh->text();
+
+    if (strVw.isEmpty()) {
+        return;
+    }
+
+    // 若不为数字，则忽略不计算
+    for (auto e : strRw.toStdString()) {
+        if(!isdigit(e) && e != '.') {
+            ui->lb_NetWeight->setText("");
+            return;
+        }
+    }
+
+    float fRw = strRw.toFloat();
+    float fVw = strVw.toFloat();
+    ui->lb_NetWeight->setText(QString("%1").arg((fRw - fVw)*2));
+}
+
 /* void WasteRecycle::on_btn_modify_clicked()
 {
     qDebug() << "on_btn_modify_clicked IN";
@@ -1799,12 +1821,12 @@ void WasteRecycle::on_vslider_percent_valueChanged(int value)
 
 void WasteRecycle::on_le_RoughWeigh_editingFinished()
 {
-    QString idx = ui->lb_CurrNum->text();
-    QString rW = ui->le_RoughWeigh->text();
-    if (rW != "" && idx.toInt() == toBeUseIndex) {
-        qDebug() << "rWeight = " << ui->le_RoughWeigh->text();
-        oper->sqlInsertUnloading(idx, rW);
-    }
+//    QString idx = ui->lb_CurrNum->text();
+//    QString rW = ui->le_RoughWeigh->text();
+//    if (rW != "" && idx.toInt() == toBeUseIndex) {
+//        qDebug() << "rWeight = " << ui->le_RoughWeigh->text();
+//        oper->sqlInsertUnloading(idx, rW);
+//    }
 }
 
 void WasteRecycle::on_btn_Statistics_clicked()
@@ -2467,7 +2489,8 @@ void WasteRecycle::on_btn_monthlyStatics_clicked()
         monthAveragePrice += line.at(4).toFloat();
     }
 
-    days = monthEarlyDay.daysTo(today);
+    days = elements.size();
+    // days = monthEarlyDay.daysTo(today);
     monthAveragePrice /= days;
 
     monthlyStatics* monthlyWin = new monthlyStatics(monthTotalWeight, monthAveragePrice, monthTotalPrice, days);
@@ -2514,7 +2537,19 @@ void WasteRecycle::on_btn_register_clicked()
     }
     QString info = ui->le_name->text();
     std::string res = api_->user_add(user.toStdString().c_str(), group.toStdString().c_str(), pic.toStdString().c_str(), 2, info.toStdString().c_str());
-    qDebug() << "------res is:" << QString::fromStdString(res);
+    qDebug() << ">>>>>>> ------res is:" << QString::fromStdString(res);
+    // ui->lb_show->setText(QString::fromStdString(res));
+    Json::Reader reader;
+    Json::Value value;
+    if (reader.parse(res, value)) {
+        int err = value["errno"].asInt();
+        if (err != 0) {
+            std::string msg = value["msg"].asString();
+            QString qmsg = QString::fromLocal8Bit("错误码：") + QString("%1").arg(err) + "\n" + QString::fromLocal8Bit("错误信息：") + QString::fromStdString(msg);
+            QMessageBox::information(this, QString::fromLocal8Bit("注册失败！"), qmsg, QString::fromLocal8Bit("关闭"));
+            return;
+        }
+    }
 
     // 还需要对返回信息做解析判断
     // 如果成功则保存图片到members文件夹
@@ -2524,10 +2559,10 @@ void WasteRecycle::on_btn_register_clicked()
         dir.mkdir(dirName);
     }
 
-    QString newName = QDir::currentPath() + "/members/" + info + ".jpeg";
+    QString newName = QDir::currentPath() + "/members/" + info + "_" + ui->le_phone->text() + ".jpeg";
     dir.rename(pic, newName);
 
-    QMessageBox::information(this, QString::fromLocal8Bit("提示"), QString::fromLocal8Bit("注册完毕"), QString::fromLocal8Bit("关闭"));
+    QMessageBox::information(this, QString::fromLocal8Bit("注册成功！"), QString::fromLocal8Bit("注册成功！"), QString::fromLocal8Bit("关闭"));
     ui->le_phone->clear();
     ui->le_name->clear();
     ui->lb_show->clear();

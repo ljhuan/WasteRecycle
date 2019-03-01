@@ -171,7 +171,7 @@ public:
         chartView->resize(1000, 618);
         chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
         // chartView->chart()->createDefaultAxes();
-        chartView->chart()->setTitle("均价走势图");
+        chartView->chart()->setTitle(QString::fromLocal8Bit("走势图"));
         chartView->chart()->legend()->hide();
         chartView->setRenderHint(QPainter::Antialiasing);
         chartView->show();
@@ -278,6 +278,8 @@ private slots:
     void on_btn_logout_clicked();
 
     void setFlag(bool);
+    void on_le_RoughWeigh_textChanged(const QString &arg1);
+
 protected:
     void changeEvent(QEvent * event);
 
