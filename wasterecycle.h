@@ -227,6 +227,8 @@ private slots:
 
     void handleTimeout();  //定时器超时处理函数
 
+    void weighTimerHandleTimeout();  //定时器超时处理函数
+
     void on_btn_rWrite_clicked();
 
     void on_btn_vWrite_clicked();
@@ -279,6 +281,8 @@ private slots:
 
     void setFlag(bool);
     void on_le_RoughWeigh_textChanged(const QString &arg1);
+
+    void on_btn_startAnalyze_clicked();
 
 protected:
     void changeEvent(QEvent * event);
@@ -441,7 +445,7 @@ private:
      std::mutex apiMutex_;
      std::thread* t_ = nullptr;
      bool stop_ = false;
-     bool pause_ = false;
+     bool pause_ = true;
      void face_collect_opencv_video();
      void identify(const QString & imgPath);
      void parseInfo(QString& info);
@@ -451,6 +455,7 @@ private:
      // 信息界面点击确认 flag=true，点击取消 flag=false;
      bool flag_ = false;
      bool hasReturnZero = true;
+     QThread* baiduThread_ = nullptr;
 
      // 存储10个稳定过3秒的重量为可用重量
      std::mutex validWeightMapMutex;
@@ -460,7 +465,8 @@ private:
 
      // 定时器相关参数和函数
      QTimer * weighTimer = nullptr;
-     void weighTimerHandleTimeout();
+
+     std::map<QString, QString> phoneNameMap_;
 };
 
 #endif // WASTERECYCLE_H

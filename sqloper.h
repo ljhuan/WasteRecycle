@@ -88,9 +88,14 @@ public:
 
     std::list<QString> queryTableCharts(QString sql);
 
+    std::list<QString> queryTableMembers(QString sql);
+
+    void sqlDeleteMembersByPhone(QString phone);
+
 private:
     QSqlDatabase* pDb;
     QSqlQuery* pQuery;
+    QStringList tablesNames;
 
 signals:
 

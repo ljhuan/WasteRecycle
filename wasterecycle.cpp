@@ -213,6 +213,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     initActionsConnections();
     // 定时器设置
     m_pTimer = new QTimer(this);
+    weighTimer = new QTimer(this);
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(handleTimeout()));
     m_pTimer = new QTimer(this);
     connect(weighTimer, SIGNAL(timeout()), this, SLOT(weighTimerHandleTimeout()));
@@ -280,17 +281,45 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteData()));
     connect(this, SIGNAL(newTrackImage(QString)), this, SLOT(analyze(QString)));
 
-    // 百度人脸库初始化
-    //api实例指针
-    api_ = new BaiduFaceApi();
-    //初始化sdk
-    // 若采用证件照模式，请把id_card设为true，否则为false，证件照模式和非证件照模式提取的人脸特征值不同，
-    // 不能混用
-    bool id_card = false;
-    api_->sdk_init(id_card);
-    // 提前加载人脸库到内存
-    api_->load_db_face();
-    qDebug() << ">>>>>>> api load face db";
+    baiduThread_ = new QThread(this);
+    connect(baiduThread_, &QThread::started, this, [&](){
+        // 百度人脸库初始化
+        //api实例指针
+        api_ = new BaiduFaceApi();
+        //初始化sdk
+        // 若采用证件照模式，请把id_card设为true，否则为false，证件照模式和非证件照模式提取的人脸特征值不同，
+        // 不能混用
+        bool id_card = false;
+        api_->sdk_init(id_card);
+        // 提前加载人脸库到内存
+        api_->load_db_face();
+        qDebug() << ">>>>>>> api load face db";
+    });
+    connect(baiduThread_, &QThread::finished, thread_, &QObject::deleteLater);
+    baiduThread_->start();
+
+    // 判断人名映射表是否存在
+    QStringList tables = oper->sqlGetAllTableName();
+    if (!tables.contains("members")) {
+        QString createChartsTable = "create table members (phone varchar(100), name varchar(10), time varchar(10));";
+        oper->createTable(createChartsTable);
+    } else {
+        std::list<QString> elements;
+
+        QString queryMembersTable = "select * from members;";
+        elements = oper->queryTableMembers(queryMembersTable);
+
+        for (auto element : elements) {
+            QStringList line = element.split("  ");
+            QString phone =  line.at(0);
+            QString name = line.at(1);
+            phoneNameMap_[phone] = name;
+        }
+
+        for (auto e : phoneNameMap_) {
+            qDebug() << ">>>>>>> members:" << e;
+        }
+    }
 }
 
 WasteRecycle::~WasteRecycle()
@@ -301,6 +330,10 @@ WasteRecycle::~WasteRecycle()
     if (thread_ != nullptr && thread_->isRunning()) {
         qDebug() << "thread quit...";
         thread_->quit();
+    }
+    if(baiduThread_ != nullptr && baiduThread_->isRunning()) {
+        qDebug() << "baidu thread quit...";
+        baiduThread_->quit();
     }
     if (t_ != nullptr) {
         stop_ = true;
@@ -867,6 +900,9 @@ void WasteRecycle::face_collect_opencv_video() {
                 // 画关键点轮廓
                 CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
                 cv::imwrite(featureFileName, frame);
+
+                // 暂停获取新的视频帧，等待人脸识别结果
+                on_btn_startAnalyze_clicked();
                 emit newTrackImage(QString::fromStdString(fileName));
             }
 
@@ -1019,6 +1055,13 @@ void WasteRecycle::keyPressEvent(QKeyEvent *e)
             ui->le_RoughWeigh->setText(QString("%1").arg(data));
         } else if(ui->le_VehicleWeigh->text().trimmed() == "") {
             ui->le_VehicleWeigh->setText(QString("%1").arg(data));
+        }
+        break;
+    case Qt::Key_F1:
+        qDebug() << "key F1";
+        // 当停止时，则开始识别
+        if (pause_) {
+            on_btn_startAnalyze_clicked();
         }
         break;
     default:
@@ -1226,9 +1269,9 @@ void WasteRecycle::nextVehicle()
     bPriceInit = true;
     ui->vslider_percent->setValue(pos);
     ui->lb_percent->setText(QString("%1").arg(fLevel2));
-    if(!stop_) {
-        pause_ = false;
-    }
+//    if(!stop_) {
+//        pause_ = false;
+//    }
 }
 
 void WasteRecycle::deleteData()
@@ -1334,13 +1377,17 @@ void WasteRecycle::readWeighBridgeData()
 void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
 {
     weighBridgeData.append(wbd);
-    // qDebug() << "weighBridgeData:" << QString(weighBridgeData);
+    qDebug() << ">>>>>>> [putWeighBridgeData] weighBridgeData:" << QString(weighBridgeData);
     if(weighBridgeData.contains("\n")) {
         weighBridgeData.clear();
     }
+
     if(weighBridgeData.length()>12) {
         QString qqba = QString(weighBridgeData);
-        qDebug() << "qqba:" << qqba;
+        if (weighBridgeData.contains('cl') ) {
+            weighBridgeData.clear();
+            qqba = qqba.mid(qqba.indexOf("l")+1);
+        }
         qqba = qqba.mid(qqba.indexOf("n")+1, 8);
         if(fWeight != qqba.toFloat()) {
             m_pTimer->stop();
@@ -1348,11 +1395,12 @@ void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
             if (fWeight < 1) {
                 hasReturnZero = true;
             }
-
-            if (theTimingWeigh !=0 && (fWeight - theTimingWeigh > 0.5|| theTimingWeigh - fWeight > 0.5)) {
+            if ((fWeight - theTimingWeigh > 0.5|| theTimingWeigh - fWeight > 0.5)) {
+                weighTimer->stop();
                 theTimingWeigh = fWeight;
                 // 开始计时3秒，3秒到，则把该稳定重量存入可用重量的map中
                 weighTimer->start(1000*3);
+                qDebug() << ">>>>>>> [putWeighBridgeData] weighTimer start timing!";
             }
             ui->lb_display->setText(QString("%1").arg(fWeight));
 
@@ -1896,16 +1944,22 @@ void WasteRecycle::dataRecoveryFromUnloadingTableView(const QModelIndex &index)
     date = date.replace('-', '_');
 
     QString rwFilename = QDir::currentPath() +  "/" + date + "_rwPicture" + "/" + currIndex + "_" + rw + ".jpeg";
-    QImage rwImage = QImage(rwFilename);
-    ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(rwImage).scaled(ui->lb_rwScaledImage->width(), ui->lb_rwScaledImage->height()));
+    QFile rfile(rwFilename);
+    if (rfile.exists()) {
+        QImage rwImage = QImage(rwFilename);
+        ui->lb_rwScaledImage->setPixmap(QPixmap::fromImage(rwImage).scaled(ui->lb_rwScaledImage->width(), ui->lb_rwScaledImage->height()));
+    }
 
     if(vw.trimmed() == "") {
         vw = "0";
         ui->le_VehicleWeigh->setText("0");
     }
     QString vwFilename = QDir::currentPath() +  "/" + date + "_vwPicture" + "/" + currIndex + "_" + vw + ".jpeg";
-    QImage vwImage = QImage(vwFilename);
-    ui->lb_vwScaledImage->setPixmap(QPixmap::fromImage(vwImage).scaled(ui->lb_vwScaledImage->width(), ui->lb_vwScaledImage->height()));
+    QFile vfile(vwFilename);
+    if (vfile.exists()) {
+        QImage vwImage = QImage(vwFilename);
+        ui->lb_vwScaledImage->setPixmap(QPixmap::fromImage(vwImage).scaled(ui->lb_vwScaledImage->width(), ui->lb_vwScaledImage->height()));
+    }
 
     if(!usr.isEmpty()) {
         QString usrFilename = QDir::currentPath() +  "/members/" + usr + ".jpeg";
@@ -2184,11 +2238,13 @@ void WasteRecycle::openSerialPort()
 
 void WasteRecycle::weighTimerHandleTimeout()
 {
+    qDebug() << ">>>>>>> [weighTimerHandleTimeout] weighTimer timeout";
     weighTimer->stop();
     if(count == 10) {
         count = 0;
     }
     {
+        qDebug() << ">>>>>>> [weighTimerHandleTimeout] valid weigh:" << theTimingWeigh;
         std::unique_lock<std::mutex> lock(validWeightMapMutex);
         validWeightMap[count] = theTimingWeigh;
     }
@@ -2234,6 +2290,7 @@ void WasteRecycle::on_btn_rClear_clicked()
     ui->le_RoughWeigh->setFocus();
     ui->lb_rwScaledImage->clear();
     ui->lb_photo->clear();
+    hasReturnZero = true;
 }
 
 void WasteRecycle::on_btn_vClear_clicked()
@@ -2522,10 +2579,11 @@ void WasteRecycle::on_btn_capture_clicked()
 }
 
 void WasteRecycle::on_btn_register_clicked()
-{
-    QString user = ui->le_phone->text();
+{   
+    QString phone = ui->le_phone->text();
     QString group = "packmen";
     QString pic;
+
     if (ui->le_phone->text().isEmpty() || ui->le_name->text().isEmpty()) {
         QMessageBox::warning(this, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("注册信息不完整"), QString::fromLocal8Bit("关闭"));
         return;
@@ -2535,8 +2593,8 @@ void WasteRecycle::on_btn_register_clicked()
     } else {
         pic = ui->lb_path->text();
     }
-    QString info = ui->le_name->text();
-    std::string res = api_->user_add(user.toStdString().c_str(), group.toStdString().c_str(), pic.toStdString().c_str(), 2, info.toStdString().c_str());
+    QString name = ui->le_name->text();
+    std::string res = api_->user_add(phone.toStdString().c_str(), group.toStdString().c_str(), pic.toStdString().c_str(), 2, phone.toStdString().c_str());
     qDebug() << ">>>>>>> ------res is:" << QString::fromStdString(res);
     // ui->lb_show->setText(QString::fromStdString(res));
     Json::Reader reader;
@@ -2552,15 +2610,26 @@ void WasteRecycle::on_btn_register_clicked()
     }
 
     // 还需要对返回信息做解析判断
-    // 如果成功则保存图片到members文件夹
+    // 如果成功则保存图片到members文件夹, 并且将注册信息保存到db 的 members表格中
+
     QDir dir;
     QString dirName = "members";
     if(!dir.exists(dirName)) {
         dir.mkdir(dirName);
     }
 
-    QString newName = QDir::currentPath() + "/members/" + info + "_" + ui->le_phone->text() + ".jpeg";
+    QString newName = QDir::currentPath() + "/members/" + name + ".jpeg";
     dir.rename(pic, newName);
+
+    QDateTime qtime = QDateTime::currentDateTime();
+    QString time = qtime.toString("yyyy-MM-dd hh:mm:ss");
+
+    // 测试下 phone相同时， 数据是否可以覆盖
+    QString insertMembersTable =  "insert into members values('" + phone + "'" + ", '" + name + "'"
+            + ", '" +  time + "');";
+
+    phoneNameMap_[phone] = name;
+    oper->insertTable(insertMembersTable);
 
     QMessageBox::information(this, QString::fromLocal8Bit("注册成功！"), QString::fromLocal8Bit("注册成功！"), QString::fromLocal8Bit("关闭"));
     ui->le_phone->clear();
@@ -2613,10 +2682,11 @@ void WasteRecycle::parseInfo(QString& info) {
     Json::Reader reader;
     Json::Value	value;
     Json::Value  result;
-    Json::Value  userInfos_value;
+    // Json::Value  userInfos_value;
     std::string userID;
     std::string score;
     QString userInfos;
+    QString userName;
     if(reader.parse(info.toUtf8().data(), value)) {
         int err = value["errno"].asInt();
         if (err != 0) {
@@ -2631,31 +2701,37 @@ void WasteRecycle::parseInfo(QString& info) {
             std::string groupID = result[i]["group_id"].asString();
             qDebug() << "userID:" << QString::fromStdString(userID);
             qDebug() << "groupID:" << QString::fromStdString(groupID);
-            userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+            // userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+            userName = phoneNameMap_[QString::fromStdString(userID)];
         }
     } else {
         qDebug() << "json file error";
     }
 
-    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
-        int err = value["errno"].asInt();
-        if (err != 0) {
-            qDebug() << "err:" << err;
-            return;
-        }
+    ui->le_name->setText(userName);
+    ui->le_phone->setText(QString::fromStdString(userID));
+    QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+    ui->lb_similarity->setText(scoreMsg);
 
-        result = userInfos_value["data"]["result"];
-        for (int i = 0; i < result.size(); ++i) {
-            std::string userInfo = result[i]["user_info"].asString();
-            qDebug() << "userInfo:" << QString::fromStdString(userInfo);
-            ui->le_name->setText(QString::fromStdString(userInfo));
-            ui->le_phone->setText(QString::fromStdString(userID));
-            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
-            ui->lb_similarity->setText(scoreMsg);
-        }
-    } else {
-        qDebug() << "json file error";
-    }
+//    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
+//        int err = value["errno"].asInt();
+//        if (err != 0) {
+//            qDebug() << "err:" << err;
+//            return;
+//        }
+
+//        result = userInfos_value["data"]["result"];
+//        for (int i = 0; i < result.size(); ++i) {
+//            std::string userInfo = result[i]["user_info"].asString();
+//            qDebug() << "userInfo:" << QString::fromStdString(userInfo);
+//            ui->le_name->setText(QString::fromStdString(userInfo));
+//            ui->le_phone->setText(QString::fromStdString(userID));
+//            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+//            ui->lb_similarity->setText(scoreMsg);
+//        }
+//    } else {
+//        qDebug() << "json file error";
+//    }
 }
 
 void WasteRecycle::identify(const QString & imgPath) {
@@ -2677,8 +2753,40 @@ void WasteRecycle::identify(const QString & imgPath) {
 }
 
 void WasteRecycle::analyze(const QString imgPath) {
-    qDebug() << ">>>>>>> analyze IN";
-    qDebug() << ">>>>>>> imgPath:" << imgPath;
+    qDebug() << ">>>>>>> [analyze] analyze IN";
+    qDebug() << ">>>>>>> [analyze] imgPath:" << imgPath;
+
+    Json::Reader reader;
+    Json::Value	value;
+    Json::Value  result;
+    // Json::Value  userInfos_value;
+    std::string userID;
+    std::string score;
+    static std::string currentUser;
+    // std::string userInfo;
+    // QString userInfos;
+    QString userName;
+
+    // 1. 处于修改状态时， 不进行人脸识别
+    if (bModify || bModifyUnloading) {
+        qDebug() << ">>>>>>> [analyze] in modify modern, no face analyze!";
+        return;
+    }
+    // 2. 地磅未归零时， 不进行人脸识别
+//    if (!hasReturnZero) {
+//        qDebug() << ">>>>>>> [analyze] has't back to zero";
+//        return;
+//    }
+
+    // 3. 未显示数字，与地磅连接有问题时，不进行人脸识别
+    QString data = ui->lb_display->text();
+    if(data == QString::fromLocal8Bit("金龙纸业") || data == "") {
+        qDebug() << ">>>>>>> [analyze] display is wrong";
+        return;
+    }
+
+    QString featurePath = imgPath;
+    featurePath = featurePath.replace('.', "_feature.");
 
     std::string res;
     {
@@ -2687,23 +2795,20 @@ void WasteRecycle::analyze(const QString imgPath) {
         res = api_->identify(imgPath.toUtf8().data(), 2);
     }
     QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
-    qDebug() << ">>>>>>> ---200 analyze res is:" << info;
+    qDebug() << ">>>>>>> [analyze] ---200 analyze res is:" << info;
 
-    Json::Reader reader;
-    Json::Value	value;
-    Json::Value  result;
-    Json::Value  userInfos_value;
-    std::string userID;
-    std::string score;
-    static std::string currentUser;
-    std::string userInfo;
-    QString userInfos;
+
     if(reader.parse(info.toUtf8().data(), value)) {
         int err = value["errno"].asInt();
+        // 4. 识别错误时， 不再继续
         if (err != 0) {
             // 图片删除
             remove(imgPath);
-            qDebug() << "err:" << err;
+            remove(featurePath);
+            qDebug() << ">>>>>>> [analyze] err:" << err;
+
+            // 继续取流进行人脸识别
+            on_btn_startAnalyze_clicked();
             return;
         }
 
@@ -2714,19 +2819,22 @@ void WasteRecycle::analyze(const QString imgPath) {
             // std::cout << "score:" << QString::fromStdString(score).toFloat() << " maxScore:" << maxScore << std::endl;
             float sc = QString::fromStdString(score).toFloat();
             float threshold = priceSetWin->threshold_.toFloat();
-            if (sc < threshold ) {
-                qDebug() << "score is too low, score:" << QString::fromStdString(score) << " threshold:" << priceSetWin->threshold_;
-                // 分数比较低的图片删除
-                remove(imgPath);
-                return;
-            } /*else if (sc <= maxScore && userID == currentUser) {
-                // 分数比较低的图片删除
-                remove(imgPath);
-            }*/
 
-            if (userID != currentUser && hasReturnZero==false) {
-                qDebug() << "has not yet return zero and not analyze!, current userID is:" << QString::fromStdString(userID);
+            // 5. 识别出的人脸置信度低于阈值时，不再继续
+            if (sc < threshold ) {
+                qDebug() << ">>>>>>> [analyze] score is too low, score:" << QString::fromStdString(score) << " threshold:" << priceSetWin->threshold_;
+                // 分数比较低的图片删除
+                remove(imgPath);
+                remove(featurePath);
+                // 继续取流进行人脸识别
+                on_btn_startAnalyze_clicked();
                 return;
+            }
+
+            // 6. 识别用户切换，但地磅未归零时，不再继续
+            if (userID != currentUser/* && hasReturnZero==false*/) {
+//                qDebug() << ">>>>>>> [analyze] has not yet return zero and not analyze!, current userID is:" << QString::fromStdString(userID);
+//                return;
             } else {
                 float data = ui->lb_display->text().toFloat();
                 std::unique_lock<std::mutex> lock(validWeightMapMutex);
@@ -2737,69 +2845,64 @@ void WasteRecycle::analyze(const QString imgPath) {
                         break;
                     }
                 }
+
+                // 7. 地磅数据未稳定时，不再继续
                 if (ui->lb_display->text() !="" && i == size) {
-                    // QMessageBox::information(NULL, QString::fromLocal8Bit("提醒"), QString::fromLocal8Bit("当前地磅上分量未稳定!"));
-//                    ui->lb_display->setText(QString::fromLocal8Bit("当前地磅上重量未稳定，请重新检测人脸! 3"));
-                    qDebug() << QString::fromLocal8Bit("当前地磅上分量未稳定!");
-//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                    ui->lb_display->setText(QString::fromLocal8Bit("重量未稳定，请重新检测人脸! 2"));
-//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                    ui->lb_display->setText(QString::fromLocal8Bit("重量未稳定，请重新检测人脸! 1"));
-//                    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//                    QPixmap myPix = QPixmap(":/images/mimeiti_da.png").scaled(600, 160);
-//                    ui->lb_display->setPixmap(myPix);
-//                    ui->lb_display->show();
+                    qDebug() << ">>>>>>> [analyze] weighbridge data is not stable!, current number is not validWeigh!";
+                    // 继续取流进行人脸识别
+                    on_btn_startAnalyze_clicked();
                     return;
                 }
             }
 
             if (userID != currentUser) {
                 currentUser = userID;
-                qDebug() << "currentUser:" <<  QString::fromStdString(currentUser);
-            } else {
-
+                qDebug() << ">>>>>>> [analyze] User change, currentUser:" <<  QString::fromStdString(currentUser);
             }
-//            if (sc > maxScore && userID == currentUser) {
-//                    // maxScore = QString::fromStdString(score).toFloat();
-//                    // 分数最高的图片转存到bestFaces下
-
-//            }
             std::string groupID = result[i]["group_id"].asString();
             qDebug() << ">>>>>>> userID:" << QString::fromStdString(userID);
             qDebug() << ">>>>>>> groupID:" << QString::fromStdString(groupID);
-            userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+            // userInfos = QString::fromUtf8(api_->get_user_info(userID.c_str(), groupID.c_str()));
+            userName = phoneNameMap_[QString::fromStdString(userID)];
         }
     } else {
+        // 8. json 信息解析出错时，不再继续
         qDebug() << ">>>>>>> json file error";
+        // 继续取流进行人脸识别
+        on_btn_startAnalyze_clicked();
+        return;
     }
 
+    ui->le_name->setText(userName);
+    ui->le_phone->setText(QString::fromStdString(userID));
+    QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+    ui->lb_similarity->setText(scoreMsg);
 
-    // QImage image = QImage(bestFeaturePath);
-    // 当不是注册时， 则进行图像显示
-//    if (ui->lb_path->text().isEmpty()) {
-//        ui->lb_show->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_show->width(), ui->lb_show->height()));
+//    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
+//        // 9. 获取用户信息失败时，不再继续
+//        int err = value["errno"].asInt();
+//        if (err != 0) {
+//            qDebug() << ">>>>>>> get_user_info err:" << err;
+//            // 继续取流进行人脸识别
+//            on_btn_startAnalyze_clicked();
+//            return;
+//        }
+
+//        result = userInfos_value["data"]["result"];
+//        for (int i = 0; i < result.size(); ++i) {
+//            userInfo = result[i]["user_info"].asString();
+//            qDebug() << ">>>>>>> userInfo:" << QString::fromStdString(userInfo);
+//            ui->le_name->setText(QString::fromStdString(userInfo));
+//            ui->le_phone->setText(QString::fromStdString(userID));
+//            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
+//            ui->lb_similarity->setText(scoreMsg);
+//        }
+//    } else {
+//        qDebug() << ">>>>>>> json file error";
+//        // 继续取流进行人脸识别
+//        on_btn_startAnalyze_clicked();
+//        return;
 //    }
-
-    if (!userInfos.isEmpty() && reader.parse(userInfos.toUtf8().data(), userInfos_value)) {
-        int err = value["errno"].asInt();
-        if (err != 0) {
-            qDebug() << ">>>>>>> err:" << err;
-            return;
-        }
-
-        result = userInfos_value["data"]["result"];
-        for (int i = 0; i < result.size(); ++i) {
-            userInfo = result[i]["user_info"].asString();
-            qDebug() << ">>>>>>> userInfo:" << QString::fromStdString(userInfo);
-            ui->le_name->setText(QString::fromStdString(userInfo));
-            ui->le_phone->setText(QString::fromStdString(userID));
-            QString scoreMsg = QString::fromLocal8Bit("相似度：") + QString::fromStdString(score);
-            ui->lb_similarity->setText(scoreMsg);
-        }
-
-    } else {
-        qDebug() << ">>>>>>> json file error";
-    }
 
     // 达标的图片转存到bestFaces下
     QDir dir;
@@ -2818,66 +2921,51 @@ void WasteRecycle::analyze(const QString imgPath) {
     QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + tag+ ".jpg";
     remove(fileName);
 
-    QString featurePath = imgPath;
-    featurePath = featurePath.replace('.', "_feature.");
     dir.rename(imgPath, fileName);
     QString bestFeaturePath = fileName.replace('.', "_feature.");
     dir.rename(featurePath, bestFeaturePath);
 
-    QString headPhoto = QDir::currentPath() + "/members/" + QString::fromStdString(userInfo) + ".jpeg";
-    QImage image = QImage(headPhoto);
-    ui->lb_photo->setPixmap(QPixmap::fromImage(image).scaled(ui->lb_photo->width(), ui->lb_photo->height()));
-    if (bModify || bModifyUnloading) {
-        // on_btn_rWrite_clicked();
-        return;
-    }
+    // on_btn_startAnalyze_clicked();
 
     // 当在unloading表格中查找到该用户并且车重不为“卸载中”或者不为空并且毛重不为空并且车重毛重相差超过一公斤时，执行恢复操作，之后再点击车重填入按钮
     // 当在卸货表格中查找不到当前号码时，则填入毛重；当查到当前号码时，则填入车重
-    bool exist = searchUnloadingTableByName(QString::fromStdString(userInfo));
+    bool exist = searchUnloadingTableByName(userName);
 
     bool toShow = true;
-    QString data = ui->lb_display->text();
-    wi_->name_ = QString::fromStdString(userInfo);
+
+    wi_->clear();
+    wi_->name_ = userName;
     wi_->num_ = ui->lb_CurrNum->text();
 
     if (exist) {
-        // on_btn_vWrite_clicked();
-        if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
-            float tmp = data.toFloat();
-            ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
-        }
-
         // 当数据未恢复时，则不进行结算
         if (ui->le_RoughWeigh->text().isEmpty() && ui->le_RoughWeigh->text().isEmpty()) {
             qDebug() << ">>>>>>> toShow is false";
             toShow = false;
         } else {
+            float tmp = data.toFloat();
+            ui->le_VehicleWeigh->setText(QString("%1").arg(tmp));
             wi_->rWeight_ = ui->le_RoughWeigh->text();
             wi_->vWeight_ = ui->le_VehicleWeigh->text();
             on_btn_vechileWeightCapture_clicked();
         }
     } else {
-        // on_btn_rWrite_clicked();
-        wi_->clear();
-        if(data != QString::fromLocal8Bit("金龙纸业") && data != "") {
-            float tmp = data.toFloat();
-            ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
-        }
+        float tmp = data.toFloat();
+        ui->le_RoughWeigh->setText(QString("%1").arg(tmp));
 
         wi_->rWeight_ = ui->le_RoughWeigh->text();
-        if (wi_->rWeight_ != "") {
-            on_btn_roughWeightCapture_clicked();
-        } else {
-            toShow = false;
-            pause_ = true;
-        }
+        on_btn_roughWeightCapture_clicked();
+//        if (wi_->rWeight_ != "") {
+//            on_btn_roughWeightCapture_clicked();
+//        } else {
+//            toShow = false;
+//            pause_ = true;
+//        }
     }
-
 
     if(toShow) {
         wi_->flush();
-        pause_ = true;
+        // pause_ = true;
         wi_->exec();
 
         if (!exist && flag_) {
@@ -2887,7 +2975,7 @@ void WasteRecycle::analyze(const QString imgPath) {
         }
     }
 
-    qDebug() << ">>>>>>> analyze OUT";
+    qDebug() << ">>>>>>> [analyze] analyze OUT";
 }
 
 void WasteRecycle::on_btn_analyze_clicked()
@@ -2938,7 +3026,7 @@ void WasteRecycle::on_btn_faceAnalyze_clicked()
 //        }
     } else {
         stop_ = false;
-        pause_ = false;
+        // pause_ = false;
         ui->btn_faceAnalyze->setText(QString::fromLocal8Bit("停止人脸识别"));
         t_ = new std::thread(&WasteRecycle::face_collect_opencv_video, this);
         t_->detach();
@@ -2967,6 +3055,10 @@ void WasteRecycle::on_btn_logout_clicked()
 
     // 对返回信息进行解析
     qDebug() << "-----user_delete res:" << QString::fromStdString(res);
+    api_->load_db_face();
+
+    // 数据库members 表中删除对应的人员信息，phoneNameMap_中删除对应的人员信息
+    oper->sqlDeleteMembersByPhone(QString::fromStdString(userID));
 
     ui->le_name->clear();
     ui->le_phone->clear();
@@ -2977,4 +3069,19 @@ void WasteRecycle::setFlag(bool flag)
 {
     std::cout << "flag:" << flag << std::endl;
     flag_ = flag;
+}
+
+void WasteRecycle::on_btn_startAnalyze_clicked()
+{
+    if(!ui->le_VehicleWeigh->text().isEmpty()) {
+        qDebug() << QString::fromLocal8Bit("等待报价中，不允许开始新的识别任务");
+        return;
+    }
+    if (pause_ == true) {
+        pause_ = false;
+        ui->btn_startAnalyze->setText(QString::fromLocal8Bit("停止"));
+    } else {
+        pause_ = true;
+        ui->btn_startAnalyze->setText(QString::fromLocal8Bit("开始"));
+    }
 }

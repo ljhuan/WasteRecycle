@@ -42,6 +42,8 @@ SqlOper::SqlOper(QWidget *parent) : QWidget(parent), pDb(nullptr)
         } else {
             qDebug() << "db is exist";
         }
+
+        tablesNames =  pDb->tables();
         pDb->close();
     }
 }
@@ -162,13 +164,13 @@ std::list<QString> SqlOper::sqlQueryUnloadingByDate(QString date)
 
 QStringList SqlOper::sqlGetAllTableName()
 {
-    QStringList tables;
-    if(!pDb->open()) {
-        qDebug() << "sqlGetAllTableName db open failed!";
-        return tables;
-    }
+//    QStringList tables;
+//    if(!pDb->open()) {
+//        qDebug() << "sqlGetAllTableName db open failed!";
+//        return tables;
+//    }
 
-    return pDb->tables();
+    return tablesNames;
 }
 
 void SqlOper::createTable(QString sql)
@@ -178,6 +180,9 @@ void SqlOper::createTable(QString sql)
         return;
     }
     pDb->exec(sql);
+
+    // 更新数据库的表名List
+    tablesNames = pDb->tables();
 }
 
 void SqlOper::insertTable(QString sql)
@@ -251,6 +256,26 @@ std::list<QString> SqlOper::queryTableCharts(QString sql)
     return results;
 }
 
+std::list<QString> SqlOper::queryTableMembers(QString sql)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "queryTableMembers db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    QSqlQuery query(*pDb);
+    qDebug() << sql;
+    query.exec(sql);
+    while(query.next()) {
+        QString result = query.value("phone").toString() + UtilityTools::holdPlaces(2) + query.value("name").toString() + UtilityTools::holdPlaces(2) +
+                query.value("time").toString();
+        // qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
 void SqlOper::sqlDeleteById(QString index, QString date)
 {
     if(!pDb->open()) {
@@ -263,6 +288,25 @@ void SqlOper::sqlDeleteById(QString index, QString date)
     QString tableName = "record_" + date;
     QSqlQuery query(*pDb);
     QString sqlDel = "delete from " + tableName + " where id = " + index;
+    qDebug() << sqlDel;
+
+    query.exec(sqlDel);
+
+    pDb->close();
+}
+
+void SqlOper::sqlDeleteMembersByPhone(QString phone)
+{
+    if(!pDb->open()) {
+        qDebug() << "sqlQueryIsExist db open failed!";
+        return;
+    }
+
+    // QDateTime date = QDateTime::currentDateTime();
+    // QString today = date.toString("yyyy_MM_dd");
+    QString tableName = "members";
+    QSqlQuery query(*pDb);
+    QString sqlDel = "delete from " + tableName + " where phone = " + phone;
     qDebug() << sqlDel;
 
     query.exec(sqlDel);

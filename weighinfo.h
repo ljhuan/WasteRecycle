@@ -24,6 +24,7 @@ public:
     QString rWeight_;
     QString vWeight_;
     QString todayWeight_;
+
 signals:
     void flag(bool);
 
