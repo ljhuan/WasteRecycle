@@ -35,7 +35,6 @@ void WeighInfo::flush()
     QImage image = QImage(headPhoto);
     int hw = ui->lb_head->width();
     int hh = ui->lb_head->height();
-    qDebug() << ">>>>>>> hw:" << hw << " hh:" << hh;
     ui->lb_head->setPixmap(QPixmap::fromImage(image).scaled(hw, hh));
 
     QDateTime date = QDateTime::currentDateTime();

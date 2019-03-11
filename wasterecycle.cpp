@@ -33,6 +33,7 @@
 #include <QTimer>
 #include <QDir>
 #include <QDesktopServices>
+#include <ctime>
 
 #include "wasterecycle.h"
 #include "ui_wasterecycle.h"
@@ -812,6 +813,7 @@ void WasteRecycle::face_collect_opencv_video() {
     bool save_file = false;
     float max_score = 1;
     long faceID = -1;
+    int s = 0, e = 0;
 
     cv::RotatedRect box;
     std::vector<TrackFaceInfo> *track_info = new std::vector<TrackFaceInfo>();
@@ -830,11 +832,15 @@ void WasteRecycle::face_collect_opencv_video() {
             continue;
         }
 
-        if(count == 10) {
+        if(count == 5) {
             count = 0;
             // emit newTrackImage(QString::fromStdString("abc"));
             std::unique_lock<std::mutex> guard(apiMutex_);
+            s = clock();
             size = api_->track_max_face(track_info, frame);
+            e = clock();
+
+            qDebug() << ">>>>>>> [face_collect_opencv_video] api_->track_max_face : " << (e - s) << " ms";
         } else {
             ++count;
             size = 0;
@@ -888,18 +894,21 @@ void WasteRecycle::face_collect_opencv_video() {
                 if(!dir.exists(dirName)) {
                     dir.mkdir(dirName);
                 }
+                s = clock();
                 std::string fileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_" + std::to_string(info.score) + ".jpg";
                 cv::imwrite(fileName, frame);
+                e = clock();
+                qDebug() << ">>>>>>> [face_collect_opencv_video] write image : " << (e - s) << " ms";
                 // std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 // analyze(QString::fromStdString(fileName));
 
-                std::string featureFileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_" + std::to_string(info.score) + "_feature.jpg";
-                // 画人脸框
-                box = CvHelp::bounding_box(info.landmarks);
-                CvHelp::draw_rotated_box(frame, box, cv::Scalar(0, 255, 0));
-                // 画关键点轮廓
-                CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
-                cv::imwrite(featureFileName, frame);
+//                std::string featureFileName = QDir::currentPath().toStdString() + "/track/track_" + std::to_string(info.face_id) + "_" + std::to_string(info.score) + "_feature.jpg";
+//                // 画人脸框
+//                box = CvHelp::bounding_box(info.landmarks);
+//                CvHelp::draw_rotated_box(frame, box, cv::Scalar(0, 255, 0));
+//                // 画关键点轮廓
+//                CvHelp::draw_shape(info.landmarks, frame, cv::Scalar(0, 255, 0));
+//                cv::imwrite(featureFileName, frame);
 
                 // 暂停获取新的视频帧，等待人脸识别结果
                 on_btn_startAnalyze_clicked();
@@ -1377,7 +1386,6 @@ void WasteRecycle::readWeighBridgeData()
 void WasteRecycle::putWeighBridgeData(QByteArray &wbd)
 {
     weighBridgeData.append(wbd);
-    qDebug() << ">>>>>>> [putWeighBridgeData] weighBridgeData:" << QString(weighBridgeData);
     if(weighBridgeData.contains("\n")) {
         weighBridgeData.clear();
     }
@@ -2766,6 +2774,8 @@ void WasteRecycle::analyze(const QString imgPath) {
     // std::string userInfo;
     // QString userInfos;
     QString userName;
+    int s = 0, e = 0, s1 = 0, e1 = 0;
+    s1 = clock();
 
     // 1. 处于修改状态时， 不进行人脸识别
     if (bModify || bModifyUnloading) {
@@ -2792,8 +2802,13 @@ void WasteRecycle::analyze(const QString imgPath) {
     {
         std::unique_lock<std::mutex> guard(apiMutex_);
         // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        s = clock();
         res = api_->identify(imgPath.toUtf8().data(), 2);
+        e = clock();
     }
+
+    qDebug() << ">>>>>>> [analyze] api_->identify: " << (e - s) << " ms";
+
     QString info = QString::fromStdString(res).replace("\n", "").replace("\t", "").replace("\\", "");
     qDebug() << ">>>>>>> [analyze] ---200 analyze res is:" << info;
 
@@ -2904,27 +2919,6 @@ void WasteRecycle::analyze(const QString imgPath) {
 //        return;
 //    }
 
-    // 达标的图片转存到bestFaces下
-    QDir dir;
-    QString dirName = "bestFaces";
-    if(!dir.exists(dirName)) {
-        dir.mkdir(dirName);
-    }
-
-    QString index = ui->lb_CurrNum->text();
-    QString tag;
-    if (ui->le_RoughWeigh->text() == "") {
-        tag = "_" + index + "_rw";
-    } else if (ui->le_VehicleWeigh->text() == "") {
-        tag = "_" + index + "_vw";
-    }
-    QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + tag+ ".jpg";
-    remove(fileName);
-
-    dir.rename(imgPath, fileName);
-    QString bestFeaturePath = fileName.replace('.', "_feature.");
-    dir.rename(featurePath, bestFeaturePath);
-
     // on_btn_startAnalyze_clicked();
 
     // 当在unloading表格中查找到该用户并且车重不为“卸载中”或者不为空并且毛重不为空并且车重毛重相差超过一公斤时，执行恢复操作，之后再点击车重填入按钮
@@ -2963,6 +2957,9 @@ void WasteRecycle::analyze(const QString imgPath) {
 //        }
     }
 
+    e1 = clock();
+    qDebug() << ">>>>>>> [analyze] analyze : " << (e1 - s1) << " ms";
+    QString index = ui->lb_CurrNum->text();
     if(toShow) {
         wi_->flush();
         // pause_ = true;
@@ -2974,6 +2971,26 @@ void WasteRecycle::analyze(const QString imgPath) {
             ui->tableView_unloading->setFocus();
         }
     }
+    // 达标的图片转存到bestFaces下
+    QDir dir;
+    QString dirName = "bestFaces";
+    if(!dir.exists(dirName)) {
+        dir.mkdir(dirName);
+    }
+
+
+    QString tag;
+    if (ui->le_RoughWeigh->text() == "") {
+        tag = "_" + index + "_rw";
+    } else {
+        tag = "_" + index + "_vw";
+    }
+    QString fileName = QDir::currentPath() + "/bestFaces/" + QString::fromStdString(userID) + tag+ ".jpg";
+    remove(fileName);
+
+    dir.rename(imgPath, fileName);
+//    QString bestFeaturePath = fileName.replace('.', "_feature.");
+//    dir.rename(featurePath, bestFeaturePath);
 
     qDebug() << ">>>>>>> [analyze] analyze OUT";
 }
