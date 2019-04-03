@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1287</width>
-    <height>737</height>
+    <width>1290</width>
+    <height>720</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -90,7 +90,7 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="5,6">
+   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="4,6">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="styleSheet">
@@ -103,38 +103,37 @@
        <attribute name="title">
         <string>当前</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_5" stretch="3,1,2,2,1,3,5">
+       <layout class="QVBoxLayout" name="verticalLayout_5" stretch="3,1,3,2,5,0">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="lb_display">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>48</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>金龙纸业</string>
-            </property>
-            <property name="scaledContents">
-             <bool>false</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QLabel" name="lb_display">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>48</pointsize>
+            <weight>75</weight>
+            <italic>false</italic>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>金龙纸业</string>
+          </property>
+          <property name="scaledContents">
+           <bool>false</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="1,1,2,1,1,1">
@@ -307,7 +306,7 @@ QPushButton:hover{
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_PriceSet">
+           <widget class="QPushButton" name="btn_set">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -747,35 +746,37 @@ QPushButton:hover{
          </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_Next">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>70</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <family>Arial</family>
-            <pointsize>28</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QPushButton{color: rgb(255, 255, 255);
+         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="4,1">
+          <item>
+           <widget class="QPushButton" name="btn_Next">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>28</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{color: rgb(255, 255, 255);
 			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
             border:1px;
             border-radius:10px;
@@ -796,353 +797,791 @@ QPushButton:hover{
             padding:2px 4px;
         }
 </string>
+            </property>
+            <property name="text">
+             <string>下一辆</string>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_priceSet">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>16</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+			width:67px;
+			heigt:34px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+        }
+</string>
+            </property>
+            <property name="text">
+             <string>价格设置</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>种类</string>
           </property>
-          <property name="text">
-           <string>下一辆</string>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>16</width>
-            <height>16</height>
-           </size>
-          </property>
+          <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,1,1" columnstretch="2,2,1,2,2">
+           <property name="spacing">
+            <number>3</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_huangban">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>黄板</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="btn_chao1">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>超1</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="btn_shuben">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>书本</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4">
+            <widget class="QPushButton" name="btn_baozhi">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>报纸</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="btn_tonghuo">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>统货</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="btn_chao2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>超2</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2" rowspan="2">
+            <widget class="QSlider" name="vslider_percent">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::StrongFocus</enum>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QSlider::groove:vertical {
+border: 1px solid #4A708B;
+background: #C0C0C0;
+width: 10px;
+border-radius: 1px;
+padding-left:-1px;
+padding-right:-1px;
+padding-top:-1px;
+padding-bottom:-1px;
+}
+QSlider::sub-page:vertical {
+background: #575757;
+border: 1px solid #4A708B;
+border-radius: 2px;
+}
+QSlider::add-page:vertical {
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #c4c4c4, stop:1 #B1B1B1);
+background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1, stop: 0 #5DCCFF, stop: 1 #1874CD);
+border: 0px solid #777;
+width: 15px;
+border-radius: 2px;
+}
+QSlider::handle:vertical {
+background: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0.6 #45ADED, stop:0.778409 rgba(255, 255, 255, 255));
+height: 11px;
+margin-left: -3px;
+margin-right: -3px;
+border-radius: 5px;
+}
+QSlider::sub-page:vertical:disabled {
+background: #00009C;
+border-color: #999;
+}
+QSlider::add-page:vertical:disabled {
+background: #eee;
+border-color: #999;
+}
+QSlider::handle:vertical:disabled {
+background: #eee;
+border: 1px solid #aaa;
+border-radius: 4px;
+}</string>
+             </property>
+             <property name="minimum">
+              <number>-5</number>
+             </property>
+             <property name="maximum">
+              <number>5</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
+             </property>
+             <property name="pageStep">
+              <number>1</number>
+             </property>
+             <property name="value">
+              <number>0</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="3">
+            <widget class="QPushButton" name="btn_tie">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>铁</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4">
+            <widget class="QPushButton" name="btn_buxiugang">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>不锈钢</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QPushButton" name="btn_jumin">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>民用</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="btn_chao3">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>超3</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="3">
+            <widget class="QPushButton" name="btn_lv">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>铝</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="4">
+            <widget class="QPushButton" name="btn_tong">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>150</width>
+               <height>200</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:7px;
+            padding:2px 4px;
+        }
+</string>
+             </property>
+             <property name="text">
+              <string>铜</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="MyLineEdit" name="le_fineAdjustment">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <family>Arial</family>
+               <pointsize>16</pointsize>
+               <weight>75</weight>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border:2px groove gray;border-radius:7px;padding:1px 2px;</string>
+             </property>
+             <property name="text">
+              <string>微调区</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="8,10,3,10,8">
-          <item>
-           <widget class="QLineEdit" name="le_Level1ExtraPrice">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border:2px groove gray;border-radius:5px;padding:2px 4px;</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="lb_percent">
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>14</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="le_Level4ExtraPrice">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border:2px groove gray;border-radius:5px;padding:2px 4px;</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,1,5,2,5,1,5">
-          <item>
-           <widget class="QPushButton" name="btn_Level1">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>20</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton{color: rgb(255, 255, 255);
-			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-}
-QPushButton:hover{
-            color: rgb(255, 255, 255); 
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px; 
-        }
-        QPushButton:pressed{
-            color: rgb(255, 255, 255);
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-        }
-</string>
-            </property>
-            <property name="text">
-             <string>黄板纸</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>38</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_Level2">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>20</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton{color: rgb(255, 255, 255);
-			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-}
-QPushButton:hover{
-            color: rgb(255, 255, 255); 
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px; 
-        }
-        QPushButton:pressed{
-            color: rgb(255, 255, 255);
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-        }
-</string>
-            </property>
-            <property name="text">
-             <string>超市纸</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSlider" name="vslider_percent">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::StrongFocus</enum>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-            <property name="singleStep">
-             <number>3</number>
-            </property>
-            <property name="value">
-             <number>0</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_Level3">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>20</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton{color: rgb(255, 255, 255);
-			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-}
-QPushButton:hover{
-            color: rgb(255, 255, 255); 
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px; 
-        }
-        QPushButton:pressed{
-            color: rgb(255, 255, 255);
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-        }
-</string>
-            </property>
-            <property name="text">
-             <string>统货纸</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_7">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btn_Level4">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>200</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Arial</family>
-              <pointsize>20</pointsize>
-              <weight>75</weight>
-              <italic>false</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton{color: rgb(255, 255, 255);
-			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-}
-QPushButton:hover{
-            color: rgb(255, 255, 255); 
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px; 
-        }
-        QPushButton:pressed{
-            color: rgb(255, 255, 255);
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
-            border:1px;
-            border-radius:7px;
-            padding:2px 4px;
-        }
-</string>
-            </property>
-            <property name="text">
-             <string>民用纸</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
         <item>
          <widget class="QTableView" name="tableView_unloading">
@@ -1828,6 +2267,222 @@ QPushButton:hover{
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_4">
+       <attribute name="title">
+        <string>数据分析工具</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>价格区间：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="le_downLimit">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:2px groove gray;border-radius:10px;padding:2px 4px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="le_upperLimit">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:2px groove gray;border-radius:10px;padding:2px 4px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_4">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>日期：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="de_date">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:1px groove gray;border-radius:3px;padding:1px 2px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout_4" columnstretch="10,1">
+          <item row="0" column="1">
+           <widget class="QPushButton" name="btn_clear">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+			width:67px;
+			heigt:34px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+        }
+</string>
+            </property>
+            <property name="text">
+             <string>数据清空</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="btn_dataAnalysis">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+			width:67px;
+			heigt:34px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+        }
+</string>
+            </property>
+            <property name="text">
+             <string>分析</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextBrowser" name="tb_analyzeResults">
+          <property name="font">
+           <font>
+            <family>Arial</family>
+            <pointsize>12</pointsize>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border:2px groove gray;border-radius:10px;padding:1px 0px;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item>
@@ -2146,8 +2801,8 @@ QPushButton:hover{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1287</width>
-     <height>23</height>
+     <width>1290</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>
@@ -2162,6 +2817,13 @@ QPushButton:hover{
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>MyLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">mylineedit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

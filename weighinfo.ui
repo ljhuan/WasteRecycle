@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>824</width>
-    <height>714</height>
+    <width>727</width>
+    <height>727</height>
    </rect>
   </property>
   <property name="palette">
@@ -77,7 +77,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,10,10,1">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,1,0">
    <item>
     <widget class="QLabel" name="label_13">
      <property name="font">
@@ -109,49 +109,7 @@
       </widget>
      </item>
      <item>
-      <layout class="QFormLayout" name="formLayout">
-       <property name="formAlignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <pointsize>14</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>排队号码：</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="le_num">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <pointsize>14</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">border:2px groove gray;border-radius:10px;padding:2px 4px;</string>
-         </property>
-        </widget>
-       </item>
+      <layout class="QGridLayout" name="gridLayout_2">
        <item row="1" column="0">
         <widget class="QLabel" name="label_2">
          <property name="font">
@@ -191,8 +149,8 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_5">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
          <property name="font">
           <font>
            <family>Arial</family>
@@ -202,12 +160,12 @@
           </font>
          </property>
          <property name="text">
-          <string>毛重：</string>
+          <string>排队号码：</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="le_rWeigh">
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="le_num">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -230,6 +188,45 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="le_vWeigh">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border:2px groove gray;border-radius:10px;padding:2px 4px;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>毛重：</string>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_7">
          <property name="font">
@@ -245,8 +242,8 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="le_vWeigh">
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="le_rWeigh">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -280,12 +277,12 @@
           </font>
          </property>
          <property name="text">
-          <string>今日货物总价：</string>
+          <string>昨日货物总价：</string>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="le_todayWeight">
+        <widget class="QLineEdit" name="le_yestodayWeight">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -302,6 +299,71 @@
          </property>
         </widget>
        </item>
+       <item row="7" column="0" colspan="2">
+        <widget class="QTextBrowser" name="tb_records"/>
+       </item>
+       <item row="5" column="1">
+        <widget class="QPushButton" name="btn_prize">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:10px;
+            padding:2px 4px;
+        }
+</string>
+         </property>
+         <property name="text">
+          <string>领奖</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="lb_prize">
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>奖励：</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
@@ -310,6 +372,14 @@
     <layout class="QGridLayout" name="gridLayout" rowstretch="1,15" columnstretch="1,1">
      <item row="0" column="0">
       <widget class="QLabel" name="label_11">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string>过磅前：</string>
        </property>
@@ -317,6 +387,14 @@
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="label_12">
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <pointsize>14</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string>过磅后：</string>
        </property>

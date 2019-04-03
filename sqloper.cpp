@@ -185,9 +185,21 @@ void SqlOper::createTable(QString sql)
     tablesNames = pDb->tables();
 }
 
-void SqlOper::insertTable(QString sql)
+void SqlOper::deleteFromTable(QString sql)
 {
     if(!pDb->open()) {
+        qDebug() << "createTable db open failed!";
+        return;
+    }
+    pDb->exec(sql);
+
+    // 更新数据库的表名List
+    tablesNames = pDb->tables();
+}
+
+void SqlOper::insertTable(QString sql)
+{
+    if (!pDb->isOpen() && !pDb->open()) {
         qDebug() << "insertTable db open failed!";
         return;
     }
@@ -235,6 +247,28 @@ std::list<QString> SqlOper::queryTableRecords(QString sql)
     return results;
 }
 
+std::list<QString> SqlOper::queryRecords(QString sql)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "queryTableRecords db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    QSqlQuery query(*pDb);
+    qDebug() << sql;
+    query.exec(sql);
+    while(query.next()) {
+        QString result = query.value("time").toString() + UtilityTools::holdPlaces(2) + query.value("rWeight").toString() + UtilityTools::holdPlaces(2) +
+                query.value("vWeight").toString() + UtilityTools::holdPlaces(2) + query.value("nWeight").toString() + UtilityTools::holdPlaces(2) +
+                query.value("unitPrice").toString() + UtilityTools::holdPlaces(2) + query.value("price").toString() + UtilityTools::holdPlaces(2) +
+                query.value("kind").toString();
+        // qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
 std::list<QString> SqlOper::queryTableCharts(QString sql)
 {
     std::list<QString> results;
@@ -269,6 +303,25 @@ std::list<QString> SqlOper::queryTableMembers(QString sql)
     while(query.next()) {
         QString result = query.value("phone").toString() + UtilityTools::holdPlaces(2) + query.value("name").toString() + UtilityTools::holdPlaces(2) +
                 query.value("time").toString();
+        // qDebug() << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
+std::list<QString> SqlOper::queryTablePrices(QString sql)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "queryTablePrices db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    QSqlQuery query(*pDb);
+    qDebug() << sql;
+    query.exec(sql);
+    while(query.next()) {
+        QString result = query.value("kind").toString() + UtilityTools::holdPlaces(2) + query.value("value").toString();
         // qDebug() << result;
         results.push_back(result);
     }
@@ -325,6 +378,32 @@ std::list<QString> SqlOper::sqlQueryByDate(QString date)
     QSqlQuery query(*pDb);
     QString tableName = "record_" + date;
     QString sqlQuery = "select * from " + tableName + ";";
+    qDebug() << sqlQuery;
+    query.exec(sqlQuery);
+    while(query.next()) {
+        QString result = query.value("id").toString() + UtilityTools::holdPlaces(2) + query.value("time").toString() + UtilityTools::holdPlaces(2) +
+                query.value("rWeight").toString() + UtilityTools::holdPlaces(2) + query.value("vWeight").toString() + UtilityTools::holdPlaces(2) +
+                query.value("nWeight").toString() + UtilityTools::holdPlaces(2) + query.value("unitPrice").toString() + UtilityTools::holdPlaces(2) +
+                query.value("price").toString() + UtilityTools::holdPlaces(2) + query.value("name").toString() + UtilityTools::holdPlaces(2) +
+                query.value("kind").toString();
+        qDebug() << "record:" << result;
+        results.push_back(result);
+    }
+
+    return results;
+}
+
+std::list<QString> SqlOper::sqlLimitQueryByDate(QString date, QString upLimit, QString downLimit)
+{
+    std::list<QString> results;
+    if(!pDb->open()) {
+        qDebug() << "sqlQueryByDate db open failed! last error:[" << pDb->lastError().text() << "]";
+        return results;
+    }
+    qDebug() << "sqlQueryByDate db open success";
+    QSqlQuery query(*pDb);
+    QString tableName = "record_" + date;
+    QString sqlQuery = "select * from " + tableName + " where unitPrice >= " + downLimit + " and unitPrice <= " + upLimit+ ";";
     qDebug() << sqlQuery;
     query.exec(sqlQuery);
     while(query.next()) {

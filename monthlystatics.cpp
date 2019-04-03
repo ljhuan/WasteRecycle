@@ -13,10 +13,10 @@ monthlyStatics::monthlyStatics(float weight, float average, float price, int day
     ui(new Ui::monthlyStatics)
 {
     ui->setupUi(this);
-    QString qstrAverage = "近一个月平均价为：" + QString("%1").arg(average) + " 元/吨";
-    QString qstrPrice = "近一个月总开销为：" + QString("%1").arg(price) + " 元";
-    QString qstrWeight = "近一个月总量为：" + QString("%1").arg(weight/2000.0) + " 吨";
-    QString qstrDailyWeight = "近一个月平均每天回收量为：" + QString("%1").arg(weight/(2000.0*days)) + " 吨";
+    QString qstrAverage = QString::fromLocal8Bit("近一个月平均价为：") + QString("%1").arg(average) + QString::fromLocal8Bit(" 元/吨");
+    QString qstrPrice = QString::fromLocal8Bit("近一个月总开销为：") + QString("%1").arg(price) + QString::fromLocal8Bit(" 元");
+    QString qstrWeight = QString::fromLocal8Bit("近一个月总量为：") + QString("%1").arg(weight/2000.0) + QString::fromLocal8Bit(" 吨");
+    QString qstrDailyWeight = QString::fromLocal8Bit("近一个月平均每天回收量为：") + QString("%1").arg(weight/(2000.0*days)) + QString::fromLocal8Bit(" 吨");
     ui->lb_monthAverage->setText(qstrAverage);
     ui->lb_monthTotalPrice->setText(qstrPrice);
     ui->lb_monthTotalWeight->setText(qstrWeight);

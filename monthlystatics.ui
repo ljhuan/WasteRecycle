@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>近一个月数据统计</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>60</x>

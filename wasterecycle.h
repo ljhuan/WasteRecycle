@@ -38,6 +38,8 @@
 #include "set/setting.h"
 #include "image_buf.h"
 #include "weighinfo.h"
+#include "price.h"
+#include "mylineedit.h"
 
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
@@ -183,19 +185,19 @@ signals:
     void newTrackImage(const QString & imagePath);
 
 private slots:
-    void on_btn_Level1_clicked();
+//    void on_btn_Level1_clicked();
 
-    void on_btn_Level2_clicked();
+//    void on_btn_Level2_clicked();
 
-    void on_btn_Level3_clicked();
+//    void on_btn_Level3_clicked();
 
-    void on_btn_Level4_clicked();
+//    void on_btn_Level4_clicked();
 
     void on_btn_Next_clicked();
 
     void on_cbb_NumSwitch_activated(const QString &arg1);
 
-    void on_btn_PriceSet_clicked();
+    void on_btn_set_clicked();
 
     void on_le_VehicleWeigh_textChanged(const QString &arg1);
 
@@ -284,16 +286,48 @@ private slots:
 
     void on_btn_startAnalyze_clicked();
 
+    void on_btn_dataAnalysis_clicked();
+
+    void on_btn_priceSet_clicked();
+
+    void on_btn_huangban_clicked();
+
+    void on_btn_tonghuo_clicked();
+
+    void on_btn_jumin_clicked();
+
+    void on_btn_chao1_clicked();
+
+    void on_btn_chao2_clicked();
+
+    void on_btn_chao3_clicked();
+
+    void on_btn_shuben_clicked();
+
+    void on_btn_baozhi_clicked();
+
+    void on_btn_tie_clicked();
+
+    void on_btn_buxiugang_clicked();
+
+    void on_btn_lv_clicked();
+
+    void on_btn_tong_clicked();
+
+    void on_btn_clear_clicked();
+
+    void myLineEditClicked();
+
 protected:
     void changeEvent(QEvent * event);
 
 private:
     Ui::WasteRecycle *ui;
 
-    float fLevel1;
-    float fLevel2;
-    float fLevel3;
-    float fLevel4;
+//    float fLevel1;
+//    float fLevel2;
+//    float fLevel3;
+//    float fLevel4;
 
     // bool bModifyFlag;
 
@@ -370,11 +404,13 @@ private:
      bool bModifyUnloading = false;
 
      PriceSetDialog* priceSetWin;
+     price* priceWin = nullptr;
      SqlOper* oper;
      QStandardItemModel* model;
      QStandardItemModel* model_unloading;
+     QString kind_;
 
-     bool bPriceInit;
+     // bool bPriceInit;
 
      // 读取电子秤头数据相关变量和函数
      QSerialPort *m_serial = nullptr;

@@ -57,6 +57,8 @@ public:
     // 数据查询（根据时间进行查询）
     std::list<QString> sqlQueryByDate(QString date);
 
+    std::list<QString> sqlLimitQueryByDate(QString date, QString upLimit, QString downLimit);
+
     // 价格查询
     void sqlPriceQuery(PriceInfo & priceInfo);
 
@@ -80,15 +82,21 @@ public:
 
     void createTable(QString sql);
 
+    void deleteFromTable(QString sql);
+
     void insertTable(QString sql);
 
     bool searchTableWetherExist(QString tableName, QString item, QString value);
 
     std::list<QString> queryTableRecords(QString sql);
 
+    std::list<QString> queryRecords(QString sql);
+
     std::list<QString> queryTableCharts(QString sql);
 
     std::list<QString> queryTableMembers(QString sql);
+
+    std::list<QString> queryTablePrices(QString sql);
 
     void sqlDeleteMembersByPhone(QString phone);
 
