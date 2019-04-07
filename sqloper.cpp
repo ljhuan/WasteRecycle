@@ -226,6 +226,36 @@ bool SqlOper::searchTableWetherExist(QString tableName, QString item, QString va
      return false;
 }
 
+bool SqlOper::searchTableWetherExist(QString tableName, std::map<QString, QString> itemsMap)
+{
+    if(!pDb->open()) {
+        qDebug() << "sqlQueryIsExist db open failed!";
+        return false;
+    }
+     QSqlQuery query(*pDb);
+     QString sqlQuery = "select * from " + tableName + " where "; // + item + " = '" + value + "';";
+     int i = 0;
+
+     for (auto e:itemsMap) {
+         if (i != 0) {
+             sqlQuery += "and ";
+         }
+         QString item = e.first;
+         QString value = e.second;
+         sqlQuery += (item + " = '" + value + "' ");
+         ++i;
+     }
+     sqlQuery += ";";
+
+     // QString sqlQuery = "select * from " + tableName + " where idx = " + idx + ";";
+     qDebug() << sqlQuery;
+     query.exec(sqlQuery);
+     while (query.next()) {
+         return true;
+     }
+     return false;
+}
+
 std::list<QString> SqlOper::queryTableRecords(QString sql)
 {
     std::list<QString> results;

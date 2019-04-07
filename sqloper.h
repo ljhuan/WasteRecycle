@@ -88,6 +88,8 @@ public:
 
     bool searchTableWetherExist(QString tableName, QString item, QString value);
 
+    bool searchTableWetherExist(QString tableName, std::map<QString, QString> itemsMap);
+
     std::list<QString> queryTableRecords(QString sql);
 
     std::list<QString> queryRecords(QString sql);

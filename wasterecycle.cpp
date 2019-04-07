@@ -3464,17 +3464,20 @@ void WasteRecycle::on_btn_dataAnalysis_clicked()
 
     int num = elements.size();
     float totalWeight = 0.0;
+    float totalPrice = 0.0;
 
     for (auto e : elements) {
         QStringList items = e.split("  ");
         totalWeight += items.at(4).toFloat();
+        totalPrice += items.at(6).toFloat();
     }
 
     QString msg = ui->tb_analyzeResults->document()->toPlainText();
     if (!msg.isEmpty()) {
         msg += "\n";
     }
-    msg += ui->le_downLimit->text() + " - " + ui->le_upperLimit->text() + " : "  + QString("%1").arg(totalWeight) + QString::fromLocal8Bit("斤") + QString::fromLocal8Bit("   数量 : ") + QString("%1").arg(elements.size());
+    msg += ui->le_downLimit->text() + " - " + ui->le_upperLimit->text() + " : "  + QString("%1").arg(totalWeight) + QString::fromLocal8Bit("斤") +
+            QString::fromLocal8Bit("   数量 : ") + QString("%1").arg(elements.size()) + QString::fromLocal8Bit(" 总价 : ") + QString("%1").arg(totalPrice) ;
     ui->tb_analyzeResults->setText(msg);
 }
 

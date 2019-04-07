@@ -30,10 +30,10 @@ WeighInfo::WeighInfo(QWidget *parent, SqlOper* pOper) :
 
     QStringList tables = oper_->sqlGetAllTableName();
     if(!tables.contains("prize")) {
-        QString sql = "create table prize (time varchar(100), name varchar(20));";
+        QString sql = "create table prize (time varchar(100), name varchar(20), bonus varchar(20));";
         oper_->createTable(sql);
     } else {
-        QString sql = "delete from prize where time < '" + date.date().toString("yyyy-MM-dd") + "' ;";
+        QString sql = "delete from prize where time < '" + date.date().addDays(-7).toString("yyyy-MM-dd") + "' ;";
         oper_->deleteFromTable(sql);
     }
 
@@ -99,8 +99,11 @@ void WeighInfo::flush()
     }
     ui->le_yestodayWeight->setText(QString("%1").arg(totalPrice) + QString::fromLocal8Bit("元"));
     ui->tb_records->setText(info);
+    std::map<QString, QString> itemMap;
+    itemMap["name"] = name_;
+    itemMap["time"] = today.replace("_", "-");
 
-    bool exist = oper_->searchTableWetherExist("prize", "name", name_);
+    bool exist = oper_->searchTableWetherExist("prize", itemMap);
 
     // 回磅时，本次卖货量大于100斤，并且尚未领奖，则会触发奖励机制
     if (vWeight_ != "" && (rWeight_.toFloat()-vWeight_.toFloat()) >= 50 && !exist) {
@@ -108,6 +111,9 @@ void WeighInfo::flush()
         ui->lb_prize->setText(msg);
         ui->lb_prize->setVisible(true);
         ui->btn_prize->setVisible(true);
+    } else {
+        ui->lb_prize->setVisible(false);
+        ui->btn_prize->setVisible(false);
     }
 }
 
@@ -151,6 +157,6 @@ void WeighInfo::on_btn_prize_clicked()
 
     QDateTime date = QDateTime::currentDateTime();
     QString today = date.toString("yyyy-MM-dd");
-    QString insert = "insert into prize values('" + today + "' ,'" + name_ + "');";
+    QString insert = "insert into prize values('" + today + "' ,'" + name_ + "' ,'" + ui->lb_prize->text() + "');";
     oper_->insertTable(insert);
 }
