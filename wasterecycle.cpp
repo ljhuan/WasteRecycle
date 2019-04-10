@@ -1213,21 +1213,21 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         }
     } else if (obj == ui->btn_buxiugang) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_buxiugang->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->LineEditMap_[ui->btn_buxiugang->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
             ui->btn_buxiugang->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_buxiugang->setText(QString::fromLocal8Bit("不锈钢"));
         }
     } else if (obj == ui->btn_lv) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_lv->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->LineEditMap_[ui->btn_lv->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
             ui->btn_lv->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_lv->setText(QString::fromLocal8Bit("铝"));
         }
     } else if (obj == ui->btn_tong) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_tong->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->LineEditMap_[ui->btn_tong->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
             ui->btn_tong->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_tong->setText(QString::fromLocal8Bit("铜"));
@@ -1249,9 +1249,10 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         QPoint curPos = QCursor::pos();
         lb->move(curPos.x()+ui->lb_rwScaledImage->width(), 0);
         if (QEvent::Enter == e->type() && ui->lb_rwScaledImage->pixmap()) {
-            QDateTime date = QDateTime::currentDateTime();
-            QString today = date.toString("yyyy_MM_dd");
-            QString dirName = today + "_rwPicture";
+            // QDateTime date = QDateTime::currentDateTime();
+            QString date = ui->dateEdit->text().replace("-", "_");
+            // QString today = date.toString("yyyy_MM_dd");
+            QString dirName = date + "_rwPicture";
 
             QString index = ui->lb_CurrNum->text();
             QString rw = ui->le_RoughWeigh->text();
@@ -1270,9 +1271,10 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         QPoint curPos = QCursor::pos();
         lb->move(curPos.x()+ui->lb_vwScaledImage->width(), 0);
         if (QEvent::Enter == e->type() && ui->lb_vwScaledImage->pixmap()) {
-            QDateTime date = QDateTime::currentDateTime();
-            QString today = date.toString("yyyy_MM_dd");
-            QString dirName = today + "_vwPicture";
+            // QDateTime date = QDateTime::currentDateTime();
+            // QString today = date.toString("yyyy_MM_dd");
+            QString date = ui->dateEdit->text().replace("-", "_");
+            QString dirName = date + "_vwPicture";
             QString index = ui->lb_CurrNum->text();
             QString vw = ui->le_VehicleWeigh->text();
             QString filename = QDir::currentPath() +  "/" + dirName + "/" + index + "_" + vw + ".jpeg";
@@ -1950,7 +1952,7 @@ void WasteRecycle::on_btn_buxiugang_clicked()
     }
 
     // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("不锈钢")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("不锈钢")]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
 
     finalPrice(fPrice);
     ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
@@ -1969,7 +1971,7 @@ void WasteRecycle::on_btn_lv_clicked()
     }
 
     // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铝")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铝")]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
 
     finalPrice(fPrice);
     ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
@@ -1988,7 +1990,7 @@ void WasteRecycle::on_btn_tong_clicked()
     }
 
     // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铜")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铜")]->value_ + ui->le_fineAdjustment->text().toFloat()/10.0;
 
     finalPrice(fPrice);
     ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
