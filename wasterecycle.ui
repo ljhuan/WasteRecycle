@@ -90,7 +90,7 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="4,6">
+   <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,6">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="styleSheet">
@@ -2480,6 +2480,96 @@ QPushButton:hover{
            <string notr="true">border:2px groove gray;border-radius:10px;padding:1px 0px;</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QDateEdit" name="de_from">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:1px groove gray;border-radius:3px;padding:1px 2px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="de_to">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>12</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:1px groove gray;border-radius:3px;padding:1px 2px;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_searchAndStatic">
+            <property name="font">
+             <font>
+              <family>Arial</family>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton{color: rgb(255, 255, 255);
+			background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(166,164,208),stop:0.3 rgb(171,152,230), stop:1 rgb(152,140,220));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+			width:67px;
+			heigt:34px;
+}
+QPushButton:hover{
+            color: rgb(255, 255, 255); 
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(130,120,226), stop:0.3 rgb(120,130,230), stop:1 rgb(125,140,226));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px; 
+        }
+        QPushButton:pressed{
+            color: rgb(255, 255, 255);
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgb(240,156,121), stop:0.3 rgb(220,160,140), stop:1 rgb(230,140,120));
+            border:1px;
+            border-radius:5px;
+            padding:2px 4px;
+        }
+</string>
+            </property>
+            <property name="text">
+             <string>统计</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

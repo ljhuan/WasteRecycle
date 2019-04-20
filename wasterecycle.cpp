@@ -227,6 +227,14 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->de_date->setDisplayFormat("yyyy_MM_dd");
     ui->de_date->setDate(calendar->selectedDate());
 
+    ui->de_from->setCalendarPopup(true);
+    ui->de_from->setDisplayFormat("yyyy_MM_dd");
+    ui->de_from->setDate(calendar->selectedDate());
+
+    ui->de_to->setCalendarPopup(true);
+    ui->de_to->setDisplayFormat("yyyy_MM_dd");
+    ui->de_to->setDate(calendar->selectedDate());
+
     // 串口设置
     m_serial = new QSerialPort();
     initActionsConnections();
@@ -1206,7 +1214,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         }
     } else if (obj == ui->btn_tie) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_tie->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->LineEditMap_[ui->btn_tie->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/20.0;
             ui->btn_tie->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_tie->setText(QString::fromLocal8Bit("铁"));
@@ -1933,7 +1941,7 @@ void WasteRecycle::on_btn_tie_clicked()
     }
 
     // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铁")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("铁")]->value_ + ui->le_fineAdjustment->text().toFloat()/20.0;
 
     finalPrice(fPrice);
     ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
@@ -3497,4 +3505,38 @@ void WasteRecycle::myLineEditClicked()
 {
     MyLineEdit *myle=qobject_cast<MyLineEdit*>(sender());
     myle->selectAll();
+}
+
+void WasteRecycle::on_btn_searchAndStatic_clicked()
+{
+    // 统计近一个月的总量，平均价，总价
+    qDebug() << "[WasteRecycle] on_btn_searchAndStatic_clicked IN";
+    QDate today = QDateTime::currentDateTime().date();
+    QDate monthEarlyDay = today.addMonths(-1);
+
+    QString from = ui->de_from->text();
+    QString to = ui->de_to->text();
+
+    QString sqlQueryCharts = "select * from charts where time < '"+ to+"' and time >='" + from+"';";
+    std::list<QString> elements = oper->queryTableCharts(sqlQueryCharts);
+
+    float totalWeight = 0.0, averagePrice = 0.0, totalPrice = 0.0;
+    int days = 0;
+    for (auto element : elements) {
+        QStringList line = element.split("  ");
+        totalWeight += line.at(2).toFloat();
+        totalPrice += line.at(3).toFloat();
+        averagePrice += line.at(4).toFloat();
+    }
+
+    days = elements.size();
+    // days = monthEarlyDay.daysTo(today);
+    averagePrice /= days;
+
+    qDebug() << "totalWeight: " << totalWeight << " totalPrice: " << totalPrice << " averagePrice:" << averagePrice;
+
+    monthlyStatics* monthlyWin = new monthlyStatics(totalWeight, averagePrice, totalWeight, days);
+    monthlyWin->show();
+
+    qDebug() << "[WasteRecycle] on_btn_searchAndStatic_clicked OUT";
 }

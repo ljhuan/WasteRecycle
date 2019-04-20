@@ -318,6 +318,8 @@ private slots:
 
     void myLineEditClicked();
 
+    void on_btn_searchAndStatic_clicked();
+
 protected:
     void changeEvent(QEvent * event);
 
