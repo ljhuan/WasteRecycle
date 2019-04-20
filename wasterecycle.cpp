@@ -3535,7 +3535,7 @@ void WasteRecycle::on_btn_searchAndStatic_clicked()
 
     qDebug() << "totalWeight: " << totalWeight << " totalPrice: " << totalPrice << " averagePrice:" << averagePrice;
 
-    monthlyStatics* monthlyWin = new monthlyStatics(totalWeight, averagePrice, totalWeight, days);
+    monthlyStatics* monthlyWin = new monthlyStatics(totalWeight, averagePrice, totalPrice, days);
     monthlyWin->show();
 
     qDebug() << "[WasteRecycle] on_btn_searchAndStatic_clicked OUT";
