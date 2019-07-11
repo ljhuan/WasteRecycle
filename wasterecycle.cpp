@@ -310,7 +310,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
 
     connect(ui->le_fineAdjustment, SIGNAL(clicked()), this, SLOT(myLineEditClicked()));
 
-    baiduThread_ = new QThread(this);
+    /*baiduThread_ = new QThread(this);
     connect(baiduThread_, &QThread::started, this, [&](){
         // 百度人脸库初始化
         //api实例指针
@@ -325,10 +325,10 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         qDebug() << ">>>>>>> api load face db";
     });
     connect(baiduThread_, &QThread::finished, thread_, &QObject::deleteLater);
-    baiduThread_->start();
+    baiduThread_->start();*/
 
     // 判断人名映射表是否存在
-    QStringList tables = oper->sqlGetAllTableName();
+    /* QStringList tables = oper->sqlGetAllTableName();
     if (!tables.contains("members")) {
         QString createChartsTable = "create table members (phone varchar(100), name varchar(10), time varchar(10));";
         oper->createTable(createChartsTable);
@@ -348,7 +348,7 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
         for (auto e : phoneNameMap_) {
             qDebug() << ">>>>>>> members:" << e;
         }
-    }
+    }*/
 }
 
 WasteRecycle::~WasteRecycle()
@@ -1101,11 +1101,12 @@ void WasteRecycle::keyPressEvent(QKeyEvent *e)
     case Qt::Key_F1:
         qDebug() << "key F1";
         // 当停止时，则开始识别
-        if (ui->tabWidget->currentIndex() == 2) {
-            on_btn_capture_clicked();
-        } else if (pause_) {
-            on_btn_startAnalyze_clicked();
-        }
+//        if (ui->tabWidget->currentIndex() == 2) {
+//            on_btn_capture_clicked();
+//        } else if (pause_) {
+//            on_btn_startAnalyze_clicked();
+//        }
+        on_btn_rWrite_clicked();
         break;
     default:
          qDebug() << "default";
@@ -3472,14 +3473,20 @@ void WasteRecycle::on_btn_dataAnalysis_clicked()
     QString tableName = "record_" + date;
     elements = oper->sqlLimitQueryByDate(date, ui->le_upperLimit->text(), ui->le_downLimit->text());
 
-    int num = elements.size();
+    int num = 0;//elements.size();
     float totalWeight = 0.0;
     float totalPrice = 0.0;
+    QString species = ui->le_species->text();
+
 
     for (auto e : elements) {
         QStringList items = e.split("  ");
-        totalWeight += items.at(4).toFloat();
-        totalPrice += items.at(6).toFloat();
+        QString kind = items.at(8);
+        if (species.isEmpty() || species.contains(kind)) {
+            totalWeight += items.at(4).toFloat();
+            totalPrice += items.at(6).toFloat();
+            ++num;
+        }
     }
 
     QString msg = ui->tb_analyzeResults->document()->toPlainText();
@@ -3487,7 +3494,7 @@ void WasteRecycle::on_btn_dataAnalysis_clicked()
         msg += "\n";
     }
     msg += ui->le_downLimit->text() + " - " + ui->le_upperLimit->text() + " : "  + QString("%1").arg(totalWeight) + QString::fromLocal8Bit("斤") +
-            QString::fromLocal8Bit("   数量 : ") + QString("%1").arg(elements.size()) + QString::fromLocal8Bit(" 总价 : ") + QString("%1").arg(totalPrice) ;
+            QString::fromLocal8Bit("   数量 : ") + QString("%1").arg(num) + QString::fromLocal8Bit(" 总价 : ") + QString("%1").arg(totalPrice) ;
     ui->tb_analyzeResults->setText(msg);
 }
 
