@@ -99,18 +99,33 @@ public:
         chartView->chart()->removeAllSeries();
 
 
+        QSplineSeries* spSeries = new QSplineSeries();
+        // spSeries->setColor(QColor(200, 21, 125));
+        QPen pen0;
+        pen0.setStyle(Qt::SolidLine);
+        pen0.setWidth(3);
+        pen0.setColor(QColor(200, 21, 125));
+        spSeries->setPen(pen0);
+        QScatterSeries *series3 = new QScatterSeries();
+        series3->setMarkerShape(QScatterSeries::MarkerShapeCircle);//圆形的点
+        series3->setBorderColor(QColor(255, 255, 255));//边框颜色
+        series3->setBrush(QBrush(QColor(200, 21, 125)));//背景颜色
+        series3->setMarkerSize(6);//点大小
+
         QLineSeries *series = new QLineSeries();
         QPen pen;
         pen.setStyle(Qt::SolidLine);
-        pen.setWidth(4);
+        pen.setWidth(3);
         pen.setColor(QColor(21, 100, 255));
         series->setPen(pen);//折现序列的线条设置
+        // spSeries->setPen(pen);
+
         //散点图(用于边框)
         QScatterSeries *series1 = new QScatterSeries();
         series1->setMarkerShape(QScatterSeries::MarkerShapeCircle);//圆形的点
         series1->setBorderColor(QColor(21, 100, 255));  //边框颜色
         series1->setBrush(QBrush(QColor(21, 100, 255)));//背景颜色
-        series1->setMarkerSize(12);                     //点大小
+        series1->setMarkerSize(9);                     //点大小
 
         //散点图(用于中心)
         QScatterSeries *series2 = new QScatterSeries();
@@ -119,21 +134,45 @@ public:
         series2->setBrush(QBrush(Qt::white));//背景颜色
         series2->setMarkerSize(8);//点大小
 
+        std::map<int, T> _10DaysMap;
 
         if (data.size() == 0) return;
         T max = data.begin()->second;
         T min = data.begin()->second;
+        int index = 0;
         for (auto element : data) {
             max = MAX(max, element.second);
             min = MIN(min, element.second);
             series->append(element.first.toMSecsSinceEpoch(), element.second);
             series1->append(element.first.toMSecsSinceEpoch(), element.second);
             series2->append(element.first.toMSecsSinceEpoch(), element.second);
+
+            _10DaysMap[index] = element.second;
+            ++index;
+            float sum = 0;
+            float avr = 0;
+//            days = _10DaysMap.size() == 5 ? 4 : _10DaysMap.size();
+//            for (int i = 0; i < days; ++i) {
+//                sum += data[element.first.addDays(-i)];
+//            }
+            int size = _10DaysMap.size();
+            for (int i = 0; i < _10DaysMap.size(); ++i) {
+                sum += _10DaysMap[i];
+            }
+            avr = sum/size;
+            qDebug() << "date:" << element.first.toString("yyyy-MM-dd") << " avr:" << avr << " size:" << size << " value:" << element.second;
+
+            spSeries->append(element.first.toMSecsSinceEpoch(), avr);
+            series3->append(element.first.toMSecsSinceEpoch(), avr);
+
+            if(index == 10) index=0;
         }
 
         chartView->chart()->addSeries(series);
         chartView->chart()->addSeries(series1);
         chartView->chart()->addSeries(series2);
+        chartView->chart()->addSeries(spSeries);
+        chartView->chart()->addSeries(series3);
 
         connect(series2, &QScatterSeries::hovered, this, &WasteRecycle::slotPointHoverd);//用于鼠标移动到点上显示数值
 
@@ -155,6 +194,8 @@ public:
         chartView->chart()->setAxisX(axisX, series);
         chartView->chart()->setAxisX(axisX, series1);
         chartView->chart()->setAxisX(axisX, series2);
+        chartView->chart()->setAxisX(axisX, spSeries);
+        chartView->chart()->setAxisX(axisX, series3);
 
         QValueAxis* axisY = new QValueAxis();
 
@@ -169,6 +210,8 @@ public:
         chartView->chart()->setAxisY(axisY, series);
         chartView->chart()->setAxisY(axisY, series1);
         chartView->chart()->setAxisY(axisY, series2);
+        chartView->chart()->setAxisY(axisY, spSeries);
+        chartView->chart()->setAxisY(axisY, series3);
 
         chartView->resize(1000, 618);
         chartView->chart()->setAnimationDuration(QChart::SeriesAnimations);
@@ -318,7 +361,15 @@ private slots:
 
     void myLineEditClicked();
 
+    void lineEditClicked();
+
     void on_btn_searchAndStatic_clicked();
+
+    void on_btn_finalCal_clicked();
+
+    void on_btn_resident_clicked();
+
+    void on_btn_packman_clicked();
 
 protected:
     void changeEvent(QEvent * event);

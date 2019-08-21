@@ -104,18 +104,19 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->lb_rwScaledImage->installEventFilter(this);
     ui->lb_vwScaledImage->installEventFilter(this);
     ui->lb_photo->installEventFilter(this);
-    ui->btn_huangban->installEventFilter(this);
-    ui->btn_tonghuo->installEventFilter(this);
-    ui->btn_jumin->installEventFilter(this);
-    ui->btn_chao1->installEventFilter(this);
-    ui->btn_chao2->installEventFilter(this);
-    ui->btn_chao3->installEventFilter(this);
+    // ui->btn_huangban->installEventFilter(this);
+    // ui->btn_tonghuo->installEventFilter(this);
+    // ui->btn_jumin->installEventFilter(this);
+    // ui->btn_chao1->installEventFilter(this);
+    // ui->btn_chao2->installEventFilter(this);
+    // ui->btn_chao3->installEventFilter(this);
     ui->btn_shuben->installEventFilter(this);
     ui->btn_baozhi->installEventFilter(this);
     ui->btn_tie->installEventFilter(this);
     ui->btn_buxiugang->installEventFilter(this);
     ui->btn_lv->installEventFilter(this);
     ui->btn_tong->installEventFilter(this);
+    ui->btn_finalCal->installEventFilter(this);
 
     // 初始化tableView
     initTableView();
@@ -175,6 +176,8 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     ui->lb_TotalPrices0->setHidden(true);
     ui->lb_TotalWeight->setHidden(true);
     ui->lb_TotalWeight0->setHidden(true);
+    ui->lb_TotalProfit->setHidden(true);
+    ui->lb_TotalProfit0->setHidden(true);
 
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
 
@@ -309,6 +312,10 @@ WasteRecycle::WasteRecycle(QWidget *parent) :
     connect(this, SIGNAL(newTrackImage(QString)), this, SLOT(analyze(QString)));
 
     connect(ui->le_fineAdjustment, SIGNAL(clicked()), this, SLOT(myLineEditClicked()));
+
+    connect(ui->le_huangban, SIGNAL(clicked()), this, SLOT(lineEditClicked()));
+    connect(ui->le_chaoshi, SIGNAL(clicked()), this, SLOT(lineEditClicked()));
+    connect(ui->le_tonghuo, SIGNAL(clicked()), this, SLOT(lineEditClicked()));
 
     /*baiduThread_ = new QThread(this);
     connect(baiduThread_, &QThread::started, this, [&](){
@@ -1043,6 +1050,7 @@ void WasteRecycle::initTableView() {
 
 void WasteRecycle::keyPressEvent(QKeyEvent *e)
 {
+    static bool bFlag = true;
     switch (e->key()) {
     case Qt::Key_Up:
         qDebug() << "key up";
@@ -1106,7 +1114,12 @@ void WasteRecycle::keyPressEvent(QKeyEvent *e)
 //        } else if (pause_) {
 //            on_btn_startAnalyze_clicked();
 //        }
-        on_btn_rWrite_clicked();
+        if(!bModify && bFlag) {
+            bFlag = false;
+            on_btn_rWrite_clicked();
+            Sleep(10);
+            bFlag = true;
+        }
         break;
     default:
          qDebug() << "default";
@@ -1157,35 +1170,73 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
             ui->btn_Level4->setText(QString::fromLocal8Bit("民用纸"));
         }
     } else */
+    if (obj == ui->btn_finalCal) {
+        if (QEvent::Enter == e->type()) {
+            float huangban = ui->le_huangban->text().toFloat();
+            float chaoshi = ui->le_chaoshi->text().toFloat();
+            float tonghuo = ui->le_tonghuo->text().toFloat();
+
+            float hbPrice = priceWin->paperPrices_[QString::fromLocal8Bit("黄板")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            hbPrice = ((int)(hbPrice*100))/100.0;
+            float csPrice = priceWin->paperPrices_[QString::fromLocal8Bit("超市")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            csPrice = ((int)(csPrice*100))/100.0;
+            float thPrice = priceWin->paperPrices_[QString::fromLocal8Bit("统货")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            thPrice = ((int)(thPrice*100))/100.0;
+
+            float fPrice = 0.0;
+
+            if((huangban+chaoshi+tonghuo)>0) {
+                fPrice = (hbPrice*huangban + csPrice*chaoshi + thPrice*tonghuo) / (huangban + chaoshi + tonghuo);  // + ui->le_fineAdjustment->text().toFloat()/100.0;
+                fPrice = ((int)(fPrice*100))/100.0;
+                fPrice += ui->le_fineAdjustment->text().toFloat()/100.0;
+            }
+
+            float profit = 2*(ui->le_RoughWeigh->text().toFloat() - ui->le_VehicleWeigh->text().toFloat())*(1-ui->spinBox->value()/100.0)*(ui->doubleSpinBox->value()-ui->le_fineAdjustment->text().toFloat()/100.0);
+            ui->btn_finalCal->setText(QString("%1 | %2").arg(fPrice).arg((int)profit));
+        } else if (QEvent::Leave == e->type()) {
+            ui->btn_finalCal->setText(QString::fromLocal8Bit("结算"));
+        }
+    }
     if (obj == ui->btn_huangban) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_huangban->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            // float fPrice = priceWin->LineEditMap_[ui->btn_huangban->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->paperPrices_[QString::fromLocal8Bit("黄板")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            fPrice = ((int)(fPrice*100))/100.0;
+            fPrice += ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_huangban->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_huangban->setText(QString::fromLocal8Bit("黄板"));
         }
     } else if (obj == ui->btn_tonghuo) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_tonghuo->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            // float fPrice = priceWin->LineEditMap_[ui->btn_tonghuo->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            // float fPrice = priceWin->paperPrices_[QString::fromLocal8Bit("统货")] + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->paperPrices_[QString::fromLocal8Bit("统货")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value();  // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            fPrice = ((int)(fPrice*100))/100.0;
+            fPrice += ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_tonghuo->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_tonghuo->setText(QString::fromLocal8Bit("统货"));
         }
-    } else if (obj == ui->btn_jumin) {
+    } /*else if (obj == ui->btn_jumin) {
         if (QEvent::Enter == e->type()) {
             float fPrice = priceWin->LineEditMap_[ui->btn_jumin->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_jumin->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
             ui->btn_jumin->setText(QString::fromLocal8Bit("民用"));
         }
-    } else if (obj == ui->btn_chao1) {
+    } */else if (obj == ui->btn_chao1) {
         if (QEvent::Enter == e->type()) {
-            float fPrice = priceWin->LineEditMap_[ui->btn_chao1->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            // float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("超1")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+            // float fPrice = priceWin->paperPrices_[QString::fromLocal8Bit("超市")] + ui->le_fineAdjustment->text().toFloat()/100.0;
+            float fPrice = priceWin->paperPrices_[QString::fromLocal8Bit("超市")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value();  // + ui->le_fineAdjustment->text().toFloat()/100.0;
+            fPrice = ((int)(fPrice*100))/100.0;
+            fPrice += ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_chao1->setText(QString("%1").arg(fPrice));
         } else if (QEvent::Leave == e->type()) {
-            ui->btn_chao1->setText(QString::fromLocal8Bit("超1"));
+            ui->btn_chao1->setText(QString::fromLocal8Bit("超市"));
         }
-    } else if (obj == ui->btn_chao2) {
+    } /*else if (obj == ui->btn_chao2) {
         if (QEvent::Enter == e->type()) {
             float fPrice = priceWin->LineEditMap_[ui->btn_chao2->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_chao2->setText(QString("%1").arg(fPrice));
@@ -1199,7 +1250,7 @@ bool WasteRecycle::eventFilter(QObject *obj, QEvent *e)
         } else if (QEvent::Leave == e->type()) {
             ui->btn_chao3->setText(QString::fromLocal8Bit("超3"));
         }
-    } else if (obj == ui->btn_shuben) {
+    } */else if (obj == ui->btn_shuben) {
         if (QEvent::Enter == e->type()) {
             float fPrice = priceWin->LineEditMap_[ui->btn_shuben->text()]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
             ui->btn_shuben->setText(QString("%1").arg(fPrice));
@@ -1362,9 +1413,11 @@ void WasteRecycle::clearData()
 {
 //    ui->le_Level1ExtraPrice->clear();
 //    ui->le_Level4ExtraPrice->clear();
-    ui->le_RoughWeigh->clear();
     ui->le_VehicleWeigh->clear();
+    ui->le_RoughWeigh->clear();
+
     ui->lb_Price->clear();
+
     ui->lb_unitPrice->clear();
     ui->lb_rwScaledImage->clear();
     ui->lb_vwScaledImage->clear();
@@ -1381,15 +1434,12 @@ void WasteRecycle::nextVehicle()
         qWarning() << "le_RoughWeigh is empty";
         return;
     }*/
-
     // 当前索引值递增, 并显示下一辆车的索引值
     if (ui->lb_CurrNum->text().toInt() == toBeUseIndex) {
         ++toBeUseIndex;
     }
-
     clearData();
     ui->lb_CurrNum->setText(QString::fromStdString(std::to_string(toBeUseIndex)));
-
     setTextEnabled(true);
     ui->le_RoughWeigh->setFocus();
 
@@ -1400,9 +1450,16 @@ void WasteRecycle::nextVehicle()
     // bPriceInit = true;
     ui->vslider_percent->setValue(0);
     ui->le_fineAdjustment->setText(QString("%1").arg(0));
+    ui->le_chaoshi->clear();
+    ui->le_huangban->clear();
+    ui->le_tonghuo->clear();
+    ui->doubleSpinBox->setValue(0);
+    ui->spinBox->setValue(0);
+    ui->lb_NetWeight->clear();
 //    if(!stop_) {
 //        pause_ = false;
 //    }
+    qDebug() << "next vehicle";
 }
 
 void WasteRecycle::deleteData()
@@ -1603,13 +1660,21 @@ void WasteRecycle::writeData(float level)
     info.m_price = ui->lb_Price->text();
     info.m_unitPrice =  towDecimalPlaces(QString("%1").arg(level));
     info.m_kind = kind_;
-    info.m_name = ui->le_name->text();
+    // info.m_name = ui->le_name->text();
+    float profit = 2*(ui->le_RoughWeigh->text().toFloat() - ui->le_VehicleWeigh->text().toFloat())*(1-ui->spinBox->value()/100.0)*(ui->doubleSpinBox->value()-ui->le_fineAdjustment->text().toFloat()/100.0);
+    info.m_name = QString("%1").arg((int)profit);
 
     QDateTime qdtTime =QDateTime::currentDateTime();
     info.m_time = qdtTime.toString("yyyy-MM-dd hh:mm:ss");
 
-    QString date = ui->dateEdit->text().replace("-", "_");
-    oper->sqlInsert(info, date);
+    QString qstrDate = ui->dateEdit->text().replace("-", "_");
+    QDateTime date = QDateTime::fromString(qstrDate, "yyyy_MM_dd");
+    int interval = date.daysTo(qdtTime);
+    if (interval > 0) {
+        qDebug() << "date is error, the date being writing is" << qstrDate;
+        return;
+    }
+    oper->sqlInsert(info, qstrDate);
     qDebug() << "writeData OUT";
 }
 
@@ -1658,7 +1723,11 @@ void WasteRecycle::updateTableView(float level)
     model->setItem(row, 4, new QStandardItem(ui->lb_NetWeight->text()));
     model->setItem(row, 5, new QStandardItem(towDecimalPlaces(QString("%1").arg(level))));
     model->setItem(row, 6, new QStandardItem(ui->lb_Price->text()));
-    model->setItem(row, 7, new QStandardItem(ui->le_name->text()));
+    float profit = 0;
+    if(kind_==QString::fromLocal8Bit("板纸")) {
+        profit = 2*(ui->le_RoughWeigh->text().toFloat() - ui->le_VehicleWeigh->text().toFloat())*(1-ui->spinBox->value()/100.0)*(ui->doubleSpinBox->value()-ui->le_fineAdjustment->text().toFloat()/100.0);
+    }
+    model->setItem(row, 7, new QStandardItem(QString("%1").arg((int)profit)));
     model->setItem(row, 8, new QStandardItem(kind_));
     ui->tableView->selectRow(row);
     qDebug() << "updateTableView OUT";
@@ -1715,6 +1784,7 @@ void WasteRecycle::statistics()
     float totalWeight = 0;
     float totalPrice = 0;
     float averagePrice = 0;
+    float totalProfit = 0;
     int amount = 0;
     int rows = model->rowCount();
     for (int i =  0; i < rows ; ++i) {
@@ -1724,6 +1794,7 @@ void WasteRecycle::statistics()
         }
         totalWeight += model->index(i, 4).data().toFloat();
         totalPrice += model->index(i, 6).data().toFloat();
+        totalProfit += model->index(i, 7).data().toFloat();
         ++amount;
     }
 
@@ -1732,6 +1803,7 @@ void WasteRecycle::statistics()
     ui->lb_TotalWeight->setText(QString("%1").arg(totalWeight));
     ui->lb_TotalPrices->setText(QString("%1").arg(totalPrice));
     ui->lb_AveragePrice->setText(QString("%1").arg(averagePrice));
+    ui->lb_TotalProfit->setText(QString("%1").arg(totalProfit));
     qDebug() << "statistics OUT";
 }
 
@@ -1782,39 +1854,67 @@ bool WasteRecycle::checkVehicleWeighIsValid() {
 void WasteRecycle::on_btn_huangban_clicked()
 {
     qDebug() << ">>>>>>> on_btn_huangban_clicked IN";
-    kind_ = QString::fromLocal8Bit("板纸");
+    // kind_ = QString::fromLocal8Bit("板纸");
     // 判断车重是否全为数字
     if (!checkVehicleWeighIsValid()) {
         on_btn_Next_clicked();
         return;
     }
 
-    // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("黄板")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float rw = ui->le_RoughWeigh->text().toFloat();
+    float vw = ui->le_VehicleWeigh->text().toFloat();
+    float weight = (rw-vw)*2;
+    if(weight > 0) {
+        if(!ui->le_chaoshi->text().isEmpty()) {
+            weight -= ui->le_chaoshi->text().toFloat();
+        }
+        if(!ui->le_tonghuo->text().isEmpty()) {
+            weight -= ui->le_tonghuo->text().toFloat();
+        }
 
-    finalPrice(fPrice);
-    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
-    setTextEnabled(false);
-    showPrice(fPrice);
+        ui->le_huangban->setText(QString("%1").arg(weight));
+    }
+
+    // 最终价格为黄板纸价格+微调价格
+//    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("黄板")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+
+//    finalPrice(fPrice);
+//    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
+//    setTextEnabled(false);
+//    showPrice(fPrice);
 }
 
 void WasteRecycle::on_btn_tonghuo_clicked()
 {
     qDebug() << ">>>>>>> on_btn_tonghuo_clicked IN";
-    kind_ = QString::fromLocal8Bit("板纸");
+    // kind_ = QString::fromLocal8Bit("板纸");
     // 判断车重是否全为数字
     if (!checkVehicleWeighIsValid()) {
         on_btn_Next_clicked();
         return;
     }
 
-    // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("统货")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float rw = ui->le_RoughWeigh->text().toFloat();
+    float vw = ui->le_VehicleWeigh->text().toFloat();
+    float weight = 2*(rw-vw);
+    if(weight > 0) {
+        if(!ui->le_huangban->text().isEmpty()) {
+            weight -= ui->le_huangban->text().toFloat();
+        }
+        if(!ui->le_chaoshi->text().isEmpty()) {
+            weight -= ui->le_chaoshi->text().toFloat();
+        }
 
-    finalPrice(fPrice);
-    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
-    setTextEnabled(false);
-    showPrice(fPrice);
+        ui->le_tonghuo->setText(QString("%1").arg(weight));
+    }
+
+    // 最终价格为黄板纸价格+微调价格
+//    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("统货")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+
+//    finalPrice(fPrice);
+//    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
+//    setTextEnabled(false);
+//    showPrice(fPrice);
 }
 
 void WasteRecycle::on_btn_jumin_clicked()
@@ -1839,20 +1939,34 @@ void WasteRecycle::on_btn_jumin_clicked()
 void WasteRecycle::on_btn_chao1_clicked()
 {
     qDebug() << ">>>>>>> on_btn_chao1_clicked IN";
-    kind_ = QString::fromLocal8Bit("板纸");
+    // kind_ = QString::fromLocal8Bit("板纸");
     // 判断车重是否全为数字
     if (!checkVehicleWeighIsValid()) {
         on_btn_Next_clicked();
         return;
     }
 
-    // 最终价格为黄板纸价格+微调价格
-    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("超1")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+    float rw = ui->le_RoughWeigh->text().toFloat();
+    float vw = ui->le_VehicleWeigh->text().toFloat();
+    float weight = 2*(rw-vw);
+    if(weight > 0) {
+        if(!ui->le_huangban->text().isEmpty()) {
+            weight -= ui->le_huangban->text().toFloat();
+        }
+        if(!ui->le_tonghuo->text().isEmpty()) {
+            weight -= ui->le_tonghuo->text().toFloat();
+        }
 
-    finalPrice(fPrice);
-    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
-    setTextEnabled(false);
-    showPrice(fPrice);
+        ui->le_chaoshi->setText(QString("%1").arg(weight));
+    }
+
+    // 最终价格为黄板纸价格+微调价格
+//    float fPrice = priceWin->LineEditMap_[QString::fromLocal8Bit("超1")]->value_ + ui->le_fineAdjustment->text().toFloat()/100.0;
+
+//    finalPrice(fPrice);
+//    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
+//    setTextEnabled(false);
+//    showPrice(fPrice);
 }
 
 void WasteRecycle::on_btn_chao2_clicked()
@@ -2145,6 +2259,9 @@ void WasteRecycle::on_btn_set_clicked()
 
 void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
 {
+    if(ui->le_VehicleWeigh->text().isEmpty()) {
+        return;
+    }
     QString strRw = ui->le_RoughWeigh->text();
     QString strVw = ui->le_VehicleWeigh->text();
 
@@ -2166,6 +2283,23 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
         QMessageBox::warning(this, QString::fromLocal8Bit("警告"), QString::fromLocal8Bit("毛重或者车重数据错误!"), QString::fromLocal8Bit("关闭"));
         qWarning() << "le_RoughWeigh or le_VehicleWeigh data is wrong.";
         return;
+    } else {
+        float weight = 2*(fRw-fVw);
+        float value = 0;
+        if (weight > priceWin->LineEditMap_[QString::fromLocal8Bit("LP条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("量贩盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+
+        } else if(weight > priceWin->LineEditMap_[QString::fromLocal8Bit("NP条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("普贩盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        } else if (weight > priceWin->LineEditMap_[QString::fromLocal8Bit("LR条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("量居盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        } else {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("普居盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        }
     }
 
     if (isAllDigit && strVw.trimmed() != "") {
@@ -2177,6 +2311,7 @@ void WasteRecycle::on_le_VehicleWeigh_textChanged(const QString &arg1)
 
 void WasteRecycle::on_le_RoughWeigh_textChanged(const QString &arg1)
 {
+    qDebug() << "on_le_RoughWeigh_textChanged IN";
     QString strRw = ui->le_RoughWeigh->text();
     QString strVw = ui->le_VehicleWeigh->text();
 
@@ -2194,7 +2329,27 @@ void WasteRecycle::on_le_RoughWeigh_textChanged(const QString &arg1)
 
     float fRw = strRw.toFloat();
     float fVw = strVw.toFloat();
+
+    if(!ui->le_VehicleWeigh->text().isEmpty()) {
+        float weight = 2*(fRw-fVw);
+        float value = 0;
+        if (weight > priceWin->LineEditMap_[QString::fromLocal8Bit("LP条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("量贩盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        } else if(weight > priceWin->LineEditMap_[QString::fromLocal8Bit("NP条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("普贩盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        } else if (weight > priceWin->LineEditMap_[QString::fromLocal8Bit("LR条件")]->value_) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("量居盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        } else if (weight > priceWin->LineEditMap_[QString::fromLocal8Bit("NR条件")]->value_ ) {
+            value = priceWin->LineEditMap_[QString::fromLocal8Bit("普居盈利率")]->value_;
+            ui->doubleSpinBox->setValue(value);
+        }
+    }
     ui->lb_NetWeight->setText(QString("%1").arg((fRw - fVw)*2));
+
+    qDebug() << "on_le_RoughWeigh_textChanged OUT";
 }
 
 /* void WasteRecycle::on_btn_modify_clicked()
@@ -2256,6 +2411,8 @@ void WasteRecycle::on_btn_Statistics_clicked()
         ui->lb_TotalPrices0->setVisible(true);
         ui->lb_TotalWeight->setVisible(true);
         ui->lb_TotalWeight0->setVisible(true);
+        ui->lb_TotalProfit->setVisible(true);
+        ui->lb_TotalProfit0->setVisible(true);
     } else {
         ui->lb_Amount->setHidden(true);
         ui->lb_Amount0->setHidden(true);
@@ -2265,6 +2422,8 @@ void WasteRecycle::on_btn_Statistics_clicked()
         ui->lb_TotalPrices0->setHidden(true);
         ui->lb_TotalWeight->setHidden(true);
         ui->lb_TotalWeight0->setHidden(true);
+        ui->lb_TotalProfit->setHidden(true);
+        ui->lb_TotalProfit0->setHidden(true);
     }
     qDebug() << "on_btn_Statistics_clicked OUT";
 }
@@ -2540,7 +2699,10 @@ void WasteRecycle::on_btn_totalWeightChart_clicked()
 
     // 查询charts表中的所有记录
     std::list<QString> elements;
-    QString queryChartsTable = "select * from charts order by time asc;";
+
+    int halfYear = 183;
+    QString limitTime = QDate::currentDate().addDays(-halfYear).toString("yyyy_MM_dd");
+    QString queryChartsTable = "select * from charts where time >= '"+ limitTime + "' order by time asc;";
     elements = oper->queryTableRecords(queryChartsTable);
 
     std::map<QDateTime, float> totalWeightMap;
@@ -2562,9 +2724,11 @@ void WasteRecycle::on_btn_averageChart_clicked()
 
     // 查询charts表中的所有记录
     std::list<QString> elements;
-    QString queryChartsTable = "select * from charts order by time asc;";
-    elements = oper->queryTableRecords(queryChartsTable);
 
+    int halfYear = 183;
+    QString limitTime = QDate::currentDate().addDays(-halfYear).toString("yyyy_MM_dd");
+    QString queryChartsTable = "select * from charts where time >= '"+ limitTime + "' order by time asc;";
+    elements = oper->queryTableRecords(queryChartsTable);
     std::map<QDateTime, float> averagePriceMap;
     for (auto element : elements) {
         QStringList line = element.split("  ");
@@ -3514,6 +3678,12 @@ void WasteRecycle::myLineEditClicked()
     myle->selectAll();
 }
 
+void WasteRecycle::lineEditClicked()
+{
+    MyLineEdit *myle=qobject_cast<MyLineEdit*>(sender());
+    myle->clear();
+}
+
 void WasteRecycle::on_btn_searchAndStatic_clicked()
 {
     // 统计近一个月的总量，平均价，总价
@@ -3546,4 +3716,44 @@ void WasteRecycle::on_btn_searchAndStatic_clicked()
     monthlyWin->show();
 
     qDebug() << "[WasteRecycle] on_btn_searchAndStatic_clicked OUT";
+}
+
+void WasteRecycle::on_btn_finalCal_clicked()
+{
+    kind_ = QString::fromLocal8Bit("板纸");
+    float huangban = ui->le_huangban->text().toFloat();
+    float chaoshi = ui->le_chaoshi->text().toFloat();
+    float tonghuo = ui->le_tonghuo->text().toFloat();
+
+    float hbPrice = priceWin->paperPrices_[QString::fromLocal8Bit("黄板")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+    hbPrice = ((int)(hbPrice*100))/100.0;
+    float csPrice = priceWin->paperPrices_[QString::fromLocal8Bit("超市")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+    csPrice = ((int)(csPrice*100))/100.0;
+    float thPrice = priceWin->paperPrices_[QString::fromLocal8Bit("统货")] * (1-ui->spinBox->value()/100.0) - ui->doubleSpinBox->value(); // + ui->le_fineAdjustment->text().toFloat()/100.0;
+    thPrice = ((int)(thPrice*100))/100.0;
+
+    float fPrice = 0.0;
+
+    if((huangban+chaoshi+tonghuo)>0) {
+        fPrice = (hbPrice*huangban + csPrice*chaoshi + thPrice*tonghuo) / (huangban + chaoshi + tonghuo);  // + ui->le_fineAdjustment->text().toFloat()/100.0;
+        fPrice = ((int)(fPrice*100))/100.0;
+        fPrice += ui->le_fineAdjustment->text().toFloat()/100.0;
+    }
+
+    finalPrice(fPrice);
+    ui->lb_unitPrice->setText(QString("%1").arg(fPrice));
+    setTextEnabled(false);
+    showPrice(fPrice);
+}
+
+void WasteRecycle::on_btn_resident_clicked()
+{
+    float rate = priceWin->LineEditMap_[QString::fromLocal8Bit("量居盈利率")]->value_;
+    ui->doubleSpinBox->setValue(rate);
+}
+
+void WasteRecycle::on_btn_packman_clicked()
+{
+    float rate = priceWin->LineEditMap_[QString::fromLocal8Bit("普贩盈利率")]->value_;
+    ui->doubleSpinBox->setValue(rate);
 }

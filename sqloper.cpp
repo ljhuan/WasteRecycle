@@ -351,6 +351,11 @@ std::list<QString> SqlOper::queryTablePrices(QString sql)
     qDebug() << sql;
     query.exec(sql);
     while(query.next()) {
+        QString kind = query.value("kind").toString();
+        if (kind == QString::fromLocal8Bit("超2") || kind == QString::fromLocal8Bit("超3") || kind == QString::fromLocal8Bit("民用")) {
+            qDebug() << "skip:" << kind;
+            continue;
+        }
         QString result = query.value("kind").toString() + UtilityTools::holdPlaces(2) + query.value("value").toString();
         // qDebug() << result;
         results.push_back(result);

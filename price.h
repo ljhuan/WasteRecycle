@@ -31,6 +31,7 @@ public:
     ~price();
 
     std::map<QString, BaseLineEdit*> LineEditMap_;
+    std::map<QString, float> paperPrices_;
 
 private slots:
     void lineEditClicked();

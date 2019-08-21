@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>549</width>
-    <height>288</height>
+    <height>468</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,11 +25,47 @@
    <property name="title">
     <string>种类</string>
    </property>
-   <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,1,1" columnstretch="2,2,1,2,2">
+   <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,1,1" columnstretch="1,2,1,1,2,2">
     <property name="spacing">
      <number>3</number>
     </property>
-    <item row="1" column="4">
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>超市价格</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="5">
+     <widget class="MyLineEdit" name="le_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="5">
      <widget class="MyLineEdit" name="le_8">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -51,28 +87,7 @@
      </widget>
     </item>
     <item row="0" column="4">
-     <widget class="MyLineEdit" name="le_4">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="MyLineEdit" name="le_5">
+     <widget class="MyLineEdit" name="le_3">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -113,29 +128,8 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="3">
+    <item row="1" column="4">
      <widget class="MyLineEdit" name="le_7">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="3">
-     <widget class="MyLineEdit" name="le_3">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -177,27 +171,6 @@
      </widget>
     </item>
     <item row="2" column="4">
-     <widget class="MyLineEdit" name="le_12">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="3">
      <widget class="MyLineEdit" name="le_11">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -218,8 +191,8 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="MyLineEdit" name="le_9">
+    <item row="2" column="5">
+     <widget class="MyLineEdit" name="le_12">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -260,10 +233,53 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="3">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
     <item row="0" column="0">
-     <widget class="MyLineEdit" name="le_1">
+     <widget class="QLabel" name="label">
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>黄板价格</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>统货价格</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="MyLineEdit" name="le_huangban_point">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -281,26 +297,55 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="2">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="1" column="2">
+     <widget class="MyLineEdit" name="le_chao1_point">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
-     </spacer>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="MyLineEdit" name="le_tonghuo_point">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
   <widget class="QPushButton" name="btn_ok">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>220</y>
+     <x>100</x>
+     <y>410</y>
      <width>111</width>
      <height>41</height>
     </rect>
@@ -343,8 +388,8 @@ QPushButton:hover{
   <widget class="QPushButton" name="btn_cancel">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>220</y>
+     <x>300</x>
+     <y>410</y>
      <width>121</width>
      <height>41</height>
     </rect>
@@ -383,6 +428,191 @@ QPushButton:hover{
    <property name="text">
     <string>取消</string>
    </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>210</y>
+     <width>311</width>
+     <height>191</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Arial</family>
+     <pointsize>14</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="title">
+    <string>盈利率设置</string>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0" columnstretch="1,1,1" rowminimumheight="1,1,1,1,1">
+    <property name="verticalSpacing">
+     <number>1</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>卖家</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>盈利率</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_10">
+      <property name="text">
+       <string>大于公斤数</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>普通居民</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="MyLineEdit" name="le_NomalResidentRate">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="MyLineEdit" name="le_NR_Condition">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>量大居民</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="MyLineEdit" name="le_LargeResidentRate">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="MyLineEdit" name="le_LR_Condition">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>普通小贩</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="MyLineEdit" name="le_NomalPackmanRate">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="MyLineEdit" name="le_NP_Condition">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>量大小贩</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="MyLineEdit" name="le_LargePackmanRate">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="2">
+     <widget class="MyLineEdit" name="le_LP_Condition">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:7px;padding:2px 4px;</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <customwidgets>
